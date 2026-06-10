@@ -14,7 +14,10 @@ A full-stack job finder application with AI-powered resume scanning, smart job m
 - 📄 **Resume Scanner** — Upload PDF resume → AI extracts skills, experience, education
 - ⚡ **AI Match Score** — Get relevance % for each job based on your resume
 - 📌 **Save & Track** — Bookmark jobs and track application status (Saved → Applied → Interview → Offer)
-- 👤 **User Profile** — Save preferences for personalized search results
+- 🧠 **AI Interview Prep** — Generate custom interview questions, model answers, and prep tips tailored to specific job listings
+- 🗺️ **Career Path Planner** — Visualize career trajectory, timeline, and salary progression based on your background
+- 🎯 **Skills Gap Analysis** — Automatically compare your skills against desired roles to discover exactly what you need to learn next
+- 👤 **User Profile** — Save preferences for personalized search results and roadmap generation
 
 ## Tech Stack
 
