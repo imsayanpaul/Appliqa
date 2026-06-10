@@ -6,11 +6,12 @@ const requireAuth = require('../middleware/auth');
 // Create or update user profile
 router.post('/profile', requireAuth, async (req, res) => {
   try {
-    const { name, preferences, resumeData } = req.body;
+    const { name, preferences, resumeData, dob } = req.body;
     const userId = req.user.id;
 
     const updateData = {};
     if (name !== undefined) updateData.name = name;
+    if (dob !== undefined) updateData.dob = dob;
     
     if (preferences) {
       if (preferences.desiredRole !== undefined) updateData.desired_role = preferences.desiredRole;
@@ -51,6 +52,7 @@ router.post('/profile', requireAuth, async (req, res) => {
       _id: user.id,
       name: user.name,
       email: user.email,
+      dob: user.dob || '',
       preferences: {
         desiredRole: user.desired_role || '',
         country: user.country || '',
@@ -94,9 +96,14 @@ router.get('/profile', requireAuth, async (req, res) => {
 
     // If profile doesn't exist yet (new signup, trigger may not have run), create one
     if (error?.code === 'PGRST116' || !user) {
+      const userMetadata = req.user.user_metadata || {};
       const { data: newUser, error: insertError } = await supabase
         .from('profiles')
-        .upsert({ id: req.user.id, email: req.user.email })
+        .upsert({ 
+          id: req.user.id, 
+          email: req.user.email,
+          dob: userMetadata.dob || null
+        })
         .select()
         .single();
       if (insertError) throw insertError;
@@ -135,6 +142,7 @@ router.get('/profile', requireAuth, async (req, res) => {
       _id: user.id,
       name: user.name,
       email: user.email,
+      dob: user.dob || '',
       preferences: {
         desiredRole: user.desired_role || '',
         country: user.country || '',

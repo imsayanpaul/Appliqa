@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSave, FiCheck, FiLogOut, FiEye, FiEyeOff, FiGithub, FiUser, FiMail, FiBriefcase, FiDollarSign, FiPlus, FiX, FiLock } from 'react-icons/fi';
+import { FiSave, FiCheck, FiLogOut, FiEye, FiEyeOff, FiGithub, FiUser, FiMail, FiBriefcase, FiDollarSign, FiPlus, FiX, FiLock, FiCalendar } from 'react-icons/fi';
 import { createOrUpdateUser } from '../services/api';
 import { supabase } from '../services/supabase';
 import ResumeUpload from '../components/ResumeUpload';
@@ -177,6 +177,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
     // Auth State
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [dob, setDob] = useState('');
     const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
     const [showPassword, setShowPassword] = useState(false);
     const [authLoading, setAuthLoading] = useState(false);
@@ -248,7 +249,15 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                 if (error) throw error;
                 navigate('/');
             } else {
-                const { error } = await supabase.auth.signUp({ email, password });
+                const { error } = await supabase.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        data: {
+                            dob: dob || null
+                        }
+                    }
+                });
                 if (error) throw error;
                 alert("Account created! Check your email to verify your registration.");
             }
@@ -354,6 +363,24 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                         />
                                     </div>
                                 </div>
+
+                                {authMode === 'register' && (
+                                    <div className="animate-fade-up animate-delay-350">
+                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Date of Birth</label>
+                                        <div className="premium-auth-input-wrapper">
+                                            <FiCalendar className="input-icon" />
+                                            <input 
+                                                type="date" 
+                                                required 
+                                                value={dob}
+                                                onChange={(e) => setDob(e.target.value)}
+                                                className="premium-auth-input" 
+                                                style={{ colorScheme: 'dark' }}
+                                                disabled={authLoading}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="animate-fade-up animate-delay-400">
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
