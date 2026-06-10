@@ -204,14 +204,14 @@ function AppContent() {
                         setResumeData(profile.resumeData);
                     }
                     
-                    // Check if location is missing from profile
-                    if (profile && (!profile.preferences?.country || !profile.preferences?.location)) {
+                    // Check if DOB is missing from profile first
+                    if (profile && !profile.dob) {
+                        setShowDobPrompt(true);
+                    } else if (profile && (!profile.preferences?.country || !profile.preferences?.location)) {
                         const prompted = sessionStorage.getItem('appliqa_location_prompted');
                         if (!prompted) {
                             setShowLocationPrompt(true);
                         }
-                    } else if (profile && !profile.dob) {
-                        setShowDobPrompt(true);
                     }
                 })
                 .catch(err => console.error("Could not fetch profile", err))
@@ -327,9 +327,18 @@ function AppContent() {
                 preferences: user?.preferences
             };
             const updateRes = await createOrUpdateUser(userData);
-            setUser(updateRes.data.user);
+            const updatedUser = updateRes.data.user;
+            setUser(updatedUser);
             alert('Date of Birth saved successfully!');
             setShowDobPrompt(false);
+            
+            // Chained check for missing location
+            if (updatedUser && (!updatedUser.preferences?.country || !updatedUser.preferences?.location)) {
+                const prompted = sessionStorage.getItem('appliqa_location_prompted');
+                if (!prompted) {
+                    setShowLocationPrompt(true);
+                }
+            }
         } catch (err) {
             console.error('Failed to save DOB:', err);
             alert('Could not save Date of Birth. Please try again.');
