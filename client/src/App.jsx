@@ -925,12 +925,13 @@ function AppContent() {
                         onClick={() => setCustomAlert(prev => ({ ...prev, show: false }))}
                         style={{
                             position: 'fixed',
-                            bottom: '24px',
+                            bottom: showLocationPrompt ? '236px' : '24px',
                             right: '24px',
                             width: '340px',
                             background: `radial-gradient(circle at top left, ${customAlert.type === 'error' ? 'rgba(239, 68, 68, 0.06)' : 'rgba(249, 115, 22, 0.06)'} 0%, transparent 60%), rgba(13, 13, 17, 0.85)`,
                             backdropFilter: 'blur(16px)',
                             WebkitBackdropFilter: 'blur(16px)',
+                            transition: 'bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
                             border: '1px solid rgba(255, 255, 255, 0.08)',
                             borderRadius: '16px',
                             padding: '16px',
