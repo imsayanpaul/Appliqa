@@ -78,4 +78,4 @@ Appliqa/
 
 ## License
 
-MIT
+[MIT](LICENSE)
