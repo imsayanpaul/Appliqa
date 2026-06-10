@@ -33,6 +33,21 @@ function AppContent() {
     const [showLocationPrompt, setShowLocationPrompt] = useState(false);
     const [detectingLocation, setDetectingLocation] = useState(false);
     
+    // GitHub repository stats (Stars & Forks)
+    const [githubStats, setGithubStats] = useState({ stars: 0, forks: 0 });
+
+    useEffect(() => {
+        fetch('https://api.github.com/repos/imsayanpaul/Appliqa')
+            .then(res => res.json())
+            .then(data => {
+                setGithubStats({
+                    stars: data.stargazers_count ?? 0,
+                    forks: data.forks_count ?? 0
+                });
+            })
+            .catch(err => console.error('Error fetching GitHub stats:', err));
+    }, []);
+    
     // Custom Alert State
     const [customAlert, setCustomAlert] = useState({ show: false, message: '', title: 'Notification', type: 'info' });
 
@@ -288,7 +303,7 @@ function AppContent() {
                 {/* Star Button */}
                 <div className="flex items-center bg-zinc-900/90 backdrop-blur-md border border-white/10 rounded-lg text-xs font-semibold shadow-xl hover:border-white/20 transition-all duration-200 overflow-hidden">
                     <a 
-                        href="https://github.com/sayanpaul717/appliqa" 
+                        href="https://github.com/imsayanpaul/Appliqa" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 px-3 py-1.5 border-r border-white/10 hover:bg-white/5 transition-all duration-200"
@@ -300,11 +315,11 @@ function AppContent() {
                             className="px-1.5 py-0.5 ml-1 rounded bg-white/10 border border-white/10 text-[10px] font-mono font-medium"
                             style={{ color: '#F97316', borderColor: 'rgba(249, 115, 22, 0.2)', backgroundColor: 'rgba(249, 115, 22, 0.1)' }}
                         >
-                            128
+                            {githubStats.stars}
                         </span>
                     </a>
                     <button 
-                        onClick={() => window.open('https://github.com/sayanpaul717/appliqa', '_blank')}
+                        onClick={() => window.open('https://github.com/imsayanpaul/Appliqa', '_blank')}
                         className="px-2 py-1.5 hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch"
                         style={{ color: '#A1A1AA', border: 'none', background: 'transparent' }}
                     >
@@ -315,7 +330,7 @@ function AppContent() {
                 {/* Fork Button */}
                 <div className="flex items-center bg-zinc-900/90 backdrop-blur-md border border-white/10 rounded-lg text-xs font-semibold shadow-xl hover:border-white/20 transition-all duration-200 overflow-hidden">
                     <a 
-                        href="https://github.com/sayanpaul717/appliqa/fork" 
+                        href="https://github.com/imsayanpaul/Appliqa/fork" 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 px-3 py-1.5 border-r border-white/10 hover:bg-white/5 transition-all duration-200"
@@ -327,11 +342,11 @@ function AppContent() {
                             className="px-1.5 py-0.5 ml-1 rounded bg-white/10 border border-white/10 text-[10px] font-mono font-medium"
                             style={{ color: '#F97316', borderColor: 'rgba(249, 115, 22, 0.2)', backgroundColor: 'rgba(249, 115, 22, 0.1)' }}
                         >
-                            18
+                            {githubStats.forks}
                         </span>
                     </a>
                     <button 
-                        onClick={() => window.open('https://github.com/sayanpaul717/appliqa/fork', '_blank')}
+                        onClick={() => window.open('https://github.com/imsayanpaul/Appliqa/fork', '_blank')}
                         className="px-2 py-1.5 hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch"
                         style={{ color: '#A1A1AA', border: 'none', background: 'transparent' }}
                     >
