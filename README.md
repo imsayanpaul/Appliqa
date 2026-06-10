@@ -4,7 +4,7 @@ A full-stack job finder application with AI-powered resume scanning, smart job m
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react)
 ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Gemini](https://img.shields.io/badge/Gemini_AI-8E75B2?style=for-the-badge&logo=google)
 
 ## Features
@@ -22,7 +22,7 @@ A full-stack job finder application with AI-powered resume scanning, smart job m
 |-------|-----------|
 | Frontend | React (Vite) |
 | Backend | Express.js |
-| Database | MongoDB Atlas (Mongoose) |
+| Database | Supabase (PostgreSQL) |
 | Job API | JSearch (RapidAPI) |
 | AI | Google Gemini 2.0 Flash |
 | PDF Parsing | PDF.js |
@@ -35,7 +35,7 @@ A full-stack job finder application with AI-powered resume scanning, smart job m
 |---------|----------|---------|
 | JSearch | 200 req/month | [RapidAPI](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch) |
 | Gemini | 15 req/min | [AI Studio](https://aistudio.google.com/apikey) |
-| MongoDB Atlas | 512MB forever | [MongoDB](https://www.mongodb.com/atlas) |
+| Supabase | Free Tier Project | [Supabase](https://supabase.com) |
 
 ### 2. Configure Environment
 
@@ -43,7 +43,8 @@ A full-stack job finder application with AI-powered resume scanning, smart job m
 # Edit .env file in the root directory
 RAPIDAPI_KEY=your_rapidapi_key
 GEMINI_API_KEY=your_gemini_key
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/appliqa
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_KEY=your_supabase_service_role_key
 ```
 
 ### 3. Install & Run
