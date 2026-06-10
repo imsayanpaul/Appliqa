@@ -201,10 +201,10 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
         }
     };
 
-    // Profile State
     const [form, setForm] = useState({
         name: '',
         email: '',
+        dob: '',
         desiredRole: '',
         country: '',
         location: '',
@@ -219,12 +219,12 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
-    // Auto-fill form once user profile is loaded from DB
     useEffect(() => {
         if (user) {
             setForm({
                 name: user?.name || '',
                 email: user?.email || '',
+                dob: user?.dob || '',
                 desiredRole: user?.preferences?.desiredRole || '',
                 country: user?.preferences?.country || '',
                 location: user?.preferences?.location || '',
@@ -283,6 +283,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
         try {
             const userData = {
                 name: form.name,
+                dob: form.dob || null,
                 preferences: {
                     desiredRole: form.desiredRole,
                     country: form.country,
@@ -620,6 +621,16 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     type="email"
                                     disabled
                                     value={form.email || session.user.email}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Date of Birth</label>
+                                <PremiumIconInput
+                                    icon={FiCalendar}
+                                    type="date"
+                                    value={form.dob}
+                                    onChange={(e) => handleChange('dob', e.target.value)}
+                                    style={{ colorScheme: 'dark' }}
                                 />
                             </div>
                         </div>

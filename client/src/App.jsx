@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiGitBranch, FiChevronDown } from 'react-icons/fi';
+import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiGitBranch, FiChevronDown, FiCalendar } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import Home from './pages/Home';
@@ -32,6 +32,9 @@ function AppContent() {
     const [user, setUser] = useState(null);
     const [showLocationPrompt, setShowLocationPrompt] = useState(false);
     const [detectingLocation, setDetectingLocation] = useState(false);
+    const [showDobPrompt, setShowDobPrompt] = useState(false);
+    const [dobInput, setDobInput] = useState('');
+    const [savingDob, setSavingDob] = useState(false);
     
     // GitHub repository stats (Stars & Forks)
     const [githubStats, setGithubStats] = useState({ stars: 0, forks: 0 });
@@ -207,6 +210,11 @@ function AppContent() {
                         if (!prompted) {
                             setShowLocationPrompt(true);
                         }
+                    } else if (profile && !profile.dob) {
+                        const prompted = sessionStorage.getItem('appliqa_dob_prompted');
+                        if (!prompted) {
+                            setShowDobPrompt(true);
+                        }
                     }
                 })
                 .catch(err => console.error("Could not fetch profile", err))
@@ -280,6 +288,14 @@ function AppContent() {
                 alert(`Successfully set default location to: ${city}, ${country}`);
                 setShowLocationPrompt(false);
                 sessionStorage.setItem('appliqa_location_prompted', 'true');
+                
+                // Chained check for missing DOB
+                if (updateRes.data.user && !updateRes.data.user.dob) {
+                    const prompted = sessionStorage.getItem('appliqa_dob_prompted');
+                    if (!prompted) {
+                        setShowDobPrompt(true);
+                    }
+                }
             } else {
                 throw new Error('Incomplete location data from IP API');
             }
@@ -299,6 +315,46 @@ function AppContent() {
         sessionStorage.setItem('appliqa_location_prompted', 'true');
         if (manual) {
             navigate('/profile');
+        } else {
+            // Chained check for missing DOB
+            if (user && !user.dob) {
+                const prompted = sessionStorage.getItem('appliqa_dob_prompted');
+                if (!prompted) {
+                    setShowDobPrompt(true);
+                }
+            }
+        }
+    };
+
+    const handleDismissDobPrompt = (manual = false) => {
+        setShowDobPrompt(false);
+        sessionStorage.setItem('appliqa_dob_prompted', 'true');
+        if (manual) {
+            navigate('/profile');
+        }
+    };
+
+    const handleSaveDob = async () => {
+        if (!dobInput) return;
+        setSavingDob(true);
+        try {
+            const userData = {
+                name: user?.name,
+                dob: dobInput,
+                preferences: user?.preferences
+            };
+            const updateRes = await createOrUpdateUser(userData);
+            setUser(updateRes.data.user);
+            alert('Date of Birth saved successfully!');
+            setShowDobPrompt(false);
+            sessionStorage.setItem('appliqa_dob_prompted', 'true');
+        } catch (err) {
+            console.error('Failed to save DOB:', err);
+            alert('Could not save Date of Birth. Please set it in your profile.');
+            setShowDobPrompt(false);
+            sessionStorage.setItem('appliqa_dob_prompted', 'true');
+        } finally {
+            setSavingDob(false);
         }
     };
 
@@ -759,6 +815,146 @@ function AppContent() {
                                 onMouseOut={(e) => e.target.style.color = 'var(--text-muted)'}
                             >
                                 Not Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDobPrompt && (
+                <div 
+                    style={{ 
+                        position: 'fixed', 
+                        bottom: '24px', 
+                        right: '24px', 
+                        width: '380px', 
+                        background: 'radial-gradient(circle at top left, rgba(249, 115, 22, 0.05) 0%, transparent 60%), rgba(13, 13, 17, 0.75)', 
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '20px',
+                        padding: '24px',
+                        boxShadow: '0 24px 50px -12px rgba(0, 0, 0, 0.7), 0 0 32px rgba(249, 115, 22, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                        zIndex: 1100,
+                        animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                    }}
+                >
+                    <button 
+                        onClick={() => handleDismissDobPrompt(false)}
+                        style={{
+                            position: 'absolute',
+                            top: '16px',
+                            right: '16px',
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.06)',
+                            color: 'var(--text-muted)',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            width: '28px',
+                            height: '28px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                            padding: '0'
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.color = '#fff';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+                        }}
+                    >
+                        <FiX size={14} />
+                    </button>
+                    
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: '20px' }}>
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            width: '42px', 
+                            height: '42px', 
+                            borderRadius: '12px', 
+                            background: 'rgba(249, 115, 22, 0.08)', 
+                            border: '1px solid rgba(249, 115, 22, 0.25)', 
+                            color: 'var(--accent-primary)',
+                            flexShrink: 0, 
+                            boxShadow: '0 0 16px rgba(249, 115, 22, 0.1)'
+                        }}>
+                            <FiCalendar size={18} />
+                        </div>
+                        <div style={{ flex: 1, paddingRight: '20px' }}>
+                            <h3 style={{ fontSize: '15.5px', fontWeight: 650, color: '#FFFFFF', letterSpacing: '-0.01em', marginBottom: '4px' }}>Complete Profile</h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '12.5px', lineHeight: '1.5' }}>
+                                Please set your Date of Birth to complete your profile registration.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div className="premium-auth-input-wrapper" style={{ margin: '0' }}>
+                            <input 
+                                type="date" 
+                                value={dobInput}
+                                onChange={(e) => setDobInput(e.target.value)}
+                                className="premium-auth-input" 
+                                style={{ 
+                                    colorScheme: 'dark', 
+                                    width: '100%', 
+                                    boxSizing: 'border-box',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    borderRadius: '12px',
+                                    padding: '10px 14px',
+                                    background: 'rgba(0,0,0,0.2)',
+                                    color: '#fff'
+                                }}
+                            />
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={handleSaveDob} 
+                                disabled={savingDob || !dobInput}
+                                style={{ 
+                                    justifyContent: 'center', 
+                                    padding: '10px 16px',
+                                    borderRadius: '12px',
+                                    fontSize: '13px',
+                                    fontWeight: '600',
+                                    background: 'linear-gradient(135deg, var(--accent-primary), #EA580C)',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    boxShadow: '0 4px 14px rgba(249, 115, 22, 0.25)',
+                                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {savingDob ? 'Saving...' : 'Save DOB'}
+                            </button>
+                            <button 
+                                className="btn btn-secondary" 
+                                onClick={() => handleDismissDobPrompt(false)}
+                                disabled={savingDob}
+                                style={{ 
+                                    justifyContent: 'center', 
+                                    padding: '10px 16px', 
+                                    background: 'rgba(255, 255, 255, 0.03)', 
+                                    borderColor: 'rgba(255, 255, 255, 0.08)', 
+                                    color: 'var(--text-muted)',
+                                    borderRadius: '12px',
+                                    fontSize: '13px',
+                                    fontWeight: '500',
+                                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Dismiss
                             </button>
                         </div>
                     </div>
