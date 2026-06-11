@@ -16,7 +16,7 @@
 
 .onboarding-card {
   width: 100%;
-  max-width: 800px;
+  max-width: 860px;
   background: radial-gradient(circle at top left, rgba(249, 115, 22, 0.08) 0%, transparent 60%), rgba(13, 13, 17, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
@@ -24,7 +24,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   overflow: hidden;
-  max-height: 90vh;
+  max-height: 94vh;
 }
 
 @media (max-width: 800px) {
@@ -36,25 +36,25 @@
 }
 
 .onboarding-left-panel {
-  padding: 32px;
+  padding: 44px;
   background: rgba(255, 255, 255, 0.01);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 20px;
+  gap: 24px;
 }
 
 @media (max-width: 800px) {
   .onboarding-left-panel {
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 24px;
+    padding: 32px;
   }
 }
 
 .onboarding-right-panel {
-  padding: 32px;
+  padding: 44px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -63,7 +63,7 @@
 
 @media (max-width: 800px) {
   .onboarding-right-panel {
-    padding: 24px;
+    padding: 32px;
   }
 }
 
@@ -72,28 +72,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
   background: rgba(249, 115, 22, 0.08);
   border: 1px solid rgba(249, 115, 22, 0.25);
   color: var(--accent-primary);
   box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .onboarding-title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 750;
   color: #FFFFFF;
   letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .onboarding-subtitle {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 13.5px;
+  line-height: 1.6;
   margin: 0;
 }
 
@@ -101,16 +101,16 @@
 .onboarding-checkboxes {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin: 8px 0;
+  gap: 14px;
+  margin: 16px 0 8px 0;
 }
 
 .onboarding-checkbox-label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--text-secondary);
   transition: color 0.2s ease;
   user-select: none;
@@ -134,20 +134,20 @@
 .onboarding-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
+  gap: 22px 24px;
 }
 
 @media (max-width: 550px) {
   .onboarding-form-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 16px;
   }
 }
 
 .onboarding-field-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 /* Dynamic field animation wrapper */
@@ -155,7 +155,7 @@
   grid-column: span 2;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px 20px;
+  gap: 22px 24px;
   animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -163,12 +163,12 @@
   .onboarding-dynamic-row {
     grid-column: span 1;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 16px;
   }
 }
 
 .onboarding-label {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.8px;
   text-transform: uppercase;
@@ -181,10 +181,10 @@
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 11px 14px;
+  padding: 13px 16px;
   background: rgba(0, 0, 0, 0.25);
   color: #FFFFFF;
-  font-size: 13.5px;
+  font-size: 14px;
   outline: none;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -202,12 +202,13 @@
 /* Button styling in grid */
 .onboarding-submit-btn-container {
   grid-column: span 2;
-  margin-top: 8px;
+  margin-top: 14px;
 }
 
 @media (max-width: 550px) {
   .onboarding-submit-btn-container {
     grid-column: span 1;
+    margin-top: 6px;
   }
 }
 

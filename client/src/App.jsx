@@ -1003,7 +1003,7 @@ function AppContent() {
                                         style={{ 
                                             justifyContent: 'center', 
                                             width: '100%',
-                                            padding: '12px 20px',
+                                            padding: '13.5px 20px',
                                             borderRadius: '12px',
                                             fontSize: '14px',
                                             fontWeight: '600',
