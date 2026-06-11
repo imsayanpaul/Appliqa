@@ -20,7 +20,20 @@ router.post('/profile', requireAuth, async (req, res) => {
       portfolioGithub,
       portfolioBehance,
       portfolioLinkedin,
-      portfolioWebsite
+      portfolioWebsite,
+      currentSalary,
+      targetSalary,
+      willingToRelocate,
+      targetCities,
+      skillsToLearn,
+      openToBootcamps,
+      preferredTools,
+      preferredTechStack,
+      certifications,
+      skillsProficiency,
+      resumesOptimizedCount,
+      coverLettersGeneratedCount,
+      recruiterDmsSentCount
     } = req.body;
     const userId = req.user.id;
 
@@ -38,6 +51,21 @@ router.post('/profile', requireAuth, async (req, res) => {
     if (portfolioLinkedin !== undefined) updateData.portfolio_linkedin = portfolioLinkedin;
     if (portfolioWebsite !== undefined) updateData.portfolio_website = portfolioWebsite;
     
+    // New fields
+    if (currentSalary !== undefined) updateData.current_salary = currentSalary !== '' && currentSalary !== null ? parseInt(currentSalary, 10) : null;
+    if (targetSalary !== undefined) updateData.target_salary = targetSalary !== '' && targetSalary !== null ? parseInt(targetSalary, 10) : null;
+    if (willingToRelocate !== undefined) updateData.willing_to_relocate = willingToRelocate !== '' && willingToRelocate !== null ? !!willingToRelocate : null;
+    if (targetCities !== undefined) updateData.target_cities = targetCities;
+    if (skillsToLearn !== undefined) updateData.skills_to_learn = skillsToLearn;
+    if (openToBootcamps !== undefined) updateData.open_to_bootcamps = openToBootcamps !== '' && openToBootcamps !== null ? !!openToBootcamps : null;
+    if (preferredTools !== undefined) updateData.preferred_tools = preferredTools;
+    if (preferredTechStack !== undefined) updateData.preferred_tech_stack = preferredTechStack;
+    if (certifications !== undefined) updateData.certifications = certifications;
+    if (skillsProficiency !== undefined) updateData.skills_proficiency = skillsProficiency;
+    if (resumesOptimizedCount !== undefined) updateData.resumes_optimized_count = resumesOptimizedCount !== '' && resumesOptimizedCount !== null ? parseInt(resumesOptimizedCount, 10) : 0;
+    if (coverLettersGeneratedCount !== undefined) updateData.cover_letters_generated_count = coverLettersGeneratedCount !== '' && coverLettersGeneratedCount !== null ? parseInt(coverLettersGeneratedCount, 10) : 0;
+    if (recruiterDmsSentCount !== undefined) updateData.recruiter_dms_sent_count = recruiterDmsSentCount !== '' && recruiterDmsSentCount !== null ? parseInt(recruiterDmsSentCount, 10) : 0;
+
     if (preferences) {
       if (preferences.desiredRole !== undefined) updateData.desired_role = preferences.desiredRole;
       if (preferences.country !== undefined) updateData.country = preferences.country;
@@ -88,6 +116,19 @@ router.post('/profile', requireAuth, async (req, res) => {
       portfolioBehance: user.portfolio_behance || '',
       portfolioLinkedin: user.portfolio_linkedin || '',
       portfolioWebsite: user.portfolio_website || '',
+      currentSalary: user.current_salary !== null && user.current_salary !== undefined ? user.current_salary : '',
+      targetSalary: user.target_salary !== null && user.target_salary !== undefined ? user.target_salary : '',
+      willingToRelocate: user.willing_to_relocate !== null && user.willing_to_relocate !== undefined ? !!user.willing_to_relocate : false,
+      targetCities: user.target_cities || '',
+      skillsToLearn: user.skills_to_learn || '',
+      openToBootcamps: user.open_to_bootcamps !== null && user.open_to_bootcamps !== undefined ? !!user.open_to_bootcamps : false,
+      preferredTools: user.preferred_tools || '',
+      preferredTechStack: user.preferred_tech_stack || '',
+      certifications: user.certifications || '',
+      skillsProficiency: user.skills_proficiency || '',
+      resumesOptimizedCount: user.resumes_optimized_count || 0,
+      coverLettersGeneratedCount: user.cover_letters_generated_count || 0,
+      recruiterDmsSentCount: user.recruiter_dms_sent_count || 0,
       preferences: {
         desiredRole: user.desired_role || '',
         country: user.country || '',
@@ -188,6 +229,19 @@ router.get('/profile', requireAuth, async (req, res) => {
       portfolioBehance: user.portfolio_behance || '',
       portfolioLinkedin: user.portfolio_linkedin || '',
       portfolioWebsite: user.portfolio_website || '',
+      currentSalary: user.current_salary !== null && user.current_salary !== undefined ? user.current_salary : '',
+      targetSalary: user.target_salary !== null && user.target_salary !== undefined ? user.target_salary : '',
+      willingToRelocate: user.willing_to_relocate !== null && user.willing_to_relocate !== undefined ? !!user.willing_to_relocate : false,
+      targetCities: user.target_cities || '',
+      skillsToLearn: user.skills_to_learn || '',
+      openToBootcamps: user.open_to_bootcamps !== null && user.open_to_bootcamps !== undefined ? !!user.open_to_bootcamps : false,
+      preferredTools: user.preferred_tools || '',
+      preferredTechStack: user.preferred_tech_stack || '',
+      certifications: user.certifications || '',
+      skillsProficiency: user.skills_proficiency || '',
+      resumesOptimizedCount: user.resumes_optimized_count || 0,
+      coverLettersGeneratedCount: user.cover_letters_generated_count || 0,
+      recruiterDmsSentCount: user.recruiter_dms_sent_count || 0,
       preferences: {
         desiredRole: user.desired_role || '',
         country: user.country || '',

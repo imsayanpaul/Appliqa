@@ -223,7 +223,20 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
         portfolioGithub: '',
         portfolioBehance: '',
         portfolioLinkedin: '',
-        portfolioWebsite: ''
+        portfolioWebsite: '',
+        currentSalary: '',
+        targetSalary: '',
+        willingToRelocate: false,
+        targetCities: '',
+        skillsToLearn: '',
+        openToBootcamps: false,
+        preferredTools: '',
+        preferredTechStack: '',
+        certifications: '',
+        skillsProficiency: '',
+        resumesOptimizedCount: 0,
+        coverLettersGeneratedCount: 0,
+        recruiterDmsSentCount: 0
     });
 
     const [saving, setSaving] = useState(false);
@@ -253,7 +266,20 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                 portfolioGithub: user?.portfolioGithub || '',
                 portfolioBehance: user?.portfolioBehance || '',
                 portfolioLinkedin: user?.portfolioLinkedin || '',
-                portfolioWebsite: user?.portfolioWebsite || ''
+                portfolioWebsite: user?.portfolioWebsite || '',
+                currentSalary: user?.currentSalary || '',
+                targetSalary: user?.targetSalary || '',
+                willingToRelocate: user?.willingToRelocate || false,
+                targetCities: user?.targetCities || '',
+                skillsToLearn: user?.skillsToLearn || '',
+                openToBootcamps: user?.openToBootcamps || false,
+                preferredTools: user?.preferredTools || '',
+                preferredTechStack: user?.preferredTechStack || '',
+                certifications: user?.certifications || '',
+                skillsProficiency: user?.skillsProficiency || '',
+                resumesOptimizedCount: user?.resumesOptimizedCount || 0,
+                coverLettersGeneratedCount: user?.coverLettersGeneratedCount || 0,
+                recruiterDmsSentCount: user?.recruiterDmsSentCount || 0
             });
         }
     }, [user, resumeData]);
@@ -314,6 +340,19 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                 portfolioBehance: form.portfolioBehance,
                 portfolioLinkedin: form.portfolioLinkedin,
                 portfolioWebsite: form.portfolioWebsite,
+                currentSalary: form.currentSalary !== '' && form.currentSalary !== null ? parseInt(form.currentSalary, 10) : null,
+                targetSalary: form.targetSalary !== '' && form.targetSalary !== null ? parseInt(form.targetSalary, 10) : null,
+                willingToRelocate: form.willingToRelocate,
+                targetCities: form.targetCities,
+                skillsToLearn: form.skillsToLearn,
+                openToBootcamps: form.openToBootcamps,
+                preferredTools: form.preferredTools,
+                preferredTechStack: form.preferredTechStack,
+                certifications: form.certifications,
+                skillsProficiency: form.skillsProficiency,
+                resumesOptimizedCount: parseInt(form.resumesOptimizedCount, 10) || 0,
+                coverLettersGeneratedCount: parseInt(form.coverLettersGeneratedCount, 10) || 0,
+                recruiterDmsSentCount: parseInt(form.recruiterDmsSentCount, 10) || 0,
                 preferences: {
                     desiredRole: form.desiredRole,
                     country: form.country,
@@ -622,6 +661,66 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
             </motion.div>
 
             <form onSubmit={handleSubmit}>
+                {/* On-Platform Stats */}
+                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+                        <Card style={{ 
+                            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
+                            backdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(249, 115, 22, 0.2)',
+                            borderRadius: '16px',
+                            padding: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 16
+                        }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(249, 115, 22, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
+                                <FiBriefcase size={20} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>Resumes Optimized</div>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{form.resumesOptimizedCount}</div>
+                            </div>
+                        </Card>
+                        <Card style={{ 
+                            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
+                            backdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(168, 85, 247, 0.2)',
+                            borderRadius: '16px',
+                            padding: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 16
+                        }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(168, 85, 247, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a855f7' }}>
+                                <FiBookOpen size={20} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>Cover Letters Generated</div>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{form.coverLettersGeneratedCount}</div>
+                            </div>
+                        </Card>
+                        <Card style={{ 
+                            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
+                            backdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(16, 185, 129, 0.2)',
+                            borderRadius: '16px',
+                            padding: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 16
+                        }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+                                <FiMail size={20} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>Recruiter DMs Sent</div>
+                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{form.recruiterDmsSentCount}</div>
+                            </div>
+                        </Card>
+                    </div>
+                </motion.div>
+
                 <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
                     <Card style={{ 
                         background: 'rgba(10, 10, 10, 0.4)',
@@ -800,6 +899,60 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                     </Card>
                 </motion.div>
 
+                {/* Salary & Relocation Settings */}
+                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
+                    <Card style={{ 
+                        background: 'rgba(10, 10, 10, 0.4)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid var(--ghost-border)',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+                        borderRadius: '16px'
+                    }}>
+                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
+                            Salary & Relocation Settings
+                        </h3>
+                        <div className="preferences-form">
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Current Salary</label>
+                                <PremiumIconInput
+                                    symbol={form.preferredCurrency === 'USD' ? '$' : form.preferredCurrency === 'EUR' ? '€' : form.preferredCurrency === 'GBP' ? '£' : form.preferredCurrency === 'CAD' ? 'C$' : '₹'}
+                                    type="number"
+                                    placeholder="e.g. 80000"
+                                    value={form.currentSalary}
+                                    onChange={(e) => handleChange('currentSalary', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Target Salary</label>
+                                <PremiumIconInput
+                                    symbol={form.preferredCurrency === 'USD' ? '$' : form.preferredCurrency === 'EUR' ? '€' : form.preferredCurrency === 'GBP' ? '£' : form.preferredCurrency === 'CAD' ? 'C$' : '₹'}
+                                    type="number"
+                                    placeholder="e.g. 120000"
+                                    value={form.targetSalary}
+                                    onChange={(e) => handleChange('targetSalary', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Target Cities</label>
+                                <PremiumIconInput
+                                    icon={FiGlobe}
+                                    placeholder="e.g. San Francisco, New York, Seattle"
+                                    value={form.targetCities}
+                                    onChange={(e) => handleChange('targetCities', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: 32 }}>
+                                <PremiumToggle
+                                    checked={form.willingToRelocate}
+                                    onChange={(val) => handleChange('willingToRelocate', val)}
+                                    label="Willing to relocate for work"
+                                />
+                            </div>
+                        </div>
+                    </Card>
+                </motion.div>
+
                 {/* Career Status & Urgency */}
                 <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
                     <Card style={{ 
@@ -876,6 +1029,82 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     </div>
                                 </>
                             )}
+                        </div>
+                    </Card>
+                </motion.div>
+
+                {/* Upskilling & Tooling Preferences */}
+                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
+                    <Card style={{ 
+                        background: 'rgba(10, 10, 10, 0.4)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid var(--ghost-border)',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+                        borderRadius: '16px'
+                    }}>
+                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
+                            Upskilling & Tooling Preferences
+                        </h3>
+                        <div className="preferences-form">
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Certifications Held</label>
+                                <PremiumIconInput
+                                    icon={FiBriefcase}
+                                    placeholder="e.g. AWS Solutions Architect, Scrum Master"
+                                    value={form.certifications}
+                                    onChange={(e) => handleChange('certifications', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Skills You Want to Learn Next</label>
+                                <PremiumIconInput
+                                    icon={FiBookOpen}
+                                    placeholder="e.g. Kubernetes, Rust, System Design"
+                                    value={form.skillsToLearn}
+                                    onChange={(e) => handleChange('skillsToLearn', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Self-Assessed Skill Level</label>
+                                <Dropdown
+                                    options={[
+                                        { value: "", label: "Select proficiency level" },
+                                        { value: "Beginner", label: "Beginner" },
+                                        { value: "Intermediate", label: "Intermediate" },
+                                        { value: "Expert", label: "Expert" }
+                                    ]}
+                                    value={form.skillsProficiency}
+                                    onChange={(val) => handleChange('skillsProficiency', val)}
+                                    placeholder="Select level"
+                                    variant="form"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Preferred Tech Stack</label>
+                                <PremiumIconInput
+                                    icon={FiGithub}
+                                    placeholder="e.g. React, Node.js, PostgreSQL"
+                                    value={form.preferredTechStack}
+                                    onChange={(e) => handleChange('preferredTechStack', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Preferred Tools & IDEs</label>
+                                <PremiumIconInput
+                                    icon={FiClock}
+                                    placeholder="e.g. VS Code, Docker, AWS"
+                                    value={form.preferredTools}
+                                    onChange={(e) => handleChange('preferredTools', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: 32 }}>
+                                <PremiumToggle
+                                    checked={form.openToBootcamps}
+                                    onChange={(val) => handleChange('openToBootcamps', val)}
+                                    label="Open to coding bootcamps / online degrees"
+                                />
+                            </div>
                         </div>
                     </Card>
                 </motion.div>

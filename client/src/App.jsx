@@ -32,9 +32,7 @@ function AppContent() {
     const [user, setUser] = useState(null);
     const [showLocationPrompt, setShowLocationPrompt] = useState(false);
     const [detectingLocation, setDetectingLocation] = useState(false);
-    const [showDobPrompt, setShowDobPrompt] = useState(false);
-    const [dobInput, setDobInput] = useState('');
-    const [savingDob, setSavingDob] = useState(false);
+
     const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
     const [onboardingForm, setOnboardingForm] = useState({
         educationStatus: '',
@@ -42,7 +40,10 @@ function AppContent() {
         expectedGraduationYear: '',
         jobSearchUrgency: '',
         portfolioLinkedin: '',
-        portfolioGithub: ''
+        portfolioGithub: '',
+        targetSalary: '',
+        willingToRelocate: false,
+        openToBootcamps: false
     });
     const [savingOnboarding, setSavingOnboarding] = useState(false);
     
@@ -214,16 +215,26 @@ function AppContent() {
                         setResumeData(profile.resumeData);
                     }
                     
-                    // Check if DOB is missing from profile first
-                    if (profile && !profile.dob) {
-                        setShowDobPrompt(true);
+                    // Show combined onboarding setup if DOB or Education Status is missing
+                    if (profile && (!profile.dob || !profile.educationStatus)) {
+                        setOnboardingForm({
+                            dob: profile.dob || '',
+                            educationStatus: profile.educationStatus || '',
+                            collegeCourse: profile.collegeCourse || '',
+                            expectedGraduationYear: profile.expectedGraduationYear || '',
+                            jobSearchUrgency: profile.jobSearchUrgency || '',
+                            portfolioLinkedin: profile.portfolioLinkedin || '',
+                            portfolioGithub: profile.portfolioGithub || '',
+                            targetSalary: profile.targetSalary || '',
+                            willingToRelocate: profile.willingToRelocate || false,
+                            openToBootcamps: profile.openToBootcamps || false
+                        });
+                        setShowOnboardingPrompt(true);
                     } else if (profile && (!profile.preferences?.country || !profile.preferences?.location)) {
                         const prompted = sessionStorage.getItem('appliqa_location_prompted');
                         if (!prompted) {
                             setShowLocationPrompt(true);
                         }
-                    } else if (profile && !profile.educationStatus) {
-                        setShowOnboardingPrompt(true);
                     }
                 })
                 .catch(err => console.error("Could not fetch profile", err))
@@ -329,44 +340,13 @@ function AppContent() {
         }
     };
 
-    const handleSaveDob = async () => {
-        if (!dobInput) return;
-        setSavingDob(true);
-        try {
-            const userData = {
-                name: user?.name,
-                dob: dobInput,
-                preferences: user?.preferences
-            };
-            const updateRes = await createOrUpdateUser(userData);
-            const updatedUser = updateRes.data.user;
-            setUser(updatedUser);
-            alert('Date of Birth saved successfully!');
-            setShowDobPrompt(false);
-            
-            // Chained check for missing location (delayed to let success toast fade out first)
-            if (updatedUser && (!updatedUser.preferences?.country || !updatedUser.preferences?.location)) {
-                const prompted = sessionStorage.getItem('appliqa_location_prompted');
-                if (!prompted) {
-                    setTimeout(() => {
-                        setShowLocationPrompt(true);
-                    }, 4200);
-                }
-            } else if (updatedUser && !updatedUser.educationStatus) {
-                // If location is already set but onboarding is missing, show onboarding
-                setTimeout(() => {
-                    setShowOnboardingPrompt(true);
-                }, 4200);
-            }
-        } catch (err) {
-            console.error('Failed to save DOB:', err);
-            alert('Could not save Date of Birth. Please try again.');
-        } finally {
-            setSavingDob(false);
-        }
-    };
+
 
     const handleSaveOnboarding = async () => {
+        if (!onboardingForm.dob) {
+            alert('Please fill out your Date of Birth.');
+            return;
+        }
         if (!onboardingForm.educationStatus || !onboardingForm.jobSearchUrgency) {
             alert('Please fill out your education status and job search urgency.');
             return;
@@ -375,19 +355,33 @@ function AppContent() {
         try {
             const userData = {
                 name: user?.name,
-                dob: user?.dob || null,
+                dob: onboardingForm.dob,
                 educationStatus: onboardingForm.educationStatus,
                 collegeCourse: onboardingForm.collegeCourse,
                 expectedGraduationYear: onboardingForm.expectedGraduationYear ? parseInt(onboardingForm.expectedGraduationYear, 10) : null,
                 jobSearchUrgency: onboardingForm.jobSearchUrgency,
                 portfolioLinkedin: onboardingForm.portfolioLinkedin,
                 portfolioGithub: onboardingForm.portfolioGithub,
+                targetSalary: onboardingForm.targetSalary !== '' && onboardingForm.targetSalary !== null ? parseInt(onboardingForm.targetSalary, 10) : null,
+                willingToRelocate: onboardingForm.willingToRelocate,
+                openToBootcamps: onboardingForm.openToBootcamps,
                 preferences: user?.preferences
             };
             const updateRes = await createOrUpdateUser(userData);
-            setUser(updateRes.data.user);
+            const updatedUser = updateRes.data.user;
+            setUser(updatedUser);
             alert('Profile setup completed successfully!');
             setShowOnboardingPrompt(false);
+
+            // Chained check for missing location (delayed slightly)
+            if (updatedUser && (!updatedUser.preferences?.country || !updatedUser.preferences?.location)) {
+                const prompted = sessionStorage.getItem('appliqa_location_prompted');
+                if (!prompted) {
+                    setTimeout(() => {
+                        setShowLocationPrompt(true);
+                    }, 500);
+                }
+            }
         } catch (err) {
             console.error('Failed to save onboarding details:', err);
             alert('Could not save details. Please try again.');
@@ -859,110 +853,7 @@ function AppContent() {
                 </div>
             )}
 
-            {showDobPrompt && (
-                <div 
-                    style={{ 
-                        position: 'fixed', 
-                        inset: 0, 
-                        background: 'rgba(0, 0, 0, 0.8)', 
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '20px'
-                    }}
-                >
-                    <div 
-                        style={{ 
-                            width: '100%',
-                            maxWidth: '420px', 
-                            background: 'radial-gradient(circle at top left, rgba(249, 115, 22, 0.08) 0%, transparent 60%), rgba(13, 13, 17, 0.9)', 
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '24px',
-                            padding: '32px',
-                            boxShadow: '0 24px 50px -12px rgba(0, 0, 0, 0.9), 0 0 32px rgba(249, 115, 22, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-                            animation: 'scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                            textAlign: 'center'
-                        }}
-                    >
-                        <div style={{ 
-                            display: 'inline-flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            width: '56px', 
-                            height: '56px', 
-                            borderRadius: '16px', 
-                            background: 'rgba(249, 115, 22, 0.08)', 
-                            border: '1px solid rgba(249, 115, 22, 0.25)', 
-                            color: 'var(--accent-primary)',
-                            marginBottom: '24px',
-                            boxShadow: '0 0 24px rgba(249, 115, 22, 0.15)'
-                        }}>
-                            <FiCalendar size={24} />
-                        </div>
-                        
-                        <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '8px' }}>
-                            Date of Birth Required
-                        </h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: '1.6', marginBottom: '28px' }}>
-                            To complete your registration, please enter your Date of Birth. This is required for profile matching and account security.
-                        </p>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
-                            <div>
-                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                    Date of Birth
-                                </label>
-                                <div className="premium-auth-input-wrapper" style={{ margin: '0' }}>
-                                    <input 
-                                        type="date" 
-                                        required
-                                        value={dobInput}
-                                        onChange={(e) => setDobInput(e.target.value)}
-                                        className="premium-auth-input" 
-                                        style={{ 
-                                            colorScheme: 'dark', 
-                                            width: '100%', 
-                                            boxSizing: 'border-box',
-                                            border: '1px solid rgba(255,255,255,0.08)',
-                                            borderRadius: '12px',
-                                            padding: '12px 14px',
-                                            background: 'rgba(0,0,0,0.2)',
-                                            color: '#fff',
-                                            fontSize: '14px'
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                            
-                            <button 
-                                className="btn btn-primary" 
-                                onClick={handleSaveDob} 
-                                disabled={savingDob || !dobInput}
-                                style={{ 
-                                    justifyContent: 'center', 
-                                    width: '100%',
-                                    padding: '12px 20px',
-                                    borderRadius: '12px',
-                                    fontSize: '14px',
-                                    fontWeight: '600',
-                                    background: 'linear-gradient(135deg, var(--accent-primary), #EA580C)',
-                                    color: '#FFFFFF',
-                                    border: 'none',
-                                    boxShadow: '0 4px 14px rgba(249, 115, 22, 0.25)',
-                                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                                    cursor: 'pointer',
-                                    marginTop: '8px'
-                                }}
-                            >
-                                {savingDob ? 'Saving...' : 'Save & Continue'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {showOnboardingPrompt && (
                 <div 
@@ -1017,6 +908,30 @@ function AppContent() {
                         </p>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                    Date of Birth
+                                </label>
+                                <input 
+                                    type="date" 
+                                    required
+                                    value={onboardingForm.dob}
+                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, dob: e.target.value }))}
+                                    style={{ 
+                                        colorScheme: 'dark', 
+                                        width: '100%', 
+                                        boxSizing: 'border-box',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '12px',
+                                        padding: '12px 14px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
+
                             <div>
                                 <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
                                     Current Status
@@ -1115,6 +1030,65 @@ function AppContent() {
                                     <option value="Open to opportunities (Passive search)" style={{ background: '#0d0d11' }}>Open to opportunities</option>
                                     <option value="Just browsing (Not looking)" style={{ background: '#0d0d11' }}>Just browsing</option>
                                 </select>
+                            </div>
+
+                            <div style={{ margin: '8px 0', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}></div>
+
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                    Target Salary (Optional)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    placeholder="e.g. 100000"
+                                    value={onboardingForm.targetSalary}
+                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, targetSalary: e.target.value }))}
+                                    style={{ 
+                                        width: '100%', 
+                                        boxSizing: 'border-box',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '12px',
+                                        padding: '12px 14px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        color: '#fff',
+                                        fontSize: '14px'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '4px 0' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={onboardingForm.willingToRelocate} 
+                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, willingToRelocate: e.target.checked }))}
+                                        style={{ 
+                                            accentColor: 'var(--accent-primary)',
+                                            width: '16px',
+                                            height: '16px',
+                                            borderRadius: '4px',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            background: 'rgba(0,0,0,0.2)'
+                                        }}
+                                    />
+                                    <span>Willing to relocate for work</span>
+                                </label>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={onboardingForm.openToBootcamps} 
+                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, openToBootcamps: e.target.checked }))}
+                                        style={{ 
+                                            accentColor: 'var(--accent-primary)',
+                                            width: '16px',
+                                            height: '16px',
+                                            borderRadius: '4px',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            background: 'rgba(0,0,0,0.2)'
+                                        }}
+                                    />
+                                    <span>Open to coding bootcamps / online degrees</span>
+                                </label>
                             </div>
 
                             <div style={{ margin: '8px 0', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}></div>
