@@ -858,7 +858,7 @@ function AppContent() {
             {showOnboardingPrompt && (
                 <div className="onboarding-overlay">
                     <div className="onboarding-card">
-                        {/* Left Panel: Branding, Info & Checkboxes */}
+                        {/* Left Panel: Branding & Info */}
                         <div className="onboarding-left-panel">
                             <div>
                                 <div className="onboarding-header-icon">
@@ -868,27 +868,6 @@ function AppContent() {
                                 <p className="onboarding-subtitle">
                                     Please provide a few details to optimize your career path matching and investor-ready profile.
                                 </p>
-                            </div>
-                            
-                            <div className="onboarding-checkboxes">
-                                <label className="onboarding-checkbox-label">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={onboardingForm.willingToRelocate} 
-                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, willingToRelocate: e.target.checked }))}
-                                        className="onboarding-checkbox-input"
-                                    />
-                                    <span>Willing to relocate for work</span>
-                                </label>
-                                <label className="onboarding-checkbox-label">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={onboardingForm.openToBootcamps} 
-                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, openToBootcamps: e.target.checked }))}
-                                        className="onboarding-checkbox-input"
-                                    />
-                                    <span>Open to bootcamps / degrees</span>
-                                </label>
                             </div>
                         </div>
 
@@ -969,6 +948,30 @@ function AppContent() {
                                         onChange={(e) => setOnboardingForm(prev => ({ ...prev, targetSalary: e.target.value }))}
                                         className="onboarding-input"
                                     />
+                                </div>
+
+                                {/* Row 4: Checkboxes */}
+                                <div className="onboarding-field-group" style={{ gridColumn: 'span 2' }}>
+                                    <div className="onboarding-checkboxes">
+                                        <label className="onboarding-checkbox-label">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={onboardingForm.willingToRelocate} 
+                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, willingToRelocate: e.target.checked }))}
+                                                className="onboarding-checkbox-input"
+                                            />
+                                            <span>Willing to relocate for work</span>
+                                        </label>
+                                        <label className="onboarding-checkbox-label">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={onboardingForm.openToBootcamps} 
+                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, openToBootcamps: e.target.checked }))}
+                                                className="onboarding-checkbox-input"
+                                            />
+                                            <span>Open to coding bootcamps / online degrees</span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div className="onboarding-field-group">
