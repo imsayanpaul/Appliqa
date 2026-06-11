@@ -856,309 +856,166 @@ function AppContent() {
 
 
             {showOnboardingPrompt && (
-                <div 
-                    style={{ 
-                        position: 'fixed', 
-                        inset: 0, 
-                        background: 'rgba(0, 0, 0, 0.8)', 
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '20px'
-                    }}
-                >
-                    <div 
-                        style={{ 
-                            width: '100%',
-                            maxWidth: '460px', 
-                            background: 'radial-gradient(circle at top left, rgba(249, 115, 22, 0.08) 0%, transparent 60%), rgba(13, 13, 17, 0.9)', 
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '24px',
-                            padding: '32px',
-                            boxShadow: '0 24px 50px -12px rgba(0, 0, 0, 0.9), 0 0 32px rgba(249, 115, 22, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-                            animation: 'scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                            maxHeight: '90vh',
-                            overflowY: 'auto'
-                        }}
-                    >
-                        <div style={{ 
-                            display: 'inline-flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            width: '56px', 
-                            height: '56px', 
-                            borderRadius: '16px', 
-                            background: 'rgba(249, 115, 22, 0.08)', 
-                            border: '1px solid rgba(249, 115, 22, 0.25)', 
-                            color: 'var(--accent-primary)',
-                            marginBottom: '24px',
-                            boxShadow: '0 0 24px rgba(249, 115, 22, 0.15)'
-                        }}>
-                            <FiBriefcase size={24} />
-                        </div>
-                        
-                        <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '8px', textAlign: 'center' }}>
-                            Complete Your Profile
-                        </h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: '1.6', marginBottom: '24px', textAlign: 'center' }}>
-                            Please provide a few details to optimize your career path matching and investor-ready profile.
-                        </p>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+                <div className="onboarding-overlay">
+                    <div className="onboarding-card">
+                        {/* Left Panel: Branding, Info & Checkboxes */}
+                        <div className="onboarding-left-panel">
                             <div>
-                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                    Date of Birth
-                                </label>
-                                <input 
-                                    type="date" 
-                                    required
-                                    value={onboardingForm.dob}
-                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, dob: e.target.value }))}
-                                    style={{ 
-                                        colorScheme: 'dark', 
-                                        width: '100%', 
-                                        boxSizing: 'border-box',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '12px',
-                                        padding: '12px 14px',
-                                        background: 'rgba(0,0,0,0.2)',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                    Current Status
-                                </label>
-                                <select
-                                    value={onboardingForm.educationStatus}
-                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, educationStatus: e.target.value }))}
-                                    style={{ 
-                                        width: '100%', 
-                                        boxSizing: 'border-box',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '12px',
-                                        padding: '12px 14px',
-                                        background: 'rgba(0,0,0,0.2)',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
-                                >
-                                    <option value="" disabled style={{ background: '#0d0d11' }}>Select Status</option>
-                                    <option value="Working Professional" style={{ background: '#0d0d11' }}>Working Professional</option>
-                                    <option value="College/University Student" style={{ background: '#0d0d11' }}>College Student</option>
-                                    <option value="School Student" style={{ background: '#0d0d11' }}>School Student</option>
-                                    <option value="Self-Educated / Career Switcher" style={{ background: '#0d0d11' }}>Self-Educated / Career Switcher</option>
-                                </select>
-                            </div>
-
-                            {onboardingForm.educationStatus === "College/University Student" && (
-                                <div style={{ display: 'flex', gap: '12px' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                            Course / Major
-                                        </label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="e.g. Computer Science"
-                                            value={onboardingForm.collegeCourse}
-                                            onChange={(e) => setOnboardingForm(prev => ({ ...prev, collegeCourse: e.target.value }))}
-                                            style={{ 
-                                                width: '100%', 
-                                                boxSizing: 'border-box',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '12px',
-                                                padding: '12px 14px',
-                                                background: 'rgba(0,0,0,0.2)',
-                                                color: '#fff',
-                                                fontSize: '14px'
-                                            }}
-                                        />
-                                    </div>
-                                    <div style={{ width: '120px' }}>
-                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                            Grad Year
-                                        </label>
-                                        <input 
-                                            type="number" 
-                                            placeholder="2027"
-                                            value={onboardingForm.expectedGraduationYear}
-                                            onChange={(e) => setOnboardingForm(prev => ({ ...prev, expectedGraduationYear: e.target.value }))}
-                                            style={{ 
-                                                width: '100%', 
-                                                boxSizing: 'border-box',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                borderRadius: '12px',
-                                                padding: '12px 14px',
-                                                background: 'rgba(0,0,0,0.2)',
-                                                color: '#fff',
-                                                fontSize: '14px'
-                                            }}
-                                        />
-                                    </div>
+                                <div className="onboarding-header-icon">
+                                    <FiBriefcase size={24} />
                                 </div>
-                            )}
-
-                            <div>
-                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                    Job Search Urgency
-                                </label>
-                                <select
-                                    value={onboardingForm.jobSearchUrgency}
-                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, jobSearchUrgency: e.target.value }))}
-                                    style={{ 
-                                        width: '100%', 
-                                        boxSizing: 'border-box',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '12px',
-                                        padding: '12px 14px',
-                                        background: 'rgba(0,0,0,0.2)',
-                                        color: '#fff',
-                                        fontSize: '14px',
-                                        outline: 'none'
-                                    }}
-                                >
-                                    <option value="" disabled style={{ background: '#0d0d11' }}>Select Urgency</option>
-                                    <option value="Actively looking (Ready to interview/start immediately)" style={{ background: '#0d0d11' }}>Actively looking (Immediate start)</option>
-                                    <option value="Open to opportunities (Passive search)" style={{ background: '#0d0d11' }}>Open to opportunities</option>
-                                    <option value="Just browsing (Not looking)" style={{ background: '#0d0d11' }}>Just browsing</option>
-                                </select>
+                                <h3 className="onboarding-title">Complete Your Profile</h3>
+                                <p className="onboarding-subtitle">
+                                    Please provide a few details to optimize your career path matching and investor-ready profile.
+                                </p>
                             </div>
-
-                            <div style={{ margin: '8px 0', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}></div>
-
-                            <div>
-                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                    Target Salary (Optional)
-                                </label>
-                                <input 
-                                    type="number" 
-                                    placeholder="e.g. 100000"
-                                    value={onboardingForm.targetSalary}
-                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, targetSalary: e.target.value }))}
-                                    style={{ 
-                                        width: '100%', 
-                                        boxSizing: 'border-box',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '12px',
-                                        padding: '12px 14px',
-                                        background: 'rgba(0,0,0,0.2)',
-                                        color: '#fff',
-                                        fontSize: '14px'
-                                    }}
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '4px 0' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                            
+                            <div className="onboarding-checkboxes">
+                                <label className="onboarding-checkbox-label">
                                     <input 
                                         type="checkbox" 
                                         checked={onboardingForm.willingToRelocate} 
                                         onChange={(e) => setOnboardingForm(prev => ({ ...prev, willingToRelocate: e.target.checked }))}
-                                        style={{ 
-                                            accentColor: 'var(--accent-primary)',
-                                            width: '16px',
-                                            height: '16px',
-                                            borderRadius: '4px',
-                                            border: '1px solid rgba(255,255,255,0.15)',
-                                            background: 'rgba(0,0,0,0.2)'
-                                        }}
+                                        className="onboarding-checkbox-input"
                                     />
                                     <span>Willing to relocate for work</span>
                                 </label>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                                <label className="onboarding-checkbox-label">
                                     <input 
                                         type="checkbox" 
                                         checked={onboardingForm.openToBootcamps} 
                                         onChange={(e) => setOnboardingForm(prev => ({ ...prev, openToBootcamps: e.target.checked }))}
-                                        style={{ 
-                                            accentColor: 'var(--accent-primary)',
-                                            width: '16px',
-                                            height: '16px',
-                                            borderRadius: '4px',
-                                            border: '1px solid rgba(255,255,255,0.15)',
-                                            background: 'rgba(0,0,0,0.2)'
-                                        }}
+                                        className="onboarding-checkbox-input"
                                     />
-                                    <span>Open to coding bootcamps / online degrees</span>
+                                    <span>Open to bootcamps / degrees</span>
                                 </label>
                             </div>
+                        </div>
 
-                            <div style={{ margin: '8px 0', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}></div>
+                        {/* Right Panel: Input Fields & Submit */}
+                        <div className="onboarding-right-panel">
+                            <div className="onboarding-form-grid">
+                                <div className="onboarding-field-group">
+                                    <label className="onboarding-label">Date of Birth</label>
+                                    <input 
+                                        type="date" 
+                                        required
+                                        value={onboardingForm.dob}
+                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, dob: e.target.value }))}
+                                        className="onboarding-input"
+                                        style={{ colorScheme: 'dark' }}
+                                    />
+                                </div>
+                                <div className="onboarding-field-group">
+                                    <label className="onboarding-label">Current Status</label>
+                                    <select
+                                        value={onboardingForm.educationStatus}
+                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, educationStatus: e.target.value }))}
+                                        className="onboarding-select"
+                                    >
+                                        <option value="" disabled style={{ background: '#0d0d11' }}>Select Status</option>
+                                        <option value="Working Professional" style={{ background: '#0d0d11' }}>Working Professional</option>
+                                        <option value="College/University Student" style={{ background: '#0d0d11' }}>College Student</option>
+                                        <option value="School Student" style={{ background: '#0d0d11' }}>School Student</option>
+                                        <option value="Self-Educated / Career Switcher" style={{ background: '#0d0d11' }}>Self-Educated / Career Switcher</option>
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                    LinkedIn URL (Optional)
-                                </label>
-                                <input 
-                                    type="text" 
-                                    placeholder="https://linkedin.com/in/username"
-                                    value={onboardingForm.portfolioLinkedin}
-                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioLinkedin: e.target.value }))}
-                                    style={{ 
-                                        width: '100%', 
-                                        boxSizing: 'border-box',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '12px',
-                                        padding: '12px 14px',
-                                        background: 'rgba(0,0,0,0.2)',
-                                        color: '#fff',
-                                        fontSize: '14px'
-                                    }}
-                                />
+                                {/* Row 2 (Dynamic): Course/Major and Graduation Year */}
+                                {onboardingForm.educationStatus === "College/University Student" && (
+                                    <div className="onboarding-dynamic-row">
+                                        <div className="onboarding-field-group">
+                                            <label className="onboarding-label">Course / Major</label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="e.g. Computer Science"
+                                                value={onboardingForm.collegeCourse}
+                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, collegeCourse: e.target.value }))}
+                                                className="onboarding-input"
+                                            />
+                                        </div>
+                                        <div className="onboarding-field-group">
+                                            <label className="onboarding-label">Expected Graduation Year</label>
+                                            <input 
+                                                type="number" 
+                                                placeholder="2027"
+                                                value={onboardingForm.expectedGraduationYear}
+                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, expectedGraduationYear: e.target.value }))}
+                                                className="onboarding-input"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="onboarding-field-group">
+                                    <label className="onboarding-label">Job Search Urgency</label>
+                                    <select
+                                        value={onboardingForm.jobSearchUrgency}
+                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, jobSearchUrgency: e.target.value }))}
+                                        className="onboarding-select"
+                                    >
+                                        <option value="" disabled style={{ background: '#0d0d11' }}>Select Urgency</option>
+                                        <option value="Actively looking (Ready to interview/start immediately)" style={{ background: '#0d0d11' }}>Actively looking (Immediate start)</option>
+                                        <option value="Open to opportunities (Passive search)" style={{ background: '#0d0d11' }}>Open to opportunities</option>
+                                        <option value="Just browsing (Not looking)" style={{ background: '#0d0d11' }}>Just browsing</option>
+                                    </select>
+                                </div>
+                                <div className="onboarding-field-group">
+                                    <label className="onboarding-label">Target Salary (Optional)</label>
+                                    <input 
+                                        type="number" 
+                                        placeholder="e.g. 100000"
+                                        value={onboardingForm.targetSalary}
+                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, targetSalary: e.target.value }))}
+                                        className="onboarding-input"
+                                    />
+                                </div>
+
+                                <div className="onboarding-field-group">
+                                    <label className="onboarding-label">LinkedIn URL (Optional)</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="https://linkedin.com/in/username"
+                                        value={onboardingForm.portfolioLinkedin}
+                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioLinkedin: e.target.value }))}
+                                        className="onboarding-input"
+                                    />
+                                </div>
+                                <div className="onboarding-field-group">
+                                    <label className="onboarding-label">GitHub URL (Optional)</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="https://github.com/username"
+                                        value={onboardingForm.portfolioGithub}
+                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioGithub: e.target.value }))}
+                                        className="onboarding-input"
+                                    />
+                                </div>
+
+                                <div className="onboarding-submit-btn-container">
+                                    <button 
+                                        className="btn btn-primary" 
+                                        onClick={handleSaveOnboarding} 
+                                        disabled={savingOnboarding || !onboardingForm.educationStatus || !onboardingForm.jobSearchUrgency}
+                                        style={{ 
+                                            justifyContent: 'center', 
+                                            width: '100%',
+                                            padding: '12px 20px',
+                                            borderRadius: '12px',
+                                            fontSize: '14px',
+                                            fontWeight: '600',
+                                            background: 'linear-gradient(135deg, var(--accent-primary), #EA580C)',
+                                            color: '#FFFFFF',
+                                            border: 'none',
+                                            boxShadow: '0 4px 14px rgba(249, 115, 22, 0.25)',
+                                            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {savingOnboarding ? 'Saving...' : 'Complete & Continue'}
+                                    </button>
+                                </div>
                             </div>
-
-                            <div>
-                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                    GitHub URL (Optional)
-                                </label>
-                                <input 
-                                    type="text" 
-                                    placeholder="https://github.com/username"
-                                    value={onboardingForm.portfolioGithub}
-                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioGithub: e.target.value }))}
-                                    style={{ 
-                                        width: '100%', 
-                                        boxSizing: 'border-box',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '12px',
-                                        padding: '12px 14px',
-                                        background: 'rgba(0,0,0,0.2)',
-                                        color: '#fff',
-                                        fontSize: '14px'
-                                    }}
-                                />
-                            </div>
-
-                            <button 
-                                className="btn btn-primary" 
-                                onClick={handleSaveOnboarding} 
-                                disabled={savingOnboarding || !onboardingForm.educationStatus || !onboardingForm.jobSearchUrgency}
-                                style={{ 
-                                    justifyContent: 'center', 
-                                    width: '100%',
-                                    padding: '12px 20px',
-                                    borderRadius: '12px',
-                                    fontSize: '14px',
-                                    fontWeight: '600',
-                                    background: 'linear-gradient(135deg, var(--accent-primary), #EA580C)',
-                                    color: '#FFFFFF',
-                                    border: 'none',
-                                    boxShadow: '0 4px 14px rgba(249, 115, 22, 0.25)',
-                                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                                    cursor: 'pointer',
-                                    marginTop: '8px'
-                                }}
-                            >
-                                {savingOnboarding ? 'Saving...' : 'Complete & Continue'}
-                            </button>
                         </div>
                     </div>
                 </div>

@@ -1,1 +1,224 @@
 /* App-level overrides — most styles in index.css */
+
+/* Onboarding Modal Container */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 4, 6, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.onboarding-card {
+  width: 100%;
+  max-width: 900px;
+  background: radial-gradient(circle at top left, rgba(249, 115, 22, 0.08) 0%, transparent 60%), rgba(13, 13, 17, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.9), 0 0 32px rgba(249, 115, 22, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  overflow: hidden;
+  max-height: 90vh;
+}
+
+@media (max-width: 800px) {
+  .onboarding-card {
+    grid-template-columns: 1fr;
+    max-height: 95vh;
+    overflow-y: auto;
+  }
+}
+
+.onboarding-left-panel {
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.01);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+@media (max-width: 800px) {
+  .onboarding-left-panel {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 24px;
+  }
+}
+
+.onboarding-right-panel {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+@media (max-width: 800px) {
+  .onboarding-right-panel {
+    padding: 24px;
+  }
+}
+
+/* Header inside left panel */
+.onboarding-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(249, 115, 22, 0.08);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  color: var(--accent-primary);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
+  margin-bottom: 16px;
+}
+
+.onboarding-title {
+  font-size: 20px;
+  font-weight: 750;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.onboarding-subtitle {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Checkboxes style */
+.onboarding-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0;
+}
+
+.onboarding-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.onboarding-checkbox-label:hover {
+  color: #FFFFFF;
+}
+
+.onboarding-checkbox-input {
+  accent-color: var(--accent-primary);
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* Form inputs styling */
+.onboarding-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+}
+
+@media (max-width: 550px) {
+  .onboarding-form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.onboarding-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Dynamic field animation wrapper */
+.onboarding-dynamic-row {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+  animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (max-width: 550px) {
+  .onboarding-dynamic-row {
+    grid-column: span 1;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.onboarding-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.onboarding-input, .onboarding-select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 11px 14px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #FFFFFF;
+  font-size: 13.5px;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.onboarding-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.onboarding-input:focus, .onboarding-select:focus {
+  border-color: rgba(249, 115, 22, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Button styling in grid */
+.onboarding-submit-btn-container {
+  grid-column: span 2;
+  margin-top: 8px;
+}
+
+@media (max-width: 550px) {
+  .onboarding-submit-btn-container {
+    grid-column: span 1;
+  }
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
