@@ -35,6 +35,16 @@ function AppContent() {
     const [showDobPrompt, setShowDobPrompt] = useState(false);
     const [dobInput, setDobInput] = useState('');
     const [savingDob, setSavingDob] = useState(false);
+    const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
+    const [onboardingForm, setOnboardingForm] = useState({
+        educationStatus: '',
+        collegeCourse: '',
+        expectedGraduationYear: '',
+        jobSearchUrgency: '',
+        portfolioLinkedin: '',
+        portfolioGithub: ''
+    });
+    const [savingOnboarding, setSavingOnboarding] = useState(false);
     
     // GitHub repository stats (Stars & Forks)
     const [githubStats, setGithubStats] = useState({ stars: 0, forks: 0 });
@@ -212,6 +222,8 @@ function AppContent() {
                         if (!prompted) {
                             setShowLocationPrompt(true);
                         }
+                    } else if (profile && !profile.educationStatus) {
+                        setShowOnboardingPrompt(true);
                     }
                 })
                 .catch(err => console.error("Could not fetch profile", err))
@@ -286,9 +298,9 @@ function AppContent() {
                 setShowLocationPrompt(false);
                 sessionStorage.setItem('appliqa_location_prompted', 'true');
                 
-                // Chained check for missing DOB
-                if (updateRes.data.user && !updateRes.data.user.dob) {
-                    setShowDobPrompt(true);
+                // Chained check for missing onboarding
+                if (updateRes.data.user && !updateRes.data.user.educationStatus) {
+                    setShowOnboardingPrompt(true);
                 }
             } else {
                 throw new Error('Incomplete location data from IP API');
@@ -310,9 +322,9 @@ function AppContent() {
         if (manual) {
             navigate('/profile');
         } else {
-            // Chained check for missing DOB
-            if (user && !user.dob) {
-                setShowDobPrompt(true);
+            // Chained check for missing onboarding
+            if (user && !user.educationStatus) {
+                setShowOnboardingPrompt(true);
             }
         }
     };
@@ -340,12 +352,47 @@ function AppContent() {
                         setShowLocationPrompt(true);
                     }, 4200);
                 }
+            } else if (updatedUser && !updatedUser.educationStatus) {
+                // If location is already set but onboarding is missing, show onboarding
+                setTimeout(() => {
+                    setShowOnboardingPrompt(true);
+                }, 4200);
             }
         } catch (err) {
             console.error('Failed to save DOB:', err);
             alert('Could not save Date of Birth. Please try again.');
         } finally {
             setSavingDob(false);
+        }
+    };
+
+    const handleSaveOnboarding = async () => {
+        if (!onboardingForm.educationStatus || !onboardingForm.jobSearchUrgency) {
+            alert('Please fill out your education status and job search urgency.');
+            return;
+        }
+        setSavingOnboarding(true);
+        try {
+            const userData = {
+                name: user?.name,
+                dob: user?.dob || null,
+                educationStatus: onboardingForm.educationStatus,
+                collegeCourse: onboardingForm.collegeCourse,
+                expectedGraduationYear: onboardingForm.expectedGraduationYear ? parseInt(onboardingForm.expectedGraduationYear, 10) : null,
+                jobSearchUrgency: onboardingForm.jobSearchUrgency,
+                portfolioLinkedin: onboardingForm.portfolioLinkedin,
+                portfolioGithub: onboardingForm.portfolioGithub,
+                preferences: user?.preferences
+            };
+            const updateRes = await createOrUpdateUser(userData);
+            setUser(updateRes.data.user);
+            alert('Profile setup completed successfully!');
+            setShowOnboardingPrompt(false);
+        } catch (err) {
+            console.error('Failed to save onboarding details:', err);
+            alert('Could not save details. Please try again.');
+        } finally {
+            setSavingOnboarding(false);
         }
     };
 
@@ -911,6 +958,232 @@ function AppContent() {
                                 }}
                             >
                                 {savingDob ? 'Saving...' : 'Save & Continue'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showOnboardingPrompt && (
+                <div 
+                    style={{ 
+                        position: 'fixed', 
+                        inset: 0, 
+                        background: 'rgba(0, 0, 0, 0.8)', 
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                        zIndex: 9999,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '20px'
+                    }}
+                >
+                    <div 
+                        style={{ 
+                            width: '100%',
+                            maxWidth: '460px', 
+                            background: 'radial-gradient(circle at top left, rgba(249, 115, 22, 0.08) 0%, transparent 60%), rgba(13, 13, 17, 0.9)', 
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '24px',
+                            padding: '32px',
+                            boxShadow: '0 24px 50px -12px rgba(0, 0, 0, 0.9), 0 0 32px rgba(249, 115, 22, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                            animation: 'scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                            maxHeight: '90vh',
+                            overflowY: 'auto'
+                        }}
+                    >
+                        <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            width: '56px', 
+                            height: '56px', 
+                            borderRadius: '16px', 
+                            background: 'rgba(249, 115, 22, 0.08)', 
+                            border: '1px solid rgba(249, 115, 22, 0.25)', 
+                            color: 'var(--accent-primary)',
+                            marginBottom: '24px',
+                            boxShadow: '0 0 24px rgba(249, 115, 22, 0.15)'
+                        }}>
+                            <FiBriefcase size={24} />
+                        </div>
+                        
+                        <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '8px', textAlign: 'center' }}>
+                            Complete Your Profile
+                        </h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: '1.6', marginBottom: '24px', textAlign: 'center' }}>
+                            Please provide a few details to optimize your career path matching and investor-ready profile.
+                        </p>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                    Current Status
+                                </label>
+                                <select
+                                    value={onboardingForm.educationStatus}
+                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, educationStatus: e.target.value }))}
+                                    style={{ 
+                                        width: '100%', 
+                                        boxSizing: 'border-box',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '12px',
+                                        padding: '12px 14px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="" disabled style={{ background: '#0d0d11' }}>Select Status</option>
+                                    <option value="Working Professional" style={{ background: '#0d0d11' }}>Working Professional</option>
+                                    <option value="College/University Student" style={{ background: '#0d0d11' }}>College Student</option>
+                                    <option value="School Student" style={{ background: '#0d0d11' }}>School Student</option>
+                                    <option value="Self-Educated / Career Switcher" style={{ background: '#0d0d11' }}>Self-Educated / Career Switcher</option>
+                                </select>
+                            </div>
+
+                            {onboardingForm.educationStatus === "College/University Student" && (
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                            Course / Major
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="e.g. Computer Science"
+                                            value={onboardingForm.collegeCourse}
+                                            onChange={(e) => setOnboardingForm(prev => ({ ...prev, collegeCourse: e.target.value }))}
+                                            style={{ 
+                                                width: '100%', 
+                                                boxSizing: 'border-box',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                borderRadius: '12px',
+                                                padding: '12px 14px',
+                                                background: 'rgba(0,0,0,0.2)',
+                                                color: '#fff',
+                                                fontSize: '14px'
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ width: '120px' }}>
+                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                            Grad Year
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            placeholder="2027"
+                                            value={onboardingForm.expectedGraduationYear}
+                                            onChange={(e) => setOnboardingForm(prev => ({ ...prev, expectedGraduationYear: e.target.value }))}
+                                            style={{ 
+                                                width: '100%', 
+                                                boxSizing: 'border-box',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                borderRadius: '12px',
+                                                padding: '12px 14px',
+                                                background: 'rgba(0,0,0,0.2)',
+                                                color: '#fff',
+                                                fontSize: '14px'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                    Job Search Urgency
+                                </label>
+                                <select
+                                    value={onboardingForm.jobSearchUrgency}
+                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, jobSearchUrgency: e.target.value }))}
+                                    style={{ 
+                                        width: '100%', 
+                                        boxSizing: 'border-box',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '12px',
+                                        padding: '12px 14px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="" disabled style={{ background: '#0d0d11' }}>Select Urgency</option>
+                                    <option value="Actively looking (Ready to interview/start immediately)" style={{ background: '#0d0d11' }}>Actively looking (Immediate start)</option>
+                                    <option value="Open to opportunities (Passive search)" style={{ background: '#0d0d11' }}>Open to opportunities</option>
+                                    <option value="Just browsing (Not looking)" style={{ background: '#0d0d11' }}>Just browsing</option>
+                                </select>
+                            </div>
+
+                            <div style={{ margin: '8px 0', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}></div>
+
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                    LinkedIn URL (Optional)
+                                </label>
+                                <input 
+                                    type="text" 
+                                    placeholder="https://linkedin.com/in/username"
+                                    value={onboardingForm.portfolioLinkedin}
+                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioLinkedin: e.target.value }))}
+                                    style={{ 
+                                        width: '100%', 
+                                        boxSizing: 'border-box',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '12px',
+                                        padding: '12px 14px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        color: '#fff',
+                                        fontSize: '14px'
+                                    }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                    GitHub URL (Optional)
+                                </label>
+                                <input 
+                                    type="text" 
+                                    placeholder="https://github.com/username"
+                                    value={onboardingForm.portfolioGithub}
+                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioGithub: e.target.value }))}
+                                    style={{ 
+                                        width: '100%', 
+                                        boxSizing: 'border-box',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '12px',
+                                        padding: '12px 14px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        color: '#fff',
+                                        fontSize: '14px'
+                                    }}
+                                />
+                            </div>
+
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={handleSaveOnboarding} 
+                                disabled={savingOnboarding || !onboardingForm.educationStatus || !onboardingForm.jobSearchUrgency}
+                                style={{ 
+                                    justifyContent: 'center', 
+                                    width: '100%',
+                                    padding: '12px 20px',
+                                    borderRadius: '12px',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    background: 'linear-gradient(135deg, var(--accent-primary), #EA580C)',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    boxShadow: '0 4px 14px rgba(249, 115, 22, 0.25)',
+                                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    cursor: 'pointer',
+                                    marginTop: '8px'
+                                }}
+                            >
+                                {savingOnboarding ? 'Saving...' : 'Complete & Continue'}
                             </button>
                         </div>
                     </div>

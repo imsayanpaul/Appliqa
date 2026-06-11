@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSave, FiCheck, FiLogOut, FiEye, FiEyeOff, FiGithub, FiUser, FiMail, FiBriefcase, FiDollarSign, FiPlus, FiX, FiLock, FiCalendar } from 'react-icons/fi';
+import { FiSave, FiCheck, FiLogOut, FiEye, FiEyeOff, FiGithub, FiUser, FiMail, FiBriefcase, FiDollarSign, FiPlus, FiX, FiLock, FiCalendar, FiLinkedin, FiGlobe, FiBookOpen, FiClock } from 'react-icons/fi';
 import { createOrUpdateUser } from '../services/api';
 import { supabase } from '../services/supabase';
 import ResumeUpload from '../components/ResumeUpload';
@@ -213,7 +213,17 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
         salaryMax: '',
         jobType: '',
         remote: false,
-        skills: ''
+        skills: '',
+        educationStatus: '',
+        collegeCourse: '',
+        expectedGraduationYear: '',
+        jobSearchUrgency: '',
+        openToInternationalRemote: false,
+        preferredCurrency: '',
+        portfolioGithub: '',
+        portfolioBehance: '',
+        portfolioLinkedin: '',
+        portfolioWebsite: ''
     });
 
     const [saving, setSaving] = useState(false);
@@ -233,7 +243,17 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                 salaryMax: user?.preferences?.salaryMax || '',
                 jobType: user?.preferences?.jobType || '',
                 remote: user?.preferences?.remote || false,
-                skills: user?.preferences?.skills?.join(', ') || resumeData?.skills?.join(', ') || ''
+                skills: user?.preferences?.skills?.join(', ') || resumeData?.skills?.join(', ') || '',
+                educationStatus: user?.educationStatus || '',
+                collegeCourse: user?.collegeCourse || '',
+                expectedGraduationYear: user?.expectedGraduationYear || '',
+                jobSearchUrgency: user?.jobSearchUrgency || '',
+                openToInternationalRemote: user?.openToInternationalRemote || false,
+                preferredCurrency: user?.preferredCurrency || '',
+                portfolioGithub: user?.portfolioGithub || '',
+                portfolioBehance: user?.portfolioBehance || '',
+                portfolioLinkedin: user?.portfolioLinkedin || '',
+                portfolioWebsite: user?.portfolioWebsite || ''
             });
         }
     }, [user, resumeData]);
@@ -284,6 +304,16 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
             const userData = {
                 name: form.name,
                 dob: form.dob || null,
+                educationStatus: form.educationStatus,
+                collegeCourse: form.collegeCourse,
+                expectedGraduationYear: form.expectedGraduationYear ? parseInt(form.expectedGraduationYear, 10) : null,
+                jobSearchUrgency: form.jobSearchUrgency,
+                openToInternationalRemote: form.openToInternationalRemote,
+                preferredCurrency: form.preferredCurrency,
+                portfolioGithub: form.portfolioGithub,
+                portfolioBehance: form.portfolioBehance,
+                portfolioLinkedin: form.portfolioLinkedin,
+                portfolioWebsite: form.portfolioWebsite,
                 preferences: {
                     desiredRole: form.desiredRole,
                     country: form.country,
@@ -767,44 +797,222 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 32, borderTop: '1px solid var(--ghost-border)', paddingTop: 24 }}>
-                            <motion.button
-                                type="submit"
-                                disabled={saving}
-                                whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(249, 115, 22, 0.2)" }}
-                                whileTap={{ scale: 0.98 }}
-                                className="btn btn-primary"
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    transition: 'background 0.3s ease, border-color 0.3s ease'
-                                }}
-                            >
-                                {saved ? (
-                                    <motion.span initial={{ scale: 0.8 }} animate={{ scale: 1 }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <FiCheck size={16} /> Saved!
-                                    </motion.span>
-                                ) : saving ? (
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <motion.span
-                                            animate={{ rotate: 360 }}
-                                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                            style={{ display: 'inline-block' }}
-                                        >
-                                            <FiSave size={16} />
-                                        </motion.span>
-                                        Saving...
-                                    </span>
-                                ) : (
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <FiSave size={16} /> Save Profile
-                                    </span>
-                                )}
-                            </motion.button>
+                    </Card>
+                </motion.div>
+
+                {/* Career Status & Urgency */}
+                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
+                    <Card style={{ 
+                        background: 'rgba(10, 10, 10, 0.4)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid var(--ghost-border)',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+                        borderRadius: '16px'
+                    }}>
+                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
+                            Career Status & Urgency
+                        </h3>
+                        <div className="preferences-form">
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Education / Professional Status</label>
+                                <Dropdown
+                                    options={[
+                                        { value: "", label: "Select status" },
+                                        { value: "Working Professional", label: "Working Professional" },
+                                        { value: "College/University Student", label: "College/University Student" },
+                                        { value: "School Student", label: "School Student" },
+                                        { value: "Self-Educated / Career Switcher", label: "Self-Educated / Career Switcher" }
+                                    ]}
+                                    value={form.educationStatus}
+                                    onChange={(val) => {
+                                        handleChange('educationStatus', val);
+                                        if (val !== "College/University Student") {
+                                            handleChange('collegeCourse', '');
+                                            handleChange('expectedGraduationYear', '');
+                                        }
+                                    }}
+                                    placeholder="Select status"
+                                    variant="form"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Job Search Urgency</label>
+                                <Dropdown
+                                    options={[
+                                        { value: "", label: "Select urgency" },
+                                        { value: "Actively looking (Ready to interview/start immediately)", label: "Actively looking (Ready to start)" },
+                                        { value: "Open to opportunities (Passive search)", label: "Open to opportunities" },
+                                        { value: "Just browsing (Not looking)", label: "Just browsing / Not looking" }
+                                    ]}
+                                    value={form.jobSearchUrgency}
+                                    onChange={(val) => handleChange('jobSearchUrgency', val)}
+                                    placeholder="Select urgency"
+                                    variant="form"
+                                />
+                            </div>
+
+                            {form.educationStatus === "College/University Student" && (
+                                <>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>College Course / Major</label>
+                                        <PremiumIconInput
+                                            icon={FiBookOpen}
+                                            placeholder="e.g. B.Tech Computer Science"
+                                            value={form.collegeCourse}
+                                            onChange={(e) => handleChange('collegeCourse', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Expected Graduation Year</label>
+                                        <PremiumIconInput
+                                            icon={FiCalendar}
+                                            type="number"
+                                            placeholder="e.g. 2027"
+                                            value={form.expectedGraduationYear}
+                                            onChange={(e) => handleChange('expectedGraduationYear', e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </Card>
                 </motion.div>
+
+                {/* Work & Currency Preferences */}
+                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
+                    <Card style={{ 
+                        background: 'rgba(10, 10, 10, 0.4)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid var(--ghost-border)',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+                        borderRadius: '16px'
+                    }}>
+                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
+                            Work & Pay Preferences
+                        </h3>
+                        <div className="preferences-form">
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Preferred Currency</label>
+                                <Dropdown
+                                    options={[
+                                        { value: "", label: "Select currency" },
+                                        { value: "INR", label: "Indian Rupee (₹)" },
+                                        { value: "USD", label: "US Dollar ($)" },
+                                        { value: "EUR", label: "Euro (€)" },
+                                        { value: "GBP", label: "British Pound (£)" },
+                                        { value: "CAD", label: "Canadian Dollar (C$)" }
+                                    ]}
+                                    value={form.preferredCurrency}
+                                    onChange={(val) => handleChange('preferredCurrency', val)}
+                                    placeholder="Select currency"
+                                    variant="form"
+                                />
+                            </div>
+
+                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: 32 }}>
+                                <PremiumToggle
+                                    checked={form.openToInternationalRemote}
+                                    onChange={(val) => handleChange('openToInternationalRemote', val)}
+                                    label="Open to International Remote positions"
+                                />
+                            </div>
+                        </div>
+                    </Card>
+                </motion.div>
+
+                {/* Professional Links */}
+                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
+                    <Card style={{ 
+                        background: 'rgba(10, 10, 10, 0.4)',
+                        backdropFilter: 'blur(20px)',
+                        border: '1px solid var(--ghost-border)',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+                        borderRadius: '16px'
+                    }}>
+                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
+                            Professional Links
+                        </h3>
+                        <div className="preferences-form">
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>LinkedIn Profile</label>
+                                <PremiumIconInput
+                                    icon={FiLinkedin}
+                                    placeholder="https://linkedin.com/in/username"
+                                    value={form.portfolioLinkedin}
+                                    onChange={(e) => handleChange('portfolioLinkedin', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>GitHub Profile</label>
+                                <PremiumIconInput
+                                    icon={FiGithub}
+                                    placeholder="https://github.com/username"
+                                    value={form.portfolioGithub}
+                                    onChange={(e) => handleChange('portfolioGithub', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Behance Portfolio</label>
+                                <PremiumIconInput
+                                    icon={FiGlobe}
+                                    placeholder="https://behance.net/username"
+                                    value={form.portfolioBehance}
+                                    onChange={(e) => handleChange('portfolioBehance', e.target.value)}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Personal Website</label>
+                                <PremiumIconInput
+                                    icon={FiGlobe}
+                                    placeholder="https://yourwebsite.com"
+                                    value={form.portfolioWebsite}
+                                    onChange={(e) => handleChange('portfolioWebsite', e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </Card>
+                </motion.div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 32, borderTop: '1px solid var(--ghost-border)', paddingTop: 24 }}>
+                    <motion.button
+                        type="submit"
+                        disabled={saving}
+                        whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(249, 115, 22, 0.2)" }}
+                        whileTap={{ scale: 0.98 }}
+                        className="btn btn-primary"
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'background 0.3s ease, border-color 0.3s ease'
+                        }}
+                    >
+                        {saved ? (
+                            <motion.span initial={{ scale: 0.8 }} animate={{ scale: 1 }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FiCheck size={16} /> Saved!
+                            </motion.span>
+                        ) : saving ? (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <motion.span
+                                    animate={{ rotate: 360 }}
+                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                    style={{ display: 'inline-block' }}
+                                >
+                                    <FiSave size={16} />
+                                </motion.span>
+                                Saving...
+                            </span>
+                        ) : (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FiSave size={16} /> Save Profile
+                            </span>
+                        )}
+                    </motion.button>
+                </div>
             </form>
 
             <motion.div variants={cardVariants} style={{ marginTop: 40 }}>

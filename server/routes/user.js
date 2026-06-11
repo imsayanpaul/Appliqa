@@ -6,12 +6,37 @@ const requireAuth = require('../middleware/auth');
 // Create or update user profile
 router.post('/profile', requireAuth, async (req, res) => {
   try {
-    const { name, preferences, resumeData, dob } = req.body;
+    const { 
+      name, 
+      preferences, 
+      resumeData, 
+      dob,
+      educationStatus,
+      collegeCourse,
+      expectedGraduationYear,
+      jobSearchUrgency,
+      openToInternationalRemote,
+      preferredCurrency,
+      portfolioGithub,
+      portfolioBehance,
+      portfolioLinkedin,
+      portfolioWebsite
+    } = req.body;
     const userId = req.user.id;
 
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (dob !== undefined) updateData.dob = dob;
+    if (educationStatus !== undefined) updateData.education_status = educationStatus;
+    if (collegeCourse !== undefined) updateData.college_course = collegeCourse;
+    if (expectedGraduationYear !== undefined) updateData.expected_graduation_year = expectedGraduationYear ? parseInt(expectedGraduationYear, 10) : null;
+    if (jobSearchUrgency !== undefined) updateData.job_search_urgency = jobSearchUrgency;
+    if (openToInternationalRemote !== undefined) updateData.open_to_international_remote = !!openToInternationalRemote;
+    if (preferredCurrency !== undefined) updateData.preferred_currency = preferredCurrency;
+    if (portfolioGithub !== undefined) updateData.portfolio_github = portfolioGithub;
+    if (portfolioBehance !== undefined) updateData.portfolio_behance = portfolioBehance;
+    if (portfolioLinkedin !== undefined) updateData.portfolio_linkedin = portfolioLinkedin;
+    if (portfolioWebsite !== undefined) updateData.portfolio_website = portfolioWebsite;
     
     if (preferences) {
       if (preferences.desiredRole !== undefined) updateData.desired_role = preferences.desiredRole;
@@ -53,6 +78,16 @@ router.post('/profile', requireAuth, async (req, res) => {
       name: user.name,
       email: user.email,
       dob: user.dob || '',
+      educationStatus: user.education_status || '',
+      collegeCourse: user.college_course || '',
+      expectedGraduationYear: user.expected_graduation_year || '',
+      jobSearchUrgency: user.job_search_urgency || '',
+      openToInternationalRemote: !!user.open_to_international_remote,
+      preferredCurrency: user.preferred_currency || '',
+      portfolioGithub: user.portfolio_github || '',
+      portfolioBehance: user.portfolio_behance || '',
+      portfolioLinkedin: user.portfolio_linkedin || '',
+      portfolioWebsite: user.portfolio_website || '',
       preferences: {
         desiredRole: user.desired_role || '',
         country: user.country || '',
@@ -143,6 +178,16 @@ router.get('/profile', requireAuth, async (req, res) => {
       name: user.name,
       email: user.email,
       dob: user.dob || '',
+      educationStatus: user.education_status || '',
+      collegeCourse: user.college_course || '',
+      expectedGraduationYear: user.expected_graduation_year || '',
+      jobSearchUrgency: user.job_search_urgency || '',
+      openToInternationalRemote: !!user.open_to_international_remote,
+      preferredCurrency: user.preferred_currency || '',
+      portfolioGithub: user.portfolio_github || '',
+      portfolioBehance: user.portfolio_behance || '',
+      portfolioLinkedin: user.portfolio_linkedin || '',
+      portfolioWebsite: user.portfolio_website || '',
       preferences: {
         desiredRole: user.desired_role || '',
         country: user.country || '',
