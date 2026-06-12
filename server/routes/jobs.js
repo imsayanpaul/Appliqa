@@ -27,6 +27,39 @@ function setCache(key, data) {
   searchCache.set(key, { data, timestamp: Date.now() });
 }
 
+function isValidSearchQuery(q, resultsCount) {
+  if (!q || typeof q !== 'string') return false;
+  
+  const trimmed = q.trim();
+  
+  // 1. Length check: view top_searches requires length between 3 and 25
+  if (trimmed.length < 3 || trimmed.length > 25) return false;
+  
+  // 2. Must return results (gibberish/typos usually return 0 jobs)
+  if (resultsCount === undefined || resultsCount === null || resultsCount === 0) return false;
+  
+  // 3. Characters check: only allow letters, numbers, spaces, and common job/tech chars: #, +, -, /, .
+  const validCharsRegex = /^[a-zA-Z0-9\s+#\-\/.]+$/;
+  if (!validCharsRegex.test(trimmed)) return false;
+  
+  // 4. No 3 or more consecutive identical characters (e.g. 'xxx', 'aaa')
+  if (/(.)\1\1/.test(trimmed)) return false;
+  
+  // 5. Avoid common test inputs and gibberish keymashes
+  const lowercase = trimmed.toLowerCase();
+  const blacklist = ['test', 'testing', 'asdf', 'qwerty', 'zxcv', 'ghjk', 'fake', 'dummy', 'hello', 'world', 'none', 'null', 'undefined'];
+  if (blacklist.includes(lowercase)) return false;
+  if (lowercase.includes('asdf') || lowercase.includes('qwerty') || lowercase.includes('zxcv') || lowercase.includes('ghjk')) return false;
+  
+  // 6. Must contain at least one vowel to filter out consonant-only keymashes (e.g., 'sdfgh', 'qwrty')
+  // Allow common tech/business acronyms that don't have vowels (like 'AWS', 'QA', 'PR', 'IT', 'JS', 'TS', 'CSS', 'SQL', 'PHP', 'ML', 'HR')
+  const hasVowel = /[aeiouy]/i.test(trimmed);
+  const allowedAcronyms = ['aws', 'qa', 'pr', 'it', 'js', 'ts', 'css', 'sql', 'php', 'ml', 'hr'];
+  if (!hasVowel && !allowedAcronyms.includes(lowercase)) return false;
+  
+  return true;
+}
+
 // Optional auth middleware — attaches user if token is valid, but doesn't block
 const optionalAuth = async (req, res, next) => {
   try {
@@ -179,15 +212,18 @@ router.get('/search', optionalAuth, async (req, res) => {
     // Save search history
     if (userId) {
       try {
-        await supabase.from('search_history').insert({
-          user_id: userId,
-          query: searchQuery,
-          filter_location: location,
-          filter_employment_type: employmentType,
-          filter_date_posted: datePosted,
-          filter_remote: remote === 'true',
-          results_count: jobs.length
-        });
+        const cleanQuery = query.trim().replace(/\s+/g, ' ');
+        if (isValidSearchQuery(cleanQuery, jobs.length)) {
+          await supabase.from('search_history').insert({
+            user_id: userId,
+            query: cleanQuery,
+            filter_location: location,
+            filter_employment_type: employmentType,
+            filter_date_posted: datePosted,
+            filter_remote: remote === 'true',
+            results_count: jobs.length
+          });
+        }
       } catch (e) {
         console.error('Failed to save search history', e);
       }
