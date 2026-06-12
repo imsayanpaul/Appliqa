@@ -330,13 +330,28 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 navigate('/');
-            } else {
+            } else if (authMode === 'register') {
                 const { error } = await supabase.auth.signUp({ 
                     email, 
                     password
                 });
                 if (error) throw error;
                 alert("Account created! Check your email to verify your registration.");
+            } else if (authMode === 'forgot') {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: `${window.location.origin}/profile?reset=true`
+                });
+                if (error) throw error;
+                alert("Password reset email sent! Please check your inbox.");
+                setAuthMode('login');
+            } else if (authMode === 'reset') {
+                const { error } = await supabase.auth.updateUser({ password });
+                if (error) throw error;
+                alert("Password updated successfully! You can now log in with your new password.");
+                await supabase.auth.signOut();
+                navigate('/profile', { replace: true });
+                setAuthMode('login');
+                setPassword('');
             }
         } catch (err) {
             setAuthError(err.message);
