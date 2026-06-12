@@ -3645,6 +3645,7 @@ select.form-input {
   height: 76px;
 }
 
+.splash-logo img,
 .splash-logo svg {
   filter: drop-shadow(0 0 24px rgba(249, 115, 22, 0.35));
 }

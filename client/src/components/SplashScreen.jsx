@@ -13,10 +13,13 @@ function SplashScreen() {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 120, damping: 14, delay: 0.1 }}
             >
-                <svg width="76" height="76" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-                    <rect width="100" height="100" rx="22" fill="#0A0A0A" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="1"/>
-                    <path d="M30 70 L50 30 L70 70 M38 58 L62 58" stroke="#f97316" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <img 
+                    src="/logo.svg" 
+                    alt="Appliqa Logo" 
+                    width="76" 
+                    height="76" 
+                    style={{ display: 'block' }} 
+                />
             </motion.div>
 
             {/* App name */}
