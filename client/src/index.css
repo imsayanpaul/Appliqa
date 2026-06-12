@@ -3629,7 +3629,7 @@ select.form-input {
   width: 260px;
   height: 260px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 120, 80, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
   filter: blur(40px);
   animation: splashPulse 2.4s ease-in-out infinite;
   pointer-events: none;
@@ -3641,34 +3641,27 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
 }
 
 .splash-logo svg {
-  filter: drop-shadow(0 0 24px rgba(255, 120, 80, 0.35));
-}
-
-/* Orbiting ring */
-.splash-orbit {
-  position: absolute;
-  inset: -14px;
-  border-radius: 50%;
-  border: 1.5px solid transparent;
-  border-top-color: rgba(255, 153, 102, 0.5);
-  border-right-color: rgba(255, 94, 98, 0.25);
-  animation: splashSpin 1.6s linear infinite;
+  filter: drop-shadow(0 0 24px rgba(249, 115, 22, 0.35));
 }
 
 /* App title */
 .splash-title {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #FF9966, #FF5E62);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  color: #FFFFFF;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.splash-title span {
+  color: var(--accent-primary);
+  text-shadow: 0 0 16px rgba(249, 115, 22, 0.5);
 }
 
 /* Tagline */
@@ -3693,7 +3686,7 @@ select.form-input {
   width: 40%;
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, #FF9966, #FF5E62);
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-hover));
   animation: splashBar 1.4s ease-in-out infinite;
 }
 
