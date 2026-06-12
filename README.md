@@ -55,12 +55,24 @@ SUPABASE_SERVICE_KEY=your_supabase_service_role_key
 ### 3. Install & Run
 
 ```bash
-# Install all dependencies
+# Install all dependencies (both client and server)
 npm run install:all
+```
 
-# Start both frontend and backend
+#### Start both frontend and backend concurrently:
+```bash
 npm run dev
 ```
+
+#### Start servers individually:
+* **Frontend Client (Vite)**:
+  ```bash
+  npm run client
+  ```
+* **Backend Server (Express)**:
+  ```bash
+  npm run server
+  ```
 
 ## Project Structure
 
