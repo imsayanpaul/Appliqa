@@ -445,7 +445,7 @@ function AppContent() {
     return (
         <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
             {/* GitHub Social Buttons (Star & Fork) */}
-            <div className="fixed top-6 right-6 z-[110] hidden sm:flex items-center gap-2.5 select-none">
+            <div className="fixed top-6 right-6 z-[110] hidden xl:flex items-center gap-2.5 select-none">
                 {/* Star Button */}
                 <div className="relative">
                     <div className="flex items-center bg-zinc-900/90 backdrop-blur-md border border-white/10 rounded-lg text-xs font-semibold shadow-xl hover:border-white/20 transition-all duration-200">
