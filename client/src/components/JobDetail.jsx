@@ -253,7 +253,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
                 <div className="modal-section">
                     <h3>Job Description</h3>
                     <p className="job-description-paragraph">
-                        {formatDescription(job.description)?.substring(0, 3000)}
+                        {formatDescription(job.description)}
                     </p>
                 </div>
 
