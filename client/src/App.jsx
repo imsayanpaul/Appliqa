@@ -35,6 +35,8 @@ function AppContent() {
 
     // Profile State (from database)
     const [user, setUser] = useState(null);
+    const userRef = useRef(null);
+    userRef.current = user;
     const [showLocationPrompt, setShowLocationPrompt] = useState(false);
     const [pendingLocationPrompt, setPendingLocationPrompt] = useState(false);
     const [detectingLocation, setDetectingLocation] = useState(false);
@@ -234,7 +236,9 @@ function AppContent() {
     // Fetch user profile from DB when session exists
     useEffect(() => {
         if (session) {
-            setLoadingAuth(true);
+            if (!userRef.current) {
+                setLoadingAuth(true);
+            }
             getUserProfile()
                 .then(res => {
                     const profile = res.data.user;
