@@ -214,7 +214,10 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
     // Auth State
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+    const [authMode, setAuthMode] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('reset') === 'true' ? 'reset' : 'login';
+    });
     const [showPassword, setShowPassword] = useState(false);
     const [authLoading, setAuthLoading] = useState(false);
     const [authError, setAuthError] = useState(null);
@@ -427,7 +430,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
         }
     };
 
-    if (!session) {
+    if (!session || authMode === 'reset') {
         return (
             <div className="auth-page-wrapper" style={{ position: 'relative', minHeight: '100vh' }}>
                 {/* Brand Logo in Top-Left Corner */}
