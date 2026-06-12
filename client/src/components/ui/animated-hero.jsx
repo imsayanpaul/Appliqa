@@ -86,10 +86,11 @@ function Hero() {
       <div className="container mx-auto px-4">
         <ContainerScroll titleComponent={titleComponent}>
           <img 
-            src="/themepage.png" 
+            src="/themepage.webp" 
             alt="Appliqa Dashboard Preview" 
             className="w-full h-full object-cover object-top block rounded-2xl"
             draggable={false}
+            fetchpriority="high"
           />
         </ContainerScroll>
       </div>
