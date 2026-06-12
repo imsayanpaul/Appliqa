@@ -595,12 +595,8 @@ function AppContent() {
                             animate={{ scale: 1, opacity: 1 }}
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
-                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                         >
-                            <img src="/logo.svg" alt="Appliqa Logo" width="22" height="22" style={{ display: 'block' }} />
-                            <span className="navbar-logo">
-                                Appli<span>qa</span>
-                            </span>
+                            <img src="/logotext.svg" alt="Appliqa" height="22" style={{ display: 'block', height: '22px' }} />
                         </motion.div>
                     </div>
 

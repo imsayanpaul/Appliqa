@@ -79,12 +79,8 @@ function Hero() {
       <div 
         className="absolute top-6 left-6 z-10 cursor-pointer" 
         onClick={() => navigate("/")}
-        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
       >
-        <img src="/logo.svg" alt="Appliqa Logo" width="22" height="22" style={{ display: 'block' }} />
-        <span className="navbar-logo text-xl">
-          Appli<span>qa</span>
-        </span>
+        <img src="/logotext.svg" alt="Appliqa" height="22" style={{ display: 'block', height: '22px' }} />
       </div>
 
       <div className="container mx-auto px-4">

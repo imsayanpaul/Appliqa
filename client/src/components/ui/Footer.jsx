@@ -139,12 +139,9 @@ function Footer() {
         {/* Bottom Bar: Logo, Copyright & Legal */}
         <div className="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo / Brand */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNav('/')}>
-            <img src="/logo.svg" alt="Appliqa Logo" width="20" height="20" style={{ display: 'block' }} />
-            <span className="navbar-logo text-lg">
-              Appli<span>qa</span>
-            </span>
-            <span className="text-[11px] text-zinc-600 font-medium ml-1">
+          <div className="flex flex-col sm:flex-row items-center gap-4 cursor-pointer" onClick={() => handleNav('/')}>
+            <img src="/logotext.svg" alt="Appliqa" height="20" style={{ display: 'block', height: '20px' }} />
+            <span className="text-[11px] text-zinc-600 font-medium">
               © {new Date().getFullYear()} Appliqa Inc. All rights reserved.
             </span>
           </div>
