@@ -6425,4 +6425,17 @@ input[type="number"] {
   color: #a1a1aa;
   margin: 0;
   line-height: 1.5;
+}
+
+/* SVG outline emoji hover effects */
+.feedback-rating-opt:hover svg circle {
+  stroke: #f97316;
+}
+
+.feedback-rating-opt:hover svg path {
+  stroke: #f97316;
+}
+
+.feedback-rating-opt:hover svg polygon {
+  stroke: #f97316;
 }

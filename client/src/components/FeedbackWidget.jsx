@@ -60,14 +60,81 @@ function FeedbackWidget({ user }) {
     };
 
     const ratingOptions = [
-        { label: '😞', value: 1, text: 'Poor' },
-        { label: '😐', value: 2, text: 'Okay' },
-        { label: '🙂', value: 3, text: 'Good' },
-        { label: '😃', value: 4, text: 'Great' },
-        { label: '🤩', value: 5, text: 'Amazing' }
+        { value: 1, text: 'Poor' },
+        { value: 2, text: 'Okay' },
+        { value: 3, text: 'Good' },
+        { value: 4, text: 'Awesome' }
     ];
 
     const categories = ['General', 'Bug Report', 'Feature Request', 'Other'];
+
+    const renderEmojiIcon = (val, isSelected) => {
+        const strokeColor = isSelected ? '#f97316' : '#71717a';
+        const fillColor = isSelected ? 'rgba(249, 115, 22, 0.1)' : 'transparent';
+        const eyeColor = isSelected ? '#f97316' : '#71717a';
+        const starFillColor = isSelected ? '#f97316' : 'transparent';
+        
+        switch (val) {
+            case 1: // Crying / Very Sad
+                return (
+                    <svg viewBox="0 0 24 24" width="28" height="28" style={{ display: 'block', transition: 'stroke 0.2s' }}>
+                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="2" fill={fillColor} />
+                        {/* Crying eyes (downward curves) */}
+                        <path d="M7.5 12c.5-1 1.5-1 2 0" stroke={eyeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                        <path d="M14.5 12c.5-1 1.5-1 2 0" stroke={eyeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                        {/* Vertical Blue Tears */}
+                        <path d="M8.5 12.5v3.5" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M15.5 12.5v3.5" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+                        {/* Frown Mouth */}
+                        <path d="M10.5 16.5c.5-.5 1.5-.5 2 0" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                    </svg>
+                );
+            case 2: // Sad / Frown
+                return (
+                    <svg viewBox="0 0 24 24" width="28" height="28" style={{ display: 'block', transition: 'stroke 0.2s' }}>
+                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="2" fill={fillColor} />
+                        <circle cx="9" cy="10" r="1.2" fill={eyeColor} />
+                        <circle cx="15" cy="10" r="1.2" fill={eyeColor} />
+                        <path d="M9 16c1-1.5 5-1.5 6 0" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                    </svg>
+                );
+            case 3: // Smile / Good
+                return (
+                    <svg viewBox="0 0 24 24" width="28" height="28" style={{ display: 'block', transition: 'stroke 0.2s' }}>
+                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="2" fill={fillColor} />
+                        <circle cx="9" cy="10" r="1.2" fill={eyeColor} />
+                        <circle cx="15" cy="10" r="1.2" fill={eyeColor} />
+                        <path d="M9 14.5c1 1.8 5 1.8 6 0" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                    </svg>
+                );
+            case 4: // Star-eyes / Awesome
+                return (
+                    <svg viewBox="0 0 24 24" width="28" height="28" style={{ display: 'block', transition: 'stroke 0.2s' }}>
+                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="2" fill={fillColor} />
+                        {/* Star left eye */}
+                        <polygon 
+                            points="9,7.5 9.8,9.2 11.6,9.2 10.2,10.3 10.7,12.1 9,11 7.3,12.1 7.8,10.3 6.4,9.2 8.2,9.2" 
+                            fill={starFillColor} 
+                            stroke={isSelected ? '#f97316' : '#71717a'} 
+                            strokeWidth="1.2" 
+                            strokeLinejoin="round"
+                        />
+                        {/* Star right eye */}
+                        <polygon 
+                            points="15,7.5 15.8,9.2 17.6,9.2 16.2,10.3 16.7,12.1 15,11 13.3,12.1 13.8,10.3 12.4,9.2 14.2,9.2" 
+                            fill={starFillColor} 
+                            stroke={isSelected ? '#f97316' : '#71717a'} 
+                            strokeWidth="1.2" 
+                            strokeLinejoin="round"
+                        />
+                        {/* Laughing Smile Mouth */}
+                        <path d="M8.5 14c1 2.5 6 2.5 7 0" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                    </svg>
+                );
+            default:
+                return null;
+        }
+    };
 
     return (
         <>
@@ -93,7 +160,7 @@ function FeedbackWidget({ user }) {
                         <form onSubmit={handleSubmit}>
                             <div className="feedback-header">
                                 <h3>
-                                    <FiMessageSquare size={18} color="var(--accent-primary)" />
+                                    <FiMessageSquare size={18} color="#f97316" />
                                     <span>Share Feedback</span>
                                 </h3>
                                 <button 
@@ -115,8 +182,9 @@ function FeedbackWidget({ user }) {
                                         title={opt.text}
                                         className={`feedback-rating-opt ${rating === opt.value ? 'selected' : ''}`}
                                         onClick={() => handleRatingSelect(opt.value)}
+                                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                     >
-                                        {opt.label}
+                                        {renderEmojiIcon(opt.value, rating === opt.value)}
                                     </button>
                                 ))}
                             </div>
