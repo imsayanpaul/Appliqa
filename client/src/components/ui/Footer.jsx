@@ -119,20 +119,16 @@ function Footer() {
           </div>
         </div>
 
-        {/* Big Brand Watermark: Outlined geometric typography in brand orange (low opacity, wide layout, shifted up) */}
+        {/* Big Brand Watermark: logotext.svg (low opacity, wide layout, shifted up) */}
         <div className="relative w-full -mt-10 sm:-mt-20 pt-4 pb-16 flex justify-center items-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            whileInView={{ opacity: 0.08, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-[21vw] font-black tracking-normal text-center leading-none font-sans select-none"
-            style={{
-              color: 'transparent',
-              WebkitTextStroke: '1.2px rgba(249, 115, 22, 0.6)',
-            }}
+            className="w-full max-w-[850px] px-6 flex justify-center select-none pointer-events-none"
           >
-            Appliqa
+            <img src="/logotext.svg" alt="Appliqa Watermark" className="w-full h-auto" />
           </motion.div>
         </div>
 
