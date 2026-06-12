@@ -438,9 +438,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                     className="absolute top-6 left-6 z-50 cursor-pointer"
                     onClick={() => navigate('/')}
                 >
-                    <span className="navbar-logo text-xl">
-                        Appli<span>qa</span>
-                    </span>
+                    <img src="/logotext.svg" alt="Appliqa" height="22" style={{ display: 'block', height: '22px' }} />
                 </div>
 
                 <div className="auth-container" style={{ minHeight: '100vh' }}>
