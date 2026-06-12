@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Activity, Map as MapIcon, MessageCircle, FileText, Send, TrendingUp, Compass, CheckSquare, Zap } from 'lucide-react'
+import { Activity, Map as MapIcon, MessageCircle, FileText, Send, TrendingUp, Compass, CheckSquare, Zap, Sparkles, Briefcase } from 'lucide-react'
 import DottedMap from 'dotted-map'
 import { Area, AreaChart, CartesianGrid } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
@@ -39,7 +39,7 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* Box 2: AI Career Support */}
+                {/* Box 2: AI Career Advisor */}
                 <div 
                     onClick={() => navigate('/advisor')}
                     className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
@@ -47,11 +47,11 @@ export function Features() {
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <MessageCircle className="size-4 text-orange-500" />
-                            AI Resume & Career Advisor
+                            AI Career Advisor
                         </span>
 
                         <p className="mt-6 text-xl font-semibold text-white leading-snug">
-                            Get instant, actionable feedback to optimize your resume and match job descriptions.
+                            Chat with an interactive AI mentor for personalized career guidance, mock interviews, and resume critique.
                         </p>
                     </div>
 
@@ -68,8 +68,38 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* Box 3: AI Match Score & Skills */}
-                <div className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                {/* Box 3: AI Resume Builder */}
+                <div 
+                    onClick={() => navigate('/resume-creator')}
+                    className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
+                    <div>
+                        <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
+                            <FileText className="size-4 text-orange-500" />
+                            AI Resume Builder
+                        </span>
+
+                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                            Build and optimize your resume with AI-generated summaries, professional templates, and bullet enhancers.
+                        </p>
+                    </div>
+
+                    <div aria-hidden className="mt-8 p-4 rounded-xl bg-zinc-900/60 border border-white/5">
+                        <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
+                            <span className="text-[10px] text-slate-400 font-medium font-mono">my-resume-v2.pdf</span>
+                            <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"/> Ready to Download
+                            </span>
+                        </div>
+                        <div className="flex gap-2">
+                            <span className="px-2 py-0.5 rounded text-[9px] bg-orange-500/10 text-orange-300 border border-orange-500/20 font-medium">Modern Theme</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] bg-zinc-800 text-zinc-300 border border-zinc-700 font-medium">ATS Checked</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Box 4: AI Match Score & Skills */}
+                <div className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <TrendingUp className="size-4 text-emerald-400" />
@@ -96,8 +126,11 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* Box 4: ATS Keyword Scanner & Fixer [NEW] */}
-                <div className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                {/* Box 5: ATS Keyword Scanner & Fixer */}
+                <div 
+                    onClick={() => navigate('/resume-creator')}
+                    className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <CheckSquare className="size-4 text-orange-500" />
@@ -128,11 +161,14 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* Box 5: Cover Letter Generator */}
-                <div className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                {/* Box 6: AI Cover Letter Generator */}
+                <div 
+                    onClick={() => navigate('/resume-creator')}
+                    className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
-                            <FileText className="size-4 text-orange-500" />
+                            <Sparkles className="size-4 text-orange-500" />
                             AI Cover Letter Generator
                         </span>
 
@@ -154,8 +190,11 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* Box 6: LinkedIn Cold DM */}
-                <div className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                {/* Box 7: LinkedIn Cold Outreach */}
+                <div 
+                    onClick={() => navigate('/resume-creator')}
+                    className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <Send className="size-4 text-orange-500" />
@@ -178,8 +217,11 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* Box 7: Career Path Visualizer */}
-                <div className="border-b border-white/5 md:border-b-0 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                {/* Box 8: Career Path Visualizer */}
+                <div 
+                    onClick={() => navigate('/career')}
+                    className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <Compass className="size-4 text-orange-500" />
@@ -209,8 +251,11 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* Box 8: AI Interview Prep Coach [NEW] */}
-                <div className="p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                {/* Box 9: AI Interview Prep Coach */}
+                <div 
+                    onClick={() => navigate('/saved')}
+                    className="border-b border-white/5 md:border-b-0 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <Zap className="size-4 text-orange-500" />
@@ -232,6 +277,42 @@ export function Features() {
                         </p>
                         <div className="text-[10px] text-slate-400 italic">
                             💡 Tip: Highlight exact metrics and performance stats.
+                        </div>
+                    </div>
+                </div>
+
+                {/* Box 10: Smart Application Tracker */}
+                <div 
+                    onClick={() => navigate('/saved')}
+                    className="p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
+                    <div>
+                        <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
+                            <Briefcase className="size-4 text-emerald-400" />
+                            Smart Application Tracker
+                        </span>
+
+                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                            Bookmark jobs and track application status seamlessly from Saved, Applied, Interview, to Offer.
+                        </p>
+                    </div>
+
+                    <div aria-hidden className="mt-8 grid grid-cols-4 gap-2 text-center">
+                        <div className="p-2 rounded bg-zinc-900/60 border border-white/5">
+                            <div className="text-[10px] text-slate-400 uppercase font-semibold">Saved</div>
+                            <div className="text-sm font-bold text-white mt-1">12</div>
+                        </div>
+                        <div className="p-2 rounded bg-zinc-900/60 border border-white/5">
+                            <div className="text-[10px] text-slate-400 uppercase font-semibold">Applied</div>
+                            <div className="text-sm font-bold text-orange-400 mt-1">5</div>
+                        </div>
+                        <div className="p-2 rounded bg-zinc-900/60 border border-white/5">
+                            <div className="text-[10px] text-slate-400 uppercase font-semibold">Interview</div>
+                            <div className="text-sm font-bold text-orange-400 mt-1">2</div>
+                        </div>
+                        <div className="p-2 rounded bg-zinc-900/60 border border-white/5">
+                            <div className="text-[10px] text-slate-400 uppercase font-semibold">Offer</div>
+                            <div className="text-sm font-bold text-emerald-400 mt-1">1</div>
                         </div>
                     </div>
                 </div>
