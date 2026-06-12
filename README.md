@@ -112,4 +112,4 @@ Appliqa/
 
 ## License
 
-[MIT](LICENSE)
+[Proprietary / All Rights Reserved](LICENSE)
