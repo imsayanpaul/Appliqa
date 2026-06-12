@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #09090b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #f4f4f5;
+    }
+    .email-container {
+      max-width: 540px;
+      margin: 40px auto;
+      background-color: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .logo-container {
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    p {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: #a1a1aa;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 32px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+    }
+    .footer-text {
+      font-size: 12px;
+      color: #52525b;
+      margin-top: 40px;
+      border-top: 1px solid #27272a;
+      padding-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="logo-container">
+      <a href="https://www.appliqa.xyz" style="text-decoration: none; display: block; text-align: center;">
+        <img src="https://www.appliqa.xyz/logotext.svg" alt="Appliqa" height="32" style="display: block; margin: 0 auto; height: 32px; border: none; outline: none; text-decoration: none; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.03em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;" />
+      </a>
+    </div>
+    <h1>Reset Your Password</h1>
+    <p>We received a request to reset your password. Click the button below to choose a new password and log back into your Appliqa account.</p>
+    <a href="{{ .ConfirmationURL }}" class="btn">Reset Password</a>
+    <div class="footer-text">
+      If you did not request a password reset, please ignore this email.
+    </div>
+  </div>
+</body>
+</html>
