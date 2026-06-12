@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiMessageSquare, FiX, FiSend } from 'react-icons/fi';
+import { FiMessageSquare, FiX, FiSend, FiCheckCircle } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
 
 function FeedbackWidget({ user }) {
@@ -152,7 +152,7 @@ function FeedbackWidget({ user }) {
                 <div className="feedback-panel">
                     {submitted ? (
                         <div className="feedback-success-card">
-                            <span className="feedback-success-icon">🙌</span>
+                            <FiCheckCircle size={40} className="feedback-success-icon" style={{ color: '#f97316' }} />
                             <h4>Thank you!</h4>
                             <p>Your feedback helps us make Appliqa better for everyone.</p>
                         </div>
