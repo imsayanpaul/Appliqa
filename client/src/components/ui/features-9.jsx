@@ -11,30 +11,32 @@ export function Features() {
         <section className="px-4 pt-4 pb-16 md:pt-8 md:pb-24">
             <div className="mx-auto grid max-w-5xl border border-white/5 rounded-2xl bg-zinc-950/20 backdrop-blur-md md:grid-cols-2 overflow-hidden">
                 
-                {/* Box 1: Location Matching */}
-                <div className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                {/* Box 1: AI Resume Builder */}
+                <div 
+                    onClick={() => navigate('/resume-creator')}
+                    className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
-                            <MapIcon className="size-4 text-orange-500" />
-                            Smart Location Matching
+                            <FileText className="size-4 text-orange-500" />
+                            AI Resume Builder
                         </span>
 
                         <p className="mt-6 text-xl font-semibold text-white leading-snug">
-                            Global opportunities. Instantly find jobs in your preferred city or remote worldwide.
+                            Build and optimize your resume with AI-generated summaries, professional templates, and bullet enhancers.
                         </p>
                     </div>
 
-                    <div aria-hidden className="relative mt-8">
-                        <div className="absolute inset-0 z-10 m-auto size-fit">
-                            <div className="rounded-xl bg-zinc-900/90 backdrop-blur-md z-[1] relative flex size-fit w-fit items-center gap-2 border border-white/10 px-4 py-2 text-xs font-medium text-white shadow-xl">
-                                <span className="text-base">🇺🇸</span> Match: React Developer in San Francisco
-                            </div>
-                            <div className="rounded-xl bg-zinc-950/80 absolute inset-2 -bottom-2 mx-auto border border-white/5 px-3 py-4 shadow-lg"></div>
+                    <div aria-hidden className="mt-8 p-4 rounded-xl bg-zinc-900/60 border border-white/5">
+                        <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
+                            <span className="text-[10px] text-slate-400 font-medium font-mono">my-resume-v2.pdf</span>
+                            <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"/> Ready to Download
+                            </span>
                         </div>
-
-                        <div className="relative overflow-hidden opacity-30 h-36 flex items-center justify-center">
-                            <div className="[background-image:radial-gradient(var(--tw-gradient-stops))] z-10 absolute inset-0 from-transparent via-transparent to-zinc-950"></div>
-                            <Map />
+                        <div className="flex gap-2">
+                            <span className="px-2 py-0.5 rounded text-[9px] bg-orange-500/10 text-orange-300 border border-orange-500/20 font-medium">Modern Theme</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] bg-zinc-800 text-zinc-300 border border-zinc-700 font-medium">ATS Checked</span>
                         </div>
                     </div>
                 </div>
@@ -68,32 +70,30 @@ export function Features() {
                     </div>
                 </div>
 
-                {/* Box 3: AI Resume Builder */}
-                <div 
-                    onClick={() => navigate('/resume-creator')}
-                    className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
-                >
+                {/* Box 3: Location Matching */}
+                <div className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
-                            <FileText className="size-4 text-orange-500" />
-                            AI Resume Builder
+                            <MapIcon className="size-4 text-orange-500" />
+                            Smart Location Matching
                         </span>
 
                         <p className="mt-6 text-xl font-semibold text-white leading-snug">
-                            Build and optimize your resume with AI-generated summaries, professional templates, and bullet enhancers.
+                            Global opportunities. Instantly find jobs in your preferred city or remote worldwide.
                         </p>
                     </div>
 
-                    <div aria-hidden className="mt-8 p-4 rounded-xl bg-zinc-900/60 border border-white/5">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
-                            <span className="text-[10px] text-slate-400 font-medium font-mono">my-resume-v2.pdf</span>
-                            <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-                                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"/> Ready to Download
-                            </span>
+                    <div aria-hidden className="relative mt-8">
+                        <div className="absolute inset-0 z-10 m-auto size-fit">
+                            <div className="rounded-xl bg-zinc-900/90 backdrop-blur-md z-[1] relative flex size-fit w-fit items-center gap-2 border border-white/10 px-4 py-2 text-xs font-medium text-white shadow-xl">
+                                <span className="text-base">🇺🇸</span> Match: React Developer in San Francisco
+                            </div>
+                            <div className="rounded-xl bg-zinc-950/80 absolute inset-2 -bottom-2 mx-auto border border-white/5 px-3 py-4 shadow-lg"></div>
                         </div>
-                        <div className="flex gap-2">
-                            <span className="px-2 py-0.5 rounded text-[9px] bg-orange-500/10 text-orange-300 border border-orange-500/20 font-medium">Modern Theme</span>
-                            <span className="px-2 py-0.5 rounded text-[9px] bg-zinc-800 text-zinc-300 border border-zinc-700 font-medium">ATS Checked</span>
+
+                        <div className="relative overflow-hidden opacity-30 h-36 flex items-center justify-center">
+                            <div className="[background-image:radial-gradient(var(--tw-gradient-stops))] z-10 absolute inset-0 from-transparent via-transparent to-zinc-950"></div>
+                            <Map />
                         </div>
                     </div>
                 </div>
