@@ -12,6 +12,7 @@ import Advisor from './pages/Advisor';
 import ResumeCreator from './pages/ResumeCreator';
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
+import FeedbackWidget from './components/FeedbackWidget';
 import { supabase } from './services/supabase';
 import { getUserProfile, createOrUpdateUser } from './services/api';
 import { Dropdown } from './components/ui/Dropdown';
@@ -1246,6 +1247,7 @@ function AppContent() {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <FeedbackWidget user={user} />
         </div>
     );
 }
