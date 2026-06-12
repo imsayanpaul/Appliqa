@@ -140,6 +140,7 @@ function Footer() {
         <div className="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Logo / Brand */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleNav('/')}>
+            <img src="/logo.svg" alt="Appliqa Logo" width="20" height="20" style={{ display: 'block' }} />
             <span className="navbar-logo text-lg">
               Appli<span>qa</span>
             </span>
