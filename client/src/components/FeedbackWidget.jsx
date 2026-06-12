@@ -53,7 +53,7 @@ function FeedbackWidget({ user }) {
             }, 3000);
         } catch (err) {
             console.error('Failed to submit feedback:', err);
-            alert('Failed to send feedback. Please try again.');
+            alert(err.message || 'Failed to send feedback. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
