@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiGitBranch, FiChevronDown, FiCalendar } from 'react-icons/fi';
+import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiChevronDown, FiCalendar } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import Home from './pages/Home';
@@ -62,16 +62,15 @@ function AppContent() {
         }
     }, [showOnboardingPrompt]);
     
-    // GitHub repository stats (Stars & Forks)
-    const [githubStats, setGithubStats] = useState({ stars: 0, forks: 0 });
+    // GitHub repository stats (Stars)
+    const [githubStats, setGithubStats] = useState({ stars: 0 });
 
     useEffect(() => {
         fetch('https://api.github.com/repos/imsayanpaul/Appliqa')
             .then(res => res.json())
             .then(data => {
                 setGithubStats({
-                    stars: data.stargazers_count ?? 0,
-                    forks: data.forks_count ?? 0
+                    stars: data.stargazers_count ?? 0
                 });
             })
             .catch(err => console.error('Error fetching GitHub stats:', err));
@@ -79,17 +78,15 @@ function AppContent() {
 
     // GitHub Dropdown States
     const [starDropdownOpen, setStarDropdownOpen] = useState(false);
-    const [forkDropdownOpen, setForkDropdownOpen] = useState(false);
 
     useEffect(() => {
-        if (!starDropdownOpen && !forkDropdownOpen) return;
+        if (!starDropdownOpen) return;
         const handleOutsideClick = () => {
             setStarDropdownOpen(false);
-            setForkDropdownOpen(false);
         };
         window.addEventListener('click', handleOutsideClick);
         return () => window.removeEventListener('click', handleOutsideClick);
-    }, [starDropdownOpen, forkDropdownOpen]);
+    }, [starDropdownOpen]);
     
     // Custom Alert State
     const [customAlert, setCustomAlert] = useState({ show: false, message: '', title: 'Notification', type: 'info' });
@@ -444,7 +441,7 @@ function AppContent() {
 
     return (
         <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
-            {/* GitHub Social Buttons (Star & Fork) */}
+            {/* GitHub Social Buttons (Star) */}
             <div className="fixed top-6 right-6 z-[110] hidden xl:flex items-center gap-2.5 select-none">
                 {/* Star Button */}
                 <div className="relative">
@@ -469,7 +466,6 @@ function AppContent() {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setStarDropdownOpen(!starDropdownOpen);
-                                setForkDropdownOpen(false);
                             }}
                             className="px-2 py-1.5 bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
                             style={{ color: '#A1A1AA', border: 'none', cursor: 'pointer' }}
@@ -503,69 +499,6 @@ function AppContent() {
                                     onClick={() => setStarDropdownOpen(false)}
                                 >
                                     Repo Insights
-                                </a>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-
-                {/* Fork Button */}
-                <div className="relative">
-                    <div className="flex items-center bg-zinc-900/90 backdrop-blur-md border border-white/10 rounded-lg text-xs font-semibold shadow-xl hover:border-white/20 transition-all duration-200">
-                        <a 
-                            href="https://github.com/imsayanpaul/Appliqa/fork" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-1.5 border-r border-white/10 hover:bg-white/5 transition-all duration-200 rounded-l-lg"
-                            style={{ color: '#F4F4F5', textDecoration: 'none' }}
-                        >
-                            <FiGitBranch className="size-3.5 text-zinc-400" style={{ color: '#A1A1AA' }} />
-                            <span style={{ color: '#F4F4F5' }}>Fork</span>
-                            <span 
-                                className="px-1.5 py-0.5 ml-1 rounded bg-white/10 border border-white/10 text-[10px] font-mono font-medium"
-                                style={{ color: '#F97316', borderColor: 'rgba(249, 115, 22, 0.2)', backgroundColor: 'rgba(249, 115, 22, 0.1)' }}
-                            >
-                                {githubStats.forks}
-                            </span>
-                        </a>
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setForkDropdownOpen(!forkDropdownOpen);
-                                setStarDropdownOpen(false);
-                            }}
-                            className="px-2 py-1.5 bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
-                            style={{ color: '#A1A1AA', border: 'none', cursor: 'pointer' }}
-                        >
-                            <FiChevronDown className="size-3" />
-                        </button>
-                    </div>
-                    <AnimatePresence>
-                        {forkDropdownOpen && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                                transition={{ duration: 0.15 }}
-                                className="absolute right-0 top-full mt-1.5 w-40 bg-zinc-950/95 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl py-1 z-50 text-left"
-                            >
-                                <a 
-                                    href="https://github.com/imsayanpaul/Appliqa/fork" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="flex items-center px-3 py-2 text-zinc-300 hover:text-white hover:bg-white/5 transition-all text-xs no-underline"
-                                    onClick={() => setForkDropdownOpen(false)}
-                                >
-                                    Create new fork
-                                </a>
-                                <a 
-                                    href="https://github.com/imsayanpaul/Appliqa/forks" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="flex items-center px-3 py-2 text-zinc-300 hover:text-white hover:bg-white/5 transition-all text-xs no-underline"
-                                    onClick={() => setForkDropdownOpen(false)}
-                                >
-                                    View forks
                                 </a>
                             </motion.div>
                         )}
