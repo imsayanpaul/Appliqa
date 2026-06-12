@@ -432,12 +432,22 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div>
                                 <h1 className="animate-fade-up animate-delay-100" style={{ fontSize: '42px', fontWeight: 500, letterSpacing: '-1.5px', marginBottom: '36px' }}>
-                                    {authMode === 'login' ? 'Welcome' : 'Create Account'}
+                                    {authMode === 'login' 
+                                        ? 'Welcome' 
+                                        : authMode === 'register' 
+                                            ? 'Create Account' 
+                                            : authMode === 'forgot' 
+                                                ? 'Reset Password' 
+                                                : 'Choose Password'}
                                 </h1>
                                 <p className="animate-fade-up animate-delay-200" style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.5 }}>
                                     {authMode === 'login' 
                                         ? "Access your account and continue your journey with us" 
-                                        : "Create an account to track applications and get AI insights"}
+                                        : authMode === 'register'
+                                            ? "Create an account to track applications and get AI insights"
+                                            : authMode === 'forgot'
+                                                ? "Enter your email address to receive a password reset link"
+                                                : "Enter your new password below to update your account"}
                                 </p>
                             </div>
 
@@ -449,59 +459,65 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     </div>
                                 )}
 
-                                <div className="animate-fade-up animate-delay-300">
-                                    <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Email Address</label>
-                                    <div className="premium-auth-input-wrapper">
-                                        <FiMail className="input-icon" />
-                                        <input 
-                                            type="email" 
-                                            required 
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="Enter your email address" 
-                                            className="premium-auth-input" 
-                                            disabled={authLoading}
-                                        />
+                                {authMode !== 'reset' && (
+                                    <div className="animate-fade-up animate-delay-300">
+                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Email Address</label>
+                                        <div className="premium-auth-input-wrapper">
+                                            <FiMail className="input-icon" />
+                                            <input 
+                                                type="email" 
+                                                required 
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                placeholder="Enter your email address" 
+                                                className="premium-auth-input" 
+                                                disabled={authLoading}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
-                                <div className="animate-fade-up animate-delay-400">
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Password</label>
+                                {authMode !== 'forgot' && (
+                                    <div className="animate-fade-up animate-delay-400">
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                            <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                                                {authMode === 'reset' ? 'New Password' : 'Password'}
+                                            </label>
+                                        </div>
+                                        <div className="premium-auth-input-wrapper">
+                                            <FiLock className="input-icon" />
+                                            <input 
+                                                type={showPassword ? 'text' : 'password'} 
+                                                required 
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder={authMode === 'reset' ? 'Enter your new password' : 'Enter your password'} 
+                                                className="premium-auth-input" 
+                                                style={{ paddingRight: '48px' }}
+                                                disabled={authLoading}
+                                            />
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setShowPassword(!showPassword)} 
+                                                className="password-toggle-btn"
+                                            >
+                                                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="premium-auth-input-wrapper">
-                                        <FiLock className="input-icon" />
-                                        <input 
-                                            type={showPassword ? 'text' : 'password'} 
-                                            required 
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            placeholder="Enter your password" 
-                                            className="premium-auth-input" 
-                                            style={{ paddingRight: '48px' }}
-                                            disabled={authLoading}
-                                        />
-                                        <button 
-                                            type="button" 
-                                            onClick={() => setShowPassword(!showPassword)} 
-                                            className="password-toggle-btn"
-                                        >
-                                            {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
+                                )}
 
-                                <div className="animate-fade-up animate-delay-500" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                                    <label className="auth-checkbox-label">
-                                        <input type="checkbox" name="rememberMe" className="auth-checkbox" />
-                                        <span style={{ color: 'var(--text-secondary)' }}>Keep me signed in</span>
-                                    </label>
-                                    {authMode === 'login' && (
-                                        <a href="#" onClick={(e) => { e.preventDefault(); alert('Forgot password flow not implemented yet.'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 500 }} className="hover:underline">
+                                {authMode === 'login' && (
+                                    <div className="animate-fade-up animate-delay-500" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
+                                        <label className="auth-checkbox-label">
+                                            <input type="checkbox" name="rememberMe" className="auth-checkbox" />
+                                            <span style={{ color: 'var(--text-secondary)' }}>Keep me signed in</span>
+                                        </label>
+                                        <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('forgot'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 500 }} className="hover:underline">
                                             Reset password
                                         </a>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
 
                                 <button 
                                     type="submit" 
@@ -509,42 +525,65 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     className="auth-submit-btn animate-fade-up animate-delay-600"
                                 >
                                     {authLoading ? (
-                                        <><span className="spinner-loader"></span> {authMode === 'login' ? 'Signing In...' : 'Creating Account...'}</>
+                                        <>
+                                            <span className="spinner-loader"></span> 
+                                            {authMode === 'login' 
+                                                ? 'Signing In...' 
+                                                : authMode === 'register' 
+                                                    ? 'Creating Account...' 
+                                                    : authMode === 'forgot'
+                                                        ? 'Sending Link...'
+                                                        : 'Updating Password...'}
+                                        </>
                                     ) : (
-                                        authMode === 'login' ? 'Sign In' : 'Create Account'
+                                        authMode === 'login' 
+                                            ? 'Sign In' 
+                                            : authMode === 'register' 
+                                                ? 'Create Account'
+                                                : authMode === 'forgot'
+                                                    ? 'Send Reset Link'
+                                                    : 'Update Password'
                                     )}
                                 </button>
                             </form>
 
-                             <div className="animate-fade-up animate-delay-700" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '8px 0' }}>
-                                <span style={{ width: '100%', borderTop: '1px solid var(--ghost-border)' }}></span>
-                                <span style={{ padding: '0 16px', fontSize: '12px', color: 'var(--text-muted)', backgroundColor: '#000000', position: 'absolute' }}>Or continue with</span>
-                            </div>
+                            {(authMode === 'login' || authMode === 'register') && (
+                                <>
+                                    <div className="animate-fade-up animate-delay-700" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '8px 0' }}>
+                                        <span style={{ width: '100%', borderTop: '1px solid var(--ghost-border)' }}></span>
+                                        <span style={{ padding: '0 16px', fontSize: '12px', color: 'var(--text-muted)', backgroundColor: '#000000', position: 'absolute' }}>Or continue with</span>
+                                    </div>
 
-                            <div className="animate-fade-up animate-delay-800" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                <button 
-                                    onClick={() => handleOAuthLogin('google')} 
-                                    disabled={authLoading}
-                                    className="premium-oauth-btn"
-                                >
-                                    <GoogleIcon />
-                                    Google
-                                </button>
-                                <button 
-                                    onClick={() => handleOAuthLogin('github')} 
-                                    disabled={authLoading}
-                                    className="premium-oauth-btn"
-                                >
-                                    <FiGithub size={16} />
-                                    GitHub
-                                </button>
-                            </div>
+                                    <div className="animate-fade-up animate-delay-800" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                        <button 
+                                            onClick={() => handleOAuthLogin('google')} 
+                                            disabled={authLoading}
+                                            className="premium-oauth-btn"
+                                        >
+                                            <GoogleIcon />
+                                            Google
+                                        </button>
+                                        <button 
+                                            onClick={() => handleOAuthLogin('github')} 
+                                            disabled={authLoading}
+                                            className="premium-oauth-btn"
+                                        >
+                                            <FiGithub size={16} />
+                                            GitHub
+                                        </button>
+                                    </div>
+                                </>
+                            )}
 
                             <p className="animate-fade-up animate-delay-900" style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
                                 {authMode === 'login' ? (
-                                    <>New to our platform? <a href="#" onClick={(e) => { e.preventDefault(); setAuthMode('register'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }} className="hover:underline">Create Account</a></>
+                                    <>New to our platform? <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('register'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }} className="hover:underline">Create Account</a></>
+                                ) : authMode === 'register' ? (
+                                    <>Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('login'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }} className="hover:underline">Sign In</a></>
                                 ) : (
-                                    <>Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); setAuthMode('login'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }} className="hover:underline">Sign In</a></>
+                                    <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('login'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }} className="hover:underline">
+                                        Back to Sign In
+                                    </a>
                                 )}
                             </p>
                         </div>

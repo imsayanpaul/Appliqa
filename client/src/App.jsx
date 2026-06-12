@@ -216,8 +216,11 @@ function AppContent() {
         });
 
         // Listen for changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             setSession(session);
+            if (event === 'PASSWORD_RECOVERY') {
+                navigate('/profile?reset=true');
+            }
             if (!session) {
                 setUser(null);
                 setLoadingAuth(false);
