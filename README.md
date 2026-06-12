@@ -1,11 +1,29 @@
-# ⚡ Appliqa — AI-Powered Job Finder
+<p align="center">
+  <a href="https://www.appliqa.xyz">
+    <img src="client/public/logotext.svg" alt="Appliqa Logo" width="240" />
+  </a>
+</p>
 
-A full-stack job finder application with AI-powered resume scanning, smart job matching, and application tracking.
+<h3 align="center">⚡ AI-Powered Job Finder & Career Optimization</h3>
 
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react)
-![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express)
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Gemini](https://img.shields.io/badge/Gemini_AI-8E75B2?style=for-the-badge&logo=google)
+<p align="center">
+  A full-stack career assistant featuring AI resume scanning, smart job matching, and application tracking.
+</p>
+
+<p align="center">
+  <a href="https://www.appliqa.xyz">Live Website</a> • 
+  <a href="#quick-start">Quick Start</a> • 
+  <a href="#features">Features</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react" alt="React" />
+  <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express" alt="Express" />
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Gemini_AI-8E75B2?style=for-the-badge&logo=google" alt="Gemini" />
+</p>
+
+<br />
 
 ## Features
 
