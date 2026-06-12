@@ -69,10 +69,12 @@ npm run dev
   ```bash
   npm run client
   ```
+  *(Runs on `http://localhost:5173`)*
 * **Backend Server (Express)**:
   ```bash
   npm run server
   ```
+  *(Runs on `http://localhost:3001`)*
 
 ## Project Structure
 
