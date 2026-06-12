@@ -52,47 +52,28 @@
 
 ## Quick Start
 
-### 1. Get Free API Keys (no credit card needed)
+This repository contains the client-side code for **Appliqa**. The frontend client communicates directly with the hosted production API, so you do not need to run a local backend server to explore or execute the application.
 
-| Service | Free Tier | Get Key |
-|---------|----------|---------|
-| JSearch | 200 req/month | [RapidAPI](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch) |
-| Gemini | 15 req/min | [AI Studio](https://aistudio.google.com/apikey) |
-| Supabase | Free Tier Project | [Supabase](https://supabase.com) |
-
-### 2. Configure Environment
+### 1. Configure Supabase Environment
+Create a `.env` file in the `client/` directory with the following variables:
 
 ```bash
-# Edit .env file in the root directory
-RAPIDAPI_KEY=your_rapidapi_key
-GEMINI_API_KEY=your_gemini_key
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_SERVICE_KEY=your_supabase_service_role_key
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### 3. Install & Run
-
+### 2. Install & Run
 ```bash
-# Install all dependencies (both client and server)
-npm run install:all
-```
+# Navigate to the client directory
+cd client
 
-#### Start both frontend and backend concurrently:
-```bash
+# Install dependencies
+npm install
+
+# Start the local development server (Vite)
 npm run dev
 ```
-
-#### Start servers individually:
-* **Frontend Client (Vite)**:
-  ```bash
-  npm run client
-  ```
-  *(Runs on `http://localhost:5173`)*
-* **Backend Server (Express)**:
-  ```bash
-  npm run server
-  ```
-  *(Runs on `http://localhost:3001`)*
+*(Runs on `http://localhost:5173`)*
 
 ## Project Structure
 
@@ -103,10 +84,6 @@ Appliqa/
 │       ├── components/     # JobCard, JobDetail, ResumeUpload
 │       ├── pages/          # Home, SearchResults, SavedJobs, Profile
 │       └── services/       # API client
-├── server/                 # Express backend
-│   ├── models/             # User, SavedJob, SearchHistory
-│   └── routes/             # jobs, ai, user
-├── .env                    # API keys (not committed)
 └── package.json            # Root scripts
 ```
 
