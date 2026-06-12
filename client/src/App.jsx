@@ -233,6 +233,7 @@ function AppContent() {
     // Fetch user profile from DB when session exists
     useEffect(() => {
         if (session) {
+            setLoadingAuth(true);
             getUserProfile()
                 .then(res => {
                     const profile = res.data.user;
