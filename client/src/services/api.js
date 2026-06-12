@@ -37,10 +37,17 @@ export const generateRecruiterDM = (data) => api.post('/ai/recruiter-dm', data);
 export const generateInterviewPrep = (data) => api.post('/ai/interview-prep', data);
 export const getATSScore = (data) => api.post('/ai/ats-score', data);
 export const getCareerPath = (data) => api.post('/ai/career-path', data);
+export const getAdvisorChat = (data) => api.post('/ai/career-advisor', data);
+export const enhanceResumeBullet = (data) => api.post('/ai/enhance-bullet', data);
+export const suggestResumeSkills = (data) => api.post('/ai/suggest-skills', data);
+export const tailorResume = (data) => api.post('/ai/tailor-resume', data);
+export const getAchievementFinderChat = (data) => api.post('/ai/achievement-finder', data);
+
 
 // User
 export const createOrUpdateUser = (data) => api.post('/user/profile', data);
 export const getUserProfile = () => api.get('/user/profile'); // Backend uses token
+export const incrementStat = (stat) => api.post('/user/increment-stat', { stat });
 export const getSearchHistory = () => api.get('/user/history'); // Backend uses token
 export const deleteSearchHistory = (query) => api.delete('/user/history', { params: { query } });
 

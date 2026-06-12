@@ -174,7 +174,7 @@ function SavedJobs({ user, resumeData }) {
                                                     {(job.company || '?')[0]}
                                                 </div>
                                             )}
-                                            <div className="job-card-info flex-1 min-w-0" style={{ paddingRight: 75 }}>
+                                            <div className="job-card-info flex-1 min-w-0" style={{ paddingRight: 110 }}>
                                                 <h3 className="whitespace-normal line-clamp-2 break-words" title={job.title}>{job.title}</h3>
                                                 <div className="job-card-company truncate" title={job.company}>{job.company}</div>
                                             </div>
@@ -198,25 +198,26 @@ function SavedJobs({ user, resumeData }) {
                                             />
 
                                             <div className="job-card-actions">
-                                                {/* Interview Prep button */}
-                                                {job.status === 'interview' && (
-                                                    <button
-                                                        className="btn btn-sm prep-btn-custom"
-                                                        onClick={(e) => { e.stopPropagation(); setPrepJob(job); }}
-                                                    >
-                                                        <FiZap size={12} /> {job.interviewPrep ? 'View Prep' : 'Prep'}
-                                                    </button>
-                                                )}
-                                                {/* Cover Letter badge */}
-                                                {job.coverLetter && (
-                                                    <button
-                                                        className="btn btn-sm letter-btn-custom"
-                                                        onClick={(e) => { e.stopPropagation(); setCoverLetterJob(job); }}
-                                                        title="View saved cover letter"
-                                                    >
-                                                        <FiFileText size={12} /> Letter
-                                                    </button>
-                                                )}
+                                                 {/* Interview Prep button */}
+                                                 {job.status === 'interview' && (
+                                                     <button
+                                                         className="prep-btn-custom"
+                                                         onClick={(e) => { e.stopPropagation(); setPrepJob(job); }}
+                                                         title={job.interviewPrep ? 'View Interview Prep' : 'Generate Interview Prep'}
+                                                     >
+                                                         <FiZap size={16} />
+                                                     </button>
+                                                 )}
+                                                 {/* Cover Letter badge */}
+                                                 {job.coverLetter && (
+                                                     <button
+                                                         className="letter-btn-custom"
+                                                         onClick={(e) => { e.stopPropagation(); setCoverLetterJob(job); }}
+                                                         title="View saved cover letter"
+                                                     >
+                                                         <FiFileText size={16} />
+                                                     </button>
+                                                 )}
                                                 {job.applyLink && (
                                                     <a href={job.applyLink} target="_blank" rel="noopener noreferrer" className="apply-btn-custom">
                                                         Apply

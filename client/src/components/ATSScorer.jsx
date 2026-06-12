@@ -192,16 +192,22 @@ function ATSScorer({ job, resumeData, onClose }) {
                         {atsData.improvements?.length > 0 && (
                             <div className="ui-card" style={{ padding: 20 }}>
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 15 }}>
-                                    <FiTrendingUp size={16} color="#fbbf24" /> Actionable Fixes
+                                    <FiTrendingUp size={16} color="#f97316" /> Actionable Fixes
                                 </h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                     {atsData.improvements.map((imp, i) => (
-                                        <div key={i} style={{ background: 'var(--bg-primary)', padding: 16, borderRadius: 8, border: '1px solid var(--glass-border)' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, background: 'rgba(255, 255, 255, 0.01)', borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <span style={{
-                                                    fontSize: 10, textTransform: 'uppercase', padding: '2px 6px', borderRadius: 4, fontWeight: 700,
-                                                    background: imp.priority === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(251, 191, 36, 0.1)',
-                                                    color: imp.priority === 'high' ? '#f87171' : '#fbbf24'
+                                                    fontSize: 10, 
+                                                    textTransform: 'uppercase', 
+                                                    letterSpacing: '0.03em',
+                                                    padding: '3px 8px', 
+                                                    borderRadius: 6, 
+                                                    fontWeight: 700,
+                                                    background: imp.priority === 'high' ? 'rgba(234, 88, 12, 0.12)' : 'rgba(253, 186, 116, 0.08)',
+                                                    border: `1px solid ${imp.priority === 'high' ? 'rgba(234, 88, 12, 0.3)' : 'rgba(253, 186, 116, 0.2)'}`,
+                                                    color: imp.priority === 'high' ? '#ff7c33' : '#fdba74'
                                                 }}>
                                                     {imp.priority} Priority
                                                 </span>
@@ -209,7 +215,7 @@ function ATSScorer({ job, resumeData, onClose }) {
                                                     {imp.issue}
                                                 </span>
                                             </div>
-                                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, paddingLeft: 4 }}>
+                                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, paddingLeft: 4, lineHeight: 1.45 }}>
                                                 ↳ <strong>Fix:</strong> {imp.fix}
                                             </p>
                                         </div>

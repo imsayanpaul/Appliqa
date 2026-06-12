@@ -1,225 +1,310 @@
 /* App-level overrides — most styles in index.css */
 
-/* Onboarding Modal Container */
-.onboarding-overlay {
+/* Onboarding Modal Overlay */
+.onboarding-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 4, 6, 0.85);
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
-}
-
-.onboarding-card {
-  width: 100%;
-  max-width: 860px;
-  background: radial-gradient(circle at top left, rgba(249, 115, 22, 0.08) 0%, transparent 60%), rgba(13, 13, 17, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.9), 0 0 32px rgba(249, 115, 22, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  overflow: hidden;
-  max-height: 94vh;
-}
-
-@media (max-width: 800px) {
-  .onboarding-card {
-    grid-template-columns: 1fr;
-    max-height: 95vh;
-    overflow-y: auto;
-  }
-}
-
-.onboarding-left-panel {
-  padding: 44px;
-  background: rgba(255, 255, 255, 0.01);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 24px;
-}
-
-@media (max-width: 800px) {
-  .onboarding-left-panel {
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 32px;
-  }
-}
-
-.onboarding-right-panel {
-  padding: 44px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  padding: 20px;
   overflow-y: auto;
 }
 
-@media (max-width: 800px) {
-  .onboarding-right-panel {
-    padding: 32px;
-  }
+/* Onboarding Modal Card */
+.onboarding-modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: radial-gradient(circle at top left, rgba(249, 115, 22, 0.08) 0%, transparent 60%), rgba(13, 13, 17, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.9), 0 0 32px rgba(249, 115, 22, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+  overflow: visible;
+  position: relative;
 }
 
-/* Header inside left panel */
-.onboarding-header-icon {
+/* Onboarding Header Icon */
+.onboarding-header-icon-container {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   background: rgba(249, 115, 22, 0.08);
   border: 1px solid rgba(249, 115, 22, 0.25);
   color: var(--accent-primary);
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
-  margin-bottom: 24px;
-}
-
-.onboarding-title {
-  font-size: 24px;
-  font-weight: 750;
-  color: #FFFFFF;
-  letter-spacing: -0.02em;
   margin-bottom: 12px;
+  box-shadow: 0 0 24px rgba(249, 115, 22, 0.15);
 }
 
-.onboarding-subtitle {
-  color: var(--text-muted);
-  font-size: 13.5px;
-  line-height: 1.6;
-  margin: 0;
+/* Onboarding Progress Container */
+.onboarding-progress-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 8px 16px;
 }
 
-/* Checkboxes style */
-.onboarding-checkboxes {
+.onboarding-progress-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.onboarding-progress-dot {
+  width: 20px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.onboarding-progress-dot.active {
+  background: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+.onboarding-progress-text {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Form Grid (Vertical List) */
+.onboarding-grid {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin: 16px 0 8px 0;
+  gap: 12px;
+  text-align: left;
 }
 
+/* Input Styles */
+.onboarding-input-field {
+  color-scheme: dark;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 13.5px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.onboarding-input-field:focus {
+  border-color: rgba(249, 115, 22, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
+}
+
+.onboarding-select-field {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 13.5px;
+  outline: none;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+.onboarding-select-field:focus {
+  border-color: rgba(249, 115, 22, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Checkboxes Stacked Vertically */
+.onboarding-checkboxes-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 6px 0;
+}
+
+/* Checkbox Label Wrapper */
 .onboarding-checkbox-label {
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  user-select: none;
   font-size: 13.5px;
   color: var(--text-secondary);
-  transition: color 0.2s ease;
-  user-select: none;
+  transition: all 0.2s ease;
 }
 
 .onboarding-checkbox-label:hover {
   color: #FFFFFF;
 }
 
-.onboarding-checkbox-input {
-  accent-color: var(--accent-primary);
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(0, 0, 0, 0.2);
+/* Custom Checkbox Input */
+.onboarding-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.onboarding-checkbox-label:hover .onboarding-checkbox {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.onboarding-checkbox:checked {
+  background: linear-gradient(135deg, var(--accent-primary), #EA580C);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 14px rgba(249, 115, 22, 0.35);
+}
+
+.onboarding-checkbox::after {
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  margin-top: -2px;
+}
+
+.onboarding-checkbox:checked::after {
+  transform: rotate(45deg) scale(1);
+  opacity: 1;
+}
+
+/* Buttons Row */
+.onboarding-buttons-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Back button */
+.onboarding-back-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
-/* Form inputs styling */
-.onboarding-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 22px 24px;
+.onboarding-back-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
-@media (max-width: 550px) {
-  .onboarding-form-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-.onboarding-field-group {
+/* Submit/Next Button */
+.onboarding-next-btn {
+  flex: 2;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Dynamic field animation wrapper */
-.onboarding-dynamic-row {
-  grid-column: span 2;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 22px 24px;
-  animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@media (max-width: 550px) {
-  .onboarding-dynamic-row {
-    grid-column: span 1;
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-.onboarding-label {
-  font-size: 11px;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-size: 13.5px;
   font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 2px;
-}
-
-.onboarding-input, .onboarding-select {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 13px 16px;
-  background: rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, var(--accent-primary), #EA580C);
   color: #FFFFFF;
-  font-size: 14px;
-  outline: none;
+  border: none;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.25);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
 }
 
-.onboarding-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+.onboarding-next-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #EA580C, #C2410C);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+  transform: translateY(-1px);
 }
 
-.onboarding-input:focus, .onboarding-select:focus {
-  border-color: rgba(249, 115, 22, 0.5);
-  background: rgba(0, 0, 0, 0.4);
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+.onboarding-next-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* Button styling in grid */
-.onboarding-submit-btn-container {
-  grid-column: span 2;
-  margin-top: 14px;
+/* Compact PremiumDatePicker specifically for Onboarding Modal step to prevent vertical scrolling */
+.onboarding-modal-card .pdp-dropdown {
+  width: 250px;
+  border-radius: 12px;
 }
-
-@media (max-width: 550px) {
-  .onboarding-submit-btn-container {
-    grid-column: span 1;
-    margin-top: 6px;
-  }
+.onboarding-modal-card .pdp-header {
+  padding: 8px 10px;
 }
-
-/* Animations */
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.onboarding-modal-card .pdp-nav-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+}
+.onboarding-modal-card .pdp-header-label {
+  font-size: 11.5px;
+  padding: 2px 6px;
+}
+.onboarding-modal-card .pdp-body {
+  padding: 4px 8px;
+}
+.onboarding-modal-card .pdp-weekday {
+  font-size: 9.5px;
+  padding: 4px 0;
+}
+.onboarding-modal-card .pdp-day {
+  font-size: 11px;
+  border-radius: 6px;
+}
+.onboarding-modal-card .pdp-month {
+  padding: 6px 4px;
+  font-size: 11.5px;
+  border-radius: 6px;
+}
+.onboarding-modal-card .pdp-year {
+  padding: 6px 2px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+.onboarding-modal-card .pdp-footer {
+  padding: 6px 8px 8px;
+}
+.onboarding-modal-card .pdp-footer-btn {
+  font-size: 10.5px;
+  padding: 4px 8px;
+  border-radius: 6px;
 }

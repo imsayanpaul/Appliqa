@@ -220,11 +220,13 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
 
                 {/* Resume Upload Section */}
                 <div className="page-section">
-                    <div style={{ marginBottom: 20 }}>
-                        <p className="text-xs tracking-widest text-zinc-500 uppercase mb-2">[ Scanner ]</p>
-                        <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-                            Resume Scanner
-                        </h2>
+                    <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+                        <div>
+                            <p className="text-xs tracking-widest text-zinc-500 uppercase mb-2">[ Scanner & Creator ]</p>
+                            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+                                Resume Intelligence
+                            </h2>
+                        </div>
                     </div>
                     <ResumeUpload
                         onResumeAnalyzed={onResumeAnalyzed}

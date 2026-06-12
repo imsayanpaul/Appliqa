@@ -8,10 +8,14 @@ import SearchResults from './pages/SearchResults';
 import SavedJobs from './pages/SavedJobs';
 import Profile from './pages/Profile';
 import CareerPath from './pages/CareerPath';
+import Advisor from './pages/Advisor';
+import ResumeCreator from './pages/ResumeCreator';
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
 import { supabase } from './services/supabase';
 import { getUserProfile, createOrUpdateUser } from './services/api';
+import { Dropdown } from './components/ui/Dropdown';
+import PremiumDatePicker from './components/ui/PremiumDatePicker';
 import './App.css';
 
 // Protected Route Wrapper
@@ -31,6 +35,7 @@ function AppContent() {
     // Profile State (from database)
     const [user, setUser] = useState(null);
     const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+    const [pendingLocationPrompt, setPendingLocationPrompt] = useState(false);
     const [detectingLocation, setDetectingLocation] = useState(false);
 
     const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
@@ -46,6 +51,13 @@ function AppContent() {
         openToBootcamps: false
     });
     const [savingOnboarding, setSavingOnboarding] = useState(false);
+    const [onboardingStep, setOnboardingStep] = useState(1);
+
+    useEffect(() => {
+        if (showOnboardingPrompt) {
+            setOnboardingStep(1);
+        }
+    }, [showOnboardingPrompt]);
     
     // GitHub repository stats (Stars & Forks)
     const [githubStats, setGithubStats] = useState({ stars: 0, forks: 0 });
@@ -107,6 +119,14 @@ function AppContent() {
             return () => clearTimeout(timer);
         }
     }, [customAlert.show]);
+
+    // Show pending location prompt after custom alert is dismissed
+    useEffect(() => {
+        if (pendingLocationPrompt && !customAlert.show) {
+            setShowLocationPrompt(true);
+            setPendingLocationPrompt(false);
+        }
+    }, [customAlert.show, pendingLocationPrompt]);
     
     // Navbar states & items
     const [isOpen, setIsOpen] = useState(false);
@@ -114,7 +134,9 @@ function AppContent() {
     const navItems = [
         { name: 'Search', path: '/' },
         { name: 'Saved', path: '/saved' },
-        { name: 'Career', path: '/career' }
+        { name: 'Career', path: '/career' },
+        { name: 'Advisor', path: '/advisor' },
+        { name: 'Resume Builder', path: '/resume-creator' }
     ];
     const handleNavClick = (path) => {
         navigate(path);
@@ -172,6 +194,8 @@ function AppContent() {
             '/search': 'Appliqa - Discover Jobs',
             '/saved': 'Appliqa - Application Tracker',
             '/career': 'Appliqa - Career Path',
+            '/advisor': 'Appliqa - Career Advisor',
+            '/resume-creator': 'Appliqa - AI Resume Builder',
             '/profile': 'Appliqa - Profile Settings'
         };
         const baseTitle = routeTitles[location.pathname] || 'Appliqa - Job Search';
@@ -241,6 +265,19 @@ function AppContent() {
                 .finally(() => setLoadingAuth(false));
         }
     }, [session]);
+
+    // Re-fetch profile when navigating to /profile so stat counters are fresh
+    useEffect(() => {
+        if (session && location.pathname === '/profile') {
+            getUserProfile()
+                .then(res => {
+                    if (res.data?.user) {
+                        setUser(res.data.user);
+                    }
+                })
+                .catch(() => {});
+        }
+    }, [location.pathname, session]);
 
     const updateResumeData = useCallback((data) => {
         setResumeData(data);
@@ -373,13 +410,11 @@ function AppContent() {
             alert('Profile setup completed successfully!');
             setShowOnboardingPrompt(false);
 
-            // Chained check for missing location (delayed slightly)
+            // Chained check for missing location (queued until alert is dismissed)
             if (updatedUser && (!updatedUser.preferences?.country || !updatedUser.preferences?.location)) {
                 const prompted = sessionStorage.getItem('appliqa_location_prompted');
                 if (!prompted) {
-                    setTimeout(() => {
-                        setShowLocationPrompt(true);
-                    }, 500);
+                    setPendingLocationPrompt(true);
                 }
             }
         } catch (err) {
@@ -427,8 +462,8 @@ function AppContent() {
                                 setStarDropdownOpen(!starDropdownOpen);
                                 setForkDropdownOpen(false);
                             }}
-                            className="px-2 py-1.5 hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
-                            style={{ color: '#A1A1AA', border: 'none', background: 'transparent' }}
+                            className="px-2 py-1.5 bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
+                            style={{ color: '#A1A1AA', border: 'none', cursor: 'pointer' }}
                         >
                             <FiChevronDown className="size-3" />
                         </button>
@@ -490,8 +525,8 @@ function AppContent() {
                                 setForkDropdownOpen(!forkDropdownOpen);
                                 setStarDropdownOpen(false);
                             }}
-                            className="px-2 py-1.5 hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
-                            style={{ color: '#A1A1AA', border: 'none', background: 'transparent' }}
+                            className="px-2 py-1.5 bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
+                            style={{ color: '#A1A1AA', border: 'none', cursor: 'pointer' }}
                         >
                             <FiChevronDown className="size-3" />
                         </button>
@@ -533,7 +568,7 @@ function AppContent() {
                 <motion.div 
                     className="navbar-pill"
                     animate={{
-                        maxWidth: scrolled ? '620px' : '800px',
+                        maxWidth: scrolled ? '720px' : '820px',
                         padding: scrolled ? '7px 20px' : '10px 24px',
                         y: visible ? 0 : -100,
                     }}
@@ -568,11 +603,14 @@ function AppContent() {
                                 transition={{ duration: 0.3 }}
                                 whileHover={{ scale: 1.05 }}
                             >
-                                <span
+                                 <span
                                     onClick={() => handleNavClick(item.path)}
-                                    className={`navbar-link-item ${isActive(item.path) ? 'active' : ''}`}
+                                    className={`navbar-link-item ${isActive(item.path) ? 'active' : ''} flex items-center gap-1.5`}
                                 >
                                     {item.name}
+                                    {item.name === 'Resume Builder' && (
+                                        <span className="premium-ai-badge self-center">AI</span>
+                                    )}
                                 </span>
                             </motion.div>
                         ))}
@@ -633,11 +671,14 @@ function AppContent() {
                                         transition={{ delay: i * 0.1 + 0.1 }}
                                         exit={{ opacity: 0, x: 20 }}
                                     >
-                                        <span 
-                                            className={`navbar-mobile-link ${isActive(item.path) ? 'active' : ''}`}
+                                         <span 
+                                            className={`navbar-mobile-link ${isActive(item.path) ? 'active' : ''} flex items-center gap-2`}
                                             onClick={() => handleNavClick(item.path)}
                                         >
                                             {item.name}
+                                            {item.name === 'Resume Builder' && (
+                                                <span className="premium-ai-badge">AI</span>
+                                            )}
                                         </span>
                                     </motion.div>
                                 ))}
@@ -680,6 +721,12 @@ function AppContent() {
                     <Route path="/career" element={
                         <ProtectedRoute session={session}><CareerPath user={user} resumeData={resumeData} /></ProtectedRoute>
                     } />
+                    <Route path="/advisor" element={
+                        <ProtectedRoute session={session}><Advisor user={user} resumeData={resumeData} /></ProtectedRoute>
+                    } />
+                    <Route path="/resume-creator" element={
+                        <ProtectedRoute session={session}><ResumeCreator user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
+                    } />
                     <Route path="/profile" element={
                         <Profile user={user} session={session} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
                     } />
@@ -687,7 +734,7 @@ function AppContent() {
                 <Footer />
             </main>
 
-            {showLocationPrompt && (
+            {showLocationPrompt && !customAlert.show && (
                 <div 
                     style={{ 
                         position: 'fixed', 
@@ -856,169 +903,242 @@ function AppContent() {
 
 
             {showOnboardingPrompt && (
-                <div className="onboarding-overlay">
-                    <div className="onboarding-card">
-                        {/* Left Panel: Branding & Info */}
-                        <div className="onboarding-left-panel">
-                            <div>
-                                <div className="onboarding-header-icon">
-                                    <FiBriefcase size={24} />
-                                </div>
-                                <h3 className="onboarding-title">Complete Your Profile</h3>
-                                <p className="onboarding-subtitle">
-                                    Please provide a few details to optimize your career path matching and investor-ready profile.
-                                </p>
+                <div className="onboarding-modal-overlay">
+                    <div className="onboarding-modal-card">
+                        <div style={{ textAlign: 'center' }}>
+                            <div className="onboarding-header-icon-container">
+                                <FiBriefcase size={24} />
                             </div>
+                            
+                            <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '8px' }}>
+                                Complete Your Profile
+                            </h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: '1.6', marginBottom: '20px' }}>
+                                Please provide a few details to optimize your career path matching and investor-ready profile.
+                            </p>
                         </div>
 
-                        {/* Right Panel: Input Fields & Submit */}
-                        <div className="onboarding-right-panel">
-                            <div className="onboarding-form-grid">
-                                <div className="onboarding-field-group">
-                                    <label className="onboarding-label">Date of Birth</label>
-                                    <input 
-                                        type="date" 
-                                        required
-                                        value={onboardingForm.dob}
-                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, dob: e.target.value }))}
-                                        className="onboarding-input"
-                                        style={{ colorScheme: 'dark' }}
+                        {/* Progress Tracker */}
+                        <div className="onboarding-progress-container">
+                            <div className="onboarding-progress-dots">
+                                {[1, 2, 3].map((stepNum) => (
+                                    <div 
+                                        key={stepNum} 
+                                        className={`onboarding-progress-dot ${onboardingStep >= stepNum ? 'active' : ''}`}
                                     />
-                                </div>
-                                <div className="onboarding-field-group">
-                                    <label className="onboarding-label">Current Status</label>
-                                    <select
-                                        value={onboardingForm.educationStatus}
-                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, educationStatus: e.target.value }))}
-                                        className="onboarding-select"
+                                ))}
+                            </div>
+                            <div className="onboarding-progress-text">
+                                Step {onboardingStep} of 3
+                            </div>
+                        </div>
+                        
+                        <div style={{ overflow: 'visible', position: 'relative', minHeight: '220px' }}>
+                            <AnimatePresence mode="wait">
+                                {onboardingStep === 1 && (
+                                    <motion.div
+                                        key="step1"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="onboarding-grid"
                                     >
-                                        <option value="" disabled style={{ background: '#0d0d11' }}>Select Status</option>
-                                        <option value="Working Professional" style={{ background: '#0d0d11' }}>Working Professional</option>
-                                        <option value="College/University Student" style={{ background: '#0d0d11' }}>College Student</option>
-                                        <option value="School Student" style={{ background: '#0d0d11' }}>School Student</option>
-                                        <option value="Self-Educated / Career Switcher" style={{ background: '#0d0d11' }}>Self-Educated / Career Switcher</option>
-                                    </select>
-                                </div>
+                                        <div>
+                                            <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                                Date of Birth
+                                            </label>
+                                            <PremiumDatePicker
+                                                value={onboardingForm.dob}
+                                                onChange={(val) => setOnboardingForm(prev => ({ ...prev, dob: val }))}
+                                                placeholder="Select Date of Birth"
+                                            />
+                                        </div>
 
-                                {/* Row 2 (Dynamic): Course/Major and Graduation Year */}
-                                {onboardingForm.educationStatus === "College/University Student" && (
-                                    <div className="onboarding-dynamic-row">
-                                        <div className="onboarding-field-group">
-                                            <label className="onboarding-label">Course / Major</label>
-                                            <input 
-                                                type="text" 
-                                                placeholder="e.g. Computer Science"
-                                                value={onboardingForm.collegeCourse}
-                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, collegeCourse: e.target.value }))}
-                                                className="onboarding-input"
+                                        <div>
+                                            <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                                Current Status
+                                            </label>
+                                            <Dropdown
+                                                options={[
+                                                    { value: "Working Professional", label: "Working Professional" },
+                                                    { value: "College/University Student", label: "College Student" },
+                                                    { value: "School Student", label: "School Student" },
+                                                    { value: "Self-Educated / Career Switcher", label: "Self-Educated / Career Switcher" }
+                                                ]}
+                                                value={onboardingForm.educationStatus}
+                                                onChange={(val) => setOnboardingForm(prev => ({ ...prev, educationStatus: val }))}
+                                                placeholder="Select Status"
+                                                variant="form"
                                             />
                                         </div>
-                                        <div className="onboarding-field-group">
-                                            <label className="onboarding-label">Expected Graduation Year</label>
-                                            <input 
-                                                type="number" 
-                                                placeholder="2027"
-                                                value={onboardingForm.expectedGraduationYear}
-                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, expectedGraduationYear: e.target.value }))}
-                                                className="onboarding-input"
-                                            />
-                                        </div>
-                                    </div>
+
+                                        {onboardingForm.educationStatus === "College/University Student" && (
+                                            <>
+                                                <div>
+                                                    <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                                        Course / Major
+                                                    </label>
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="e.g. Computer Science"
+                                                        value={onboardingForm.collegeCourse}
+                                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, collegeCourse: e.target.value }))}
+                                                        className="onboarding-input-field"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                                        Grad Year
+                                                    </label>
+                                                    <input 
+                                                        type="number" 
+                                                        placeholder="2027"
+                                                        value={onboardingForm.expectedGraduationYear}
+                                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, expectedGraduationYear: e.target.value }))}
+                                                        className="onboarding-input-field"
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                    </motion.div>
                                 )}
 
-                                <div className="onboarding-field-group">
-                                    <label className="onboarding-label">Job Search Urgency</label>
-                                    <select
-                                        value={onboardingForm.jobSearchUrgency}
-                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, jobSearchUrgency: e.target.value }))}
-                                        className="onboarding-select"
+                                {onboardingStep === 2 && (
+                                    <motion.div
+                                        key="step2"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="onboarding-grid"
                                     >
-                                        <option value="" disabled style={{ background: '#0d0d11' }}>Select Urgency</option>
-                                        <option value="Actively looking (Ready to interview/start immediately)" style={{ background: '#0d0d11' }}>Actively looking (Immediate start)</option>
-                                        <option value="Open to opportunities (Passive search)" style={{ background: '#0d0d11' }}>Open to opportunities</option>
-                                        <option value="Just browsing (Not looking)" style={{ background: '#0d0d11' }}>Just browsing</option>
-                                    </select>
-                                </div>
-                                <div className="onboarding-field-group">
-                                    <label className="onboarding-label">Target Salary (Optional)</label>
-                                    <input 
-                                        type="number" 
-                                        placeholder="e.g. 100000"
-                                        value={onboardingForm.targetSalary}
-                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, targetSalary: e.target.value }))}
-                                        className="onboarding-input"
-                                    />
-                                </div>
-
-                                {/* Row 4: Checkboxes */}
-                                <div className="onboarding-field-group" style={{ gridColumn: 'span 2' }}>
-                                    <div className="onboarding-checkboxes">
-                                        <label className="onboarding-checkbox-label">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={onboardingForm.willingToRelocate} 
-                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, willingToRelocate: e.target.checked }))}
-                                                className="onboarding-checkbox-input"
+                                        <div>
+                                            <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                                Job Search Urgency
+                                            </label>
+                                            <Dropdown
+                                                options={[
+                                                    { value: "Actively looking (Ready to interview/start immediately)", label: "Actively looking (Immediate start)" },
+                                                    { value: "Open to opportunities (Passive search)", label: "Open to opportunities" },
+                                                    { value: "Just browsing (Not looking)", label: "Just browsing" }
+                                                ]}
+                                                value={onboardingForm.jobSearchUrgency}
+                                                onChange={(val) => setOnboardingForm(prev => ({ ...prev, jobSearchUrgency: val }))}
+                                                placeholder="Select Urgency"
+                                                variant="form"
                                             />
-                                            <span>Willing to relocate for work</span>
-                                        </label>
-                                        <label className="onboarding-checkbox-label">
+                                        </div>
+
+                                        <div>
+                                            <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                                Target Salary (Optional)
+                                            </label>
                                             <input 
-                                                type="checkbox" 
-                                                checked={onboardingForm.openToBootcamps} 
-                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, openToBootcamps: e.target.checked }))}
-                                                className="onboarding-checkbox-input"
+                                                type="number" 
+                                                placeholder="e.g. 100000"
+                                                value={onboardingForm.targetSalary}
+                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, targetSalary: e.target.value }))}
+                                                className="onboarding-input-field"
                                             />
-                                            <span>Open to coding bootcamps / online degrees</span>
-                                        </label>
-                                    </div>
-                                </div>
+                                        </div>
 
-                                <div className="onboarding-field-group">
-                                    <label className="onboarding-label">LinkedIn URL (Optional)</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="https://linkedin.com/in/username"
-                                        value={onboardingForm.portfolioLinkedin}
-                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioLinkedin: e.target.value }))}
-                                        className="onboarding-input"
-                                    />
-                                </div>
-                                <div className="onboarding-field-group">
-                                    <label className="onboarding-label">GitHub URL (Optional)</label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="https://github.com/username"
-                                        value={onboardingForm.portfolioGithub}
-                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioGithub: e.target.value }))}
-                                        className="onboarding-input"
-                                    />
-                                </div>
+                                        <div className="onboarding-checkboxes-row">
+                                            <label className="onboarding-checkbox-label">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={onboardingForm.willingToRelocate} 
+                                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, willingToRelocate: e.target.checked }))}
+                                                    className="onboarding-checkbox"
+                                                />
+                                                <span>Willing to relocate for work</span>
+                                            </label>
+                                            <label className="onboarding-checkbox-label">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={onboardingForm.openToBootcamps} 
+                                                    onChange={(e) => setOnboardingForm(prev => ({ ...prev, openToBootcamps: e.target.checked }))}
+                                                    className="onboarding-checkbox"
+                                                />
+                                                <span>Open to coding bootcamps / online degrees</span>
+                                            </label>
+                                        </div>
+                                    </motion.div>
+                                )}
 
-                                <div className="onboarding-submit-btn-container">
-                                    <button 
-                                        className="btn btn-primary" 
-                                        onClick={handleSaveOnboarding} 
-                                        disabled={savingOnboarding || !onboardingForm.educationStatus || !onboardingForm.jobSearchUrgency}
-                                        style={{ 
-                                            justifyContent: 'center', 
-                                            width: '100%',
-                                            padding: '13.5px 20px',
-                                            borderRadius: '12px',
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            background: 'linear-gradient(135deg, var(--accent-primary), #EA580C)',
-                                            color: '#FFFFFF',
-                                            border: 'none',
-                                            boxShadow: '0 4px 14px rgba(249, 115, 22, 0.25)',
-                                            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                                            cursor: 'pointer'
-                                        }}
+                                {onboardingStep === 3 && (
+                                    <motion.div
+                                        key="step3"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="onboarding-grid"
                                     >
-                                        {savingOnboarding ? 'Saving...' : 'Complete & Continue'}
-                                    </button>
-                                </div>
-                            </div>
+                                        <div>
+                                            <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                                LinkedIn URL (Optional)
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="https://linkedin.com/in/username"
+                                                value={onboardingForm.portfolioLinkedin}
+                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioLinkedin: e.target.value }))}
+                                                className="onboarding-input-field"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
+                                                GitHub URL (Optional)
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="https://github.com/username"
+                                                value={onboardingForm.portfolioGithub}
+                                                onChange={(e) => setOnboardingForm(prev => ({ ...prev, portfolioGithub: e.target.value }))}
+                                                className="onboarding-input-field"
+                                            />
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Navigation Controls */}
+                        <div className="onboarding-buttons-row">
+                            {onboardingStep > 1 && (
+                                <button 
+                                    type="button"
+                                    className="onboarding-back-btn"
+                                    onClick={() => setOnboardingStep(prev => prev - 1)}
+                                >
+                                    Back
+                                </button>
+                            )}
+                            <button 
+                                type="button"
+                                className="onboarding-next-btn"
+                                disabled={
+                                    onboardingStep === 1 
+                                        ? (!onboardingForm.dob || !onboardingForm.educationStatus)
+                                        : onboardingStep === 2
+                                            ? !onboardingForm.jobSearchUrgency
+                                            : savingOnboarding
+                                }
+                                onClick={() => {
+                                    if (onboardingStep < 3) {
+                                        setOnboardingStep(prev => prev + 1);
+                                    } else {
+                                        handleSaveOnboarding();
+                                    }
+                                }}
+                            >
+                                {onboardingStep === 3 
+                                    ? (savingOnboarding ? 'Saving...' : 'Complete Setup') 
+                                    : 'Continue'
+                                }
+                            </button>
                         </div>
                     </div>
                 </div>

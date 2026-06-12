@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiCopy, FiCheck, FiZap, FiBookOpen, FiTarget, FiMessageCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiX, FiCopy, FiCheck, FiZap, FiBookOpen, FiTarget, FiMessageCircle } from 'react-icons/fi';
 import { generateInterviewPrep, saveInterviewPrep } from '../services/api';
 
 function InterviewPrep({ job, user, resumeData, onClose }) {
@@ -93,9 +93,9 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
     };
 
     const typeColors = {
-        behavioral: { bg: 'rgba(99, 102, 241, 0.1)', border: 'rgba(99, 102, 241, 0.25)', color: '#818cf8' },
-        technical: { bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.25)', color: '#34d399' },
-        situational: { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.25)', color: '#fbbf24' }
+        behavioral: { bg: 'rgba(234, 88, 12, 0.08)', border: 'rgba(234, 88, 12, 0.25)', color: '#ff7c33' },
+        technical: { bg: 'rgba(249, 115, 22, 0.1)', border: 'rgba(249, 115, 22, 0.25)', color: '#f97316' },
+        situational: { bg: 'rgba(253, 186, 116, 0.08)', border: 'rgba(253, 186, 116, 0.25)', color: '#fdba74' }
     };
 
     return (
@@ -106,8 +106,8 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                 {/* Header */}
                 <div className="modal-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                        <div style={{ background: 'rgba(139, 92, 246, 0.15)', borderRadius: 10, padding: 10, display: 'flex' }}>
-                            <FiZap size={20} color="#a78bfa" />
+                        <div style={{ background: 'rgba(249, 115, 22, 0.15)', borderRadius: 10, padding: 10, display: 'flex' }}>
+                            <FiZap size={20} color="#f97316" />
                         </div>
                         <div>
                             <h2 style={{ fontSize: 20, margin: 0 }}>Interview Prep</h2>
@@ -120,9 +120,6 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                             <button className="btn btn-secondary btn-sm" onClick={handleCopyAll} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px' }}>
                                 {copied ? <><FiCheck size={12} /> Copied!</> : <><FiCopy size={12} /> Copy All</>}
-                            </button>
-                            <button className="btn btn-secondary btn-sm" onClick={handleGenerate} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px' }}>
-                                <FiRefreshCw size={12} /> Regenerate
                             </button>
                         </div>
                     )}
@@ -139,44 +136,104 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
 
                 {/* Content */}
                 {prepData && !loading && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 24 }}>
 
                         {/* Questions */}
                         {prepData.questions?.length > 0 && (
-                            <div className="ui-card" style={{ padding: 20 }}>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 15 }}>
-                                    <FiMessageCircle size={16} color="#a78bfa" /> Likely Questions
+                            <div className="ui-card" style={{ padding: '24px 20px' }}>
+                                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: 16, fontWeight: 700 }}>
+                                    <FiMessageCircle size={18} color="#f97316" /> Likely Questions
                                 </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                                     {prepData.questions.map((q, i) => {
                                         const colors = typeColors[q.type] || typeColors.behavioral;
                                         return (
-                                            <div key={i} style={{ background: 'var(--bg-primary)', borderRadius: 10, padding: 16, border: '1px solid var(--glass-border)' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
-                                                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                                            <div key={i} style={{ 
+                                                background: 'rgba(255, 255, 255, 0.01)', 
+                                                borderRadius: 14, 
+                                                padding: 20, 
+                                                border: '1px solid rgba(255, 255, 255, 0.04)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 12
+                                            }}>
+                                                {/* Header with tag */}
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                                                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.45 }}>
                                                         {i + 1}. {q.question}
                                                     </span>
                                                     <span style={{
-                                                        fontSize: 11, padding: '2px 8px', borderRadius: 6,
-                                                        background: colors.bg, border: `1px solid ${colors.border}`,
-                                                        color: colors.color, whiteSpace: 'nowrap', flexShrink: 0
+                                                        fontSize: 10, 
+                                                        fontWeight: 600,
+                                                        letterSpacing: '0.03em',
+                                                        textTransform: 'uppercase',
+                                                        padding: '4px 10px', 
+                                                        borderRadius: 8,
+                                                        background: colors.bg, 
+                                                        border: `1px solid ${colors.border}`,
+                                                        color: colors.color, 
+                                                        whiteSpace: 'nowrap', 
+                                                        flexShrink: 0
                                                     }}>
                                                         {q.type}
                                                     </span>
                                                 </div>
+
+                                                {/* Talking Points */}
                                                 {q.talkingPoints?.length > 0 && (
-                                                    <div style={{ marginTop: 8 }}>
-                                                        <span style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Talking Points</span>
-                                                        {q.talkingPoints.map((tp, j) => (
-                                                            <div key={j} style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4, paddingLeft: 12, borderLeft: '2px solid var(--glass-border)' }}>
-                                                                {tp}
-                                                            </div>
-                                                        ))}
+                                                    <div style={{ marginTop: 4 }}>
+                                                        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
+                                                            Key talking points
+                                                        </div>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                                            {q.talkingPoints.map((tp, j) => (
+                                                                <div key={j} style={{ 
+                                                                    fontSize: 13, 
+                                                                    color: 'var(--text-secondary)', 
+                                                                    paddingLeft: 12, 
+                                                                    borderLeft: '2px solid rgba(249, 115, 22, 0.3)',
+                                                                    lineHeight: 1.4
+                                                                }}>
+                                                                    {tp}
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
+
+                                                {/* Sample Answer Box */}
                                                 {q.sampleAnswer && (
-                                                    <div style={{ marginTop: 10, fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic', background: 'rgba(139, 92, 246, 0.05)', borderRadius: 6, padding: '8px 12px' }}>
-                                                        💡 {q.sampleAnswer}
+                                                    <div style={{ 
+                                                        marginTop: 6, 
+                                                        background: 'rgba(249, 115, 22, 0.04)', 
+                                                        borderRadius: 10, 
+                                                        padding: '12px 16px',
+                                                        borderLeft: '3px solid #ea580c',
+                                                        borderTop: '1px solid rgba(249, 115, 22, 0.08)',
+                                                        borderRight: '1px solid rgba(249, 115, 22, 0.08)',
+                                                        borderBottom: '1px solid rgba(249, 115, 22, 0.08)',
+                                                    }}>
+                                                        <div style={{ 
+                                                            fontSize: 10, 
+                                                            fontWeight: 800, 
+                                                            color: '#ff7c33', 
+                                                            textTransform: 'uppercase', 
+                                                            letterSpacing: '0.06em',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 5,
+                                                            marginBottom: 6
+                                                        }}>
+                                                            <span>💡</span> Suggested Answer Framework
+                                                        </div>
+                                                        <div style={{ 
+                                                            fontSize: 13.5, 
+                                                            color: 'var(--text-secondary)', 
+                                                            lineHeight: 1.5,
+                                                            fontStyle: 'italic'
+                                                        }}>
+                                                            "{q.sampleAnswer}"
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -190,16 +247,16 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                         {prepData.technicalTopics?.length > 0 && (
                             <div className="ui-card" style={{ padding: 20 }}>
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontSize: 15 }}>
-                                    <FiBookOpen size={16} color="#34d399" /> Technical Topics to Review
+                                    <FiBookOpen size={16} color="#f97316" /> Technical Topics to Review
                                 </h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                     {prepData.technicalTopics.map((t, i) => (
-                                        <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '10px 14px', background: 'var(--bg-primary)', borderRadius: 8, border: '1px solid var(--glass-border)' }}>
+                                        <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 16px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.04)' }}>
                                             <span style={{
                                                 fontSize: 11, padding: '2px 8px', borderRadius: 6, flexShrink: 0, marginTop: 2,
-                                                background: t.importance === 'high' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                                                color: t.importance === 'high' ? '#f87171' : '#fbbf24',
-                                                border: `1px solid ${t.importance === 'high' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
+                                                background: t.importance === 'high' ? 'rgba(234, 88, 12, 0.12)' : 'rgba(253, 186, 116, 0.08)',
+                                                color: t.importance === 'high' ? '#ff7c33' : '#fdba74',
+                                                border: `1px solid ${t.importance === 'high' ? 'rgba(234, 88, 12, 0.3)' : 'rgba(253, 186, 116, 0.2)'}`
                                             }}>
                                                 {t.importance}
                                             </span>
@@ -218,10 +275,10 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                             {prepData.companyInsights?.length > 0 && (
                                 <div className="ui-card" style={{ padding: 20 }}>
                                     <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 15 }}>
-                                        <FiTarget size={16} color="#60a5fa" /> Company Insights
+                                        <FiTarget size={16} color="#f97316" /> Company Insights
                                     </h3>
                                     {prepData.companyInsights.map((c, i) => (
-                                        <div key={i} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, paddingLeft: 12, borderLeft: '2px solid rgba(96, 165, 250, 0.3)' }}>
+                                        <div key={i} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, paddingLeft: 12, borderLeft: '2px solid rgba(249, 115, 22, 0.3)' }}>
                                             {c}
                                         </div>
                                     ))}
@@ -230,10 +287,10 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                             {prepData.tips?.length > 0 && (
                                 <div className="ui-card" style={{ padding: 20 }}>
                                     <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 15 }}>
-                                        <FiZap size={16} color="#fbbf24" /> Pro Tips
+                                        <FiZap size={16} color="#f97316" /> Pro Tips
                                     </h3>
                                     {prepData.tips.map((t, i) => (
-                                        <div key={i} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, paddingLeft: 12, borderLeft: '2px solid rgba(251, 191, 36, 0.3)' }}>
+                                        <div key={i} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, paddingLeft: 12, borderLeft: '2px solid rgba(249, 115, 22, 0.3)' }}>
                                             {t}
                                         </div>
                                     ))}

@@ -10,7 +10,9 @@ router.post('/profile', requireAuth, async (req, res) => {
       name, 
       preferences, 
       resumeData, 
+      builderData,
       dob,
+      phone,
       educationStatus,
       collegeCourse,
       expectedGraduationYear,
@@ -40,6 +42,7 @@ router.post('/profile', requireAuth, async (req, res) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (dob !== undefined) updateData.dob = dob;
+    if (phone !== undefined) updateData.phone = phone;
     if (educationStatus !== undefined) updateData.education_status = educationStatus;
     if (collegeCourse !== undefined) updateData.college_course = collegeCourse;
     if (expectedGraduationYear !== undefined) updateData.expected_graduation_year = expectedGraduationYear ? parseInt(expectedGraduationYear, 10) : null;
@@ -89,6 +92,13 @@ router.post('/profile', requireAuth, async (req, res) => {
       updateData.resume_suggested_roles = resumeData.suggestedRoles || [];
       updateData.resume_experience_level = resumeData.experienceLevel || '';
       updateData.resume_uploaded_at = new Date();
+      updateData.resume_expertise = resumeData.expertise || [];
+      updateData.resume_certifications = resumeData.certifications || [];
+      updateData.resume_languages = resumeData.languages || [];
+    }
+
+    if (builderData !== undefined) {
+      updateData.builder_data = builderData;
     }
 
     const { data: user, error } = await supabase
@@ -105,6 +115,7 @@ router.post('/profile', requireAuth, async (req, res) => {
       _id: user.id,
       name: user.name,
       email: user.email,
+      phone: user.phone || '',
       dob: user.dob || '',
       educationStatus: user.education_status || '',
       collegeCourse: user.college_course || '',
@@ -140,6 +151,7 @@ router.post('/profile', requireAuth, async (req, res) => {
         remote: user.remote || false,
         skills: user.skills || []
       },
+      builderData: user.builder_data || null,
       resumeData: {
         fileName: user.resume_file_name || '',
         fileSize: user.resume_file_size || '',
@@ -150,13 +162,56 @@ router.post('/profile', requireAuth, async (req, res) => {
         suggestedRoles: user.resume_suggested_roles || [],
         experienceLevel: user.resume_experience_level || '',
         rawText: user.resume_raw_text || '',
-        uploadedAt: user.resume_uploaded_at
+        uploadedAt: user.resume_uploaded_at,
+        expertise: user.resume_expertise || [],
+        certifications: user.resume_certifications || [],
+        languages: user.resume_languages || []
       }
     };
 
     res.json({ success: true, user: formattedUser });
   } catch (error) {
     console.error('Profile update error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Increment a profile stat counter
+router.post('/increment-stat', requireAuth, async (req, res) => {
+  try {
+    const { stat } = req.body;
+    const validStats = ['resumes_optimized_count', 'cover_letters_generated_count', 'recruiter_dms_sent_count'];
+
+    if (!stat || !validStats.includes(stat)) {
+      return res.status(400).json({ error: 'Invalid stat. Must be one of: ' + validStats.join(', ') });
+    }
+
+    const userId = req.user.id;
+
+    // Read current value
+    const { data: profile, error: readError } = await supabase
+      .from('profiles')
+      .select(stat)
+      .eq('id', userId)
+      .single();
+
+    if (readError) throw readError;
+
+    const currentValue = profile[stat] || 0;
+
+    // Increment and update
+    const { data: updated, error: updateError } = await supabase
+      .from('profiles')
+      .update({ [stat]: currentValue + 1 })
+      .eq('id', userId)
+      .select(stat)
+      .single();
+
+    if (updateError) throw updateError;
+
+    res.json({ success: true, stat, newValue: updated[stat] });
+  } catch (error) {
+    console.error('Increment stat error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -218,6 +273,7 @@ router.get('/profile', requireAuth, async (req, res) => {
       _id: user.id,
       name: user.name,
       email: user.email,
+      phone: user.phone || '',
       dob: user.dob || '',
       educationStatus: user.education_status || '',
       collegeCourse: user.college_course || '',
@@ -253,6 +309,7 @@ router.get('/profile', requireAuth, async (req, res) => {
         remote: user.remote || false,
         skills: user.skills || []
       },
+      builderData: user.builder_data || null,
       resumeData: {
         fileName: user.resume_file_name || '',
         fileSize: user.resume_file_size || '',
@@ -263,7 +320,10 @@ router.get('/profile', requireAuth, async (req, res) => {
         suggestedRoles: user.resume_suggested_roles || [],
         experienceLevel: user.resume_experience_level || '',
         rawText: user.resume_raw_text || '',
-        uploadedAt: user.resume_uploaded_at
+        uploadedAt: user.resume_uploaded_at,
+        expertise: user.resume_expertise || [],
+        certifications: user.resume_certifications || [],
+        languages: user.resume_languages || []
       }
     };
 

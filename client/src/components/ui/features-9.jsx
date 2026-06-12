@@ -1,10 +1,12 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Activity, Map as MapIcon, MessageCircle, FileText, Send, TrendingUp, Compass, CheckSquare, Zap } from 'lucide-react'
 import DottedMap from 'dotted-map'
 import { Area, AreaChart, CartesianGrid } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 export function Features() {
+    const navigate = useNavigate();
     return (
         <section className="px-4 pt-4 pb-16 md:pt-8 md:pb-24">
             <div className="mx-auto grid max-w-5xl border border-white/5 rounded-2xl bg-zinc-950/20 backdrop-blur-md md:grid-cols-2 overflow-hidden">
@@ -38,7 +40,10 @@ export function Features() {
                 </div>
 
                 {/* Box 2: AI Career Support */}
-                <div className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                <div 
+                    onClick={() => navigate('/advisor')}
+                    className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <MessageCircle className="size-4 text-orange-500" />

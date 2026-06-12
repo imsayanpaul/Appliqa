@@ -9,14 +9,15 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Dropdown } from '../components/ui/Dropdown';
+import PremiumDatePicker from '../components/ui/PremiumDatePicker';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const GoogleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '18px', height: '18px', marginRight: '4px' }} viewBox="0 0 48 48">
-        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s12-5.373 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-2.641-.21-5.236-.611-7.743z" />
-        <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
-        <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
-        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.022 35.026 44 30.038 44 24c0-2.641-.21-5.236-.611-7.743z" />
+    <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '18px', height: '18px', marginRight: '6px' }} viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
     </svg>
 );
 
@@ -88,7 +89,43 @@ function PremiumToggle({ checked, onChange, label }) {
     );
 }
 
-function SkillsTagInput({ value, onChange }) {
+function PremiumCard({ children, style = {}, ...props }) {
+    return (
+        <Card 
+            style={{ 
+                position: 'relative',
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                borderRadius: '16px',
+                ...style
+            }}
+            {...props}
+        >
+            {/* Background with backdrop filter to prevent clipping absolute dropdowns */}
+            <div style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: -1,
+                background: 'rgba(10, 10, 10, 0.4)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid var(--ghost-border)',
+                borderRadius: '16px',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+                pointerEvents: 'none'
+            }} />
+            {children}
+        </Card>
+    );
+}
+
+function PremiumTagInput({ 
+    value, 
+    onChange, 
+    placeholder = "Add...", 
+    emptyPlaceholder = "Type and press Enter..." 
+}) {
     const [inputValue, setInputValue] = useState('');
     const [focused, setFocused] = useState(false);
     const inputRef = useRef(null);
@@ -97,11 +134,11 @@ function SkillsTagInput({ value, onChange }) {
 
     const handleAddTag = () => {
         if (inputValue.trim()) {
-            const newSkills = inputValue.split(',')
+            const newTagsList = inputValue.split(',')
                 .map(s => s.trim())
                 .filter(s => s && !tags.includes(s));
-            if (newSkills.length > 0) {
-                const newTags = [...tags, ...newSkills];
+            if (newTagsList.length > 0) {
+                const newTags = [...tags, ...newTagsList];
                 onChange(newTags.join(', '));
             }
             setInputValue('');
@@ -158,7 +195,7 @@ function SkillsTagInput({ value, onChange }) {
                 ref={inputRef}
                 type="text"
                 className="skill-input-inline"
-                placeholder={tags.length === 0 ? "Type skill and press Enter..." : "Add skill..."}
+                placeholder={tags.length === 0 ? emptyPlaceholder : placeholder}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -177,7 +214,6 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
     // Auth State
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [dob, setDob] = useState('');
     const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
     const [showPassword, setShowPassword] = useState(false);
     const [authLoading, setAuthLoading] = useState(false);
@@ -297,12 +333,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
             } else {
                 const { error } = await supabase.auth.signUp({ 
                     email, 
-                    password,
-                    options: {
-                        data: {
-                            dob: dob || null
-                        }
-                    }
+                    password
                 });
                 if (error) throw error;
                 alert("Account created! Check your email to verify your registration.");
@@ -433,24 +464,6 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                         />
                                     </div>
                                 </div>
-
-                                {authMode === 'register' && (
-                                    <div className="animate-fade-up animate-delay-350">
-                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Date of Birth</label>
-                                        <div className="premium-auth-input-wrapper">
-                                            <FiCalendar className="input-icon" />
-                                            <input 
-                                                type="date" 
-                                                required 
-                                                value={dob}
-                                                onChange={(e) => setDob(e.target.value)}
-                                                className="premium-auth-input" 
-                                                style={{ colorScheme: 'dark' }}
-                                                disabled={authLoading}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
 
                                 <div className="animate-fade-up animate-delay-400">
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -683,16 +696,16 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                             </div>
                         </Card>
                         <Card style={{ 
-                            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
+                            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
                             backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(168, 85, 247, 0.2)',
+                            border: '1px solid rgba(249, 115, 22, 0.2)',
                             borderRadius: '16px',
                             padding: 20,
                             display: 'flex',
                             alignItems: 'center',
                             gap: 16
                         }}>
-                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(168, 85, 247, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a855f7' }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(249, 115, 22, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
                                 <FiBookOpen size={20} />
                             </div>
                             <div>
@@ -701,16 +714,16 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                             </div>
                         </Card>
                         <Card style={{ 
-                            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
+                            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
                             backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(16, 185, 129, 0.2)',
+                            border: '1px solid rgba(249, 115, 22, 0.2)',
                             borderRadius: '16px',
                             padding: 20,
                             display: 'flex',
                             alignItems: 'center',
                             gap: 16
                         }}>
-                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(249, 115, 22, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
                                 <FiMail size={20} />
                             </div>
                             <div>
@@ -721,14 +734,8 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                     </div>
                 </motion.div>
 
-                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
-                    <Card style={{ 
-                        background: 'rgba(10, 10, 10, 0.4)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid var(--ghost-border)',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
-                        borderRadius: '16px'
-                    }}>
+                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                    <PremiumCard>
                         <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                             <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
                             Basic Info
@@ -754,26 +761,18 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                             </div>
                             <div className="form-group">
                                 <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Date of Birth</label>
-                                <PremiumIconInput
-                                    icon={FiCalendar}
-                                    type="date"
+                                <PremiumDatePicker
                                     value={form.dob}
-                                    onChange={(e) => handleChange('dob', e.target.value)}
-                                    style={{ colorScheme: 'dark' }}
+                                    onChange={(val) => handleChange('dob', val)}
+                                    placeholder="Select your date of birth"
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </PremiumCard>
                 </motion.div>
 
-                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
-                    <Card style={{ 
-                        background: 'rgba(10, 10, 10, 0.4)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid var(--ghost-border)',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
-                        borderRadius: '16px'
-                    }}>
+                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                    <PremiumCard>
                         <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                             <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
                             Job Preferences
@@ -883,9 +882,11 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                             </div>
                             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                                 <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Skills</label>
-                                <SkillsTagInput
+                                <PremiumTagInput
                                     value={form.skills}
                                     onChange={(val) => handleChange('skills', val)}
+                                    emptyPlaceholder="Type skill and press Enter..."
+                                    placeholder="Add skill..."
                                 />
                             </div>
                             <div className="form-group" style={{ marginTop: 16 }}>
@@ -896,18 +897,12 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </PremiumCard>
                 </motion.div>
 
                 {/* Salary & Relocation Settings */}
-                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
-                    <Card style={{ 
-                        background: 'rgba(10, 10, 10, 0.4)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid var(--ghost-border)',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
-                        borderRadius: '16px'
-                    }}>
+                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                    <PremiumCard>
                         <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                             <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
                             Salary & Relocation Settings
@@ -950,18 +945,12 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </PremiumCard>
                 </motion.div>
 
                 {/* Career Status & Urgency */}
-                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
-                    <Card style={{ 
-                        background: 'rgba(10, 10, 10, 0.4)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid var(--ghost-border)',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
-                        borderRadius: '16px'
-                    }}>
+                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                    <PremiumCard>
                         <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                             <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
                             Career Status & Urgency
@@ -1030,18 +1019,12 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 </>
                             )}
                         </div>
-                    </Card>
+                    </PremiumCard>
                 </motion.div>
 
                 {/* Upskilling & Tooling Preferences */}
-                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
-                    <Card style={{ 
-                        background: 'rgba(10, 10, 10, 0.4)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid var(--ghost-border)',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
-                        borderRadius: '16px'
-                    }}>
+                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                    <PremiumCard>
                         <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                             <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
                             Upskilling & Tooling Preferences
@@ -1049,20 +1032,20 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                         <div className="preferences-form">
                             <div className="form-group">
                                 <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Certifications Held</label>
-                                <PremiumIconInput
-                                    icon={FiBriefcase}
-                                    placeholder="e.g. AWS Solutions Architect, Scrum Master"
+                                <PremiumTagInput
                                     value={form.certifications}
-                                    onChange={(e) => handleChange('certifications', e.target.value)}
+                                    onChange={(val) => handleChange('certifications', val)}
+                                    emptyPlaceholder="Type certification and press Enter..."
+                                    placeholder="Add certification..."
                                 />
                             </div>
                             <div className="form-group">
                                 <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Skills You Want to Learn Next</label>
-                                <PremiumIconInput
-                                    icon={FiBookOpen}
-                                    placeholder="e.g. Kubernetes, Rust, System Design"
+                                <PremiumTagInput
                                     value={form.skillsToLearn}
-                                    onChange={(e) => handleChange('skillsToLearn', e.target.value)}
+                                    onChange={(val) => handleChange('skillsToLearn', val)}
+                                    emptyPlaceholder="Type skill to learn and press Enter..."
+                                    placeholder="Add skill..."
                                 />
                             </div>
                             <div className="form-group">
@@ -1082,20 +1065,20 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                             </div>
                             <div className="form-group">
                                 <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Preferred Tech Stack</label>
-                                <PremiumIconInput
-                                    icon={FiGithub}
-                                    placeholder="e.g. React, Node.js, PostgreSQL"
+                                <PremiumTagInput
                                     value={form.preferredTechStack}
-                                    onChange={(e) => handleChange('preferredTechStack', e.target.value)}
+                                    onChange={(val) => handleChange('preferredTechStack', val)}
+                                    emptyPlaceholder="Type tech/framework and press Enter..."
+                                    placeholder="Add tech..."
                                 />
                             </div>
                             <div className="form-group">
                                 <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Preferred Tools & IDEs</label>
-                                <PremiumIconInput
-                                    icon={FiClock}
-                                    placeholder="e.g. VS Code, Docker, AWS"
+                                <PremiumTagInput
                                     value={form.preferredTools}
-                                    onChange={(e) => handleChange('preferredTools', e.target.value)}
+                                    onChange={(val) => handleChange('preferredTools', val)}
+                                    emptyPlaceholder="Type tool/IDE and press Enter..."
+                                    placeholder="Add tool..."
                                 />
                             </div>
                             <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: 32 }}>
@@ -1106,18 +1089,12 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </PremiumCard>
                 </motion.div>
 
                 {/* Work & Currency Preferences */}
-                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
-                    <Card style={{ 
-                        background: 'rgba(10, 10, 10, 0.4)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid var(--ghost-border)',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
-                        borderRadius: '16px'
-                    }}>
+                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                    <PremiumCard>
                         <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                             <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
                             Work & Pay Preferences
@@ -1149,18 +1126,12 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </PremiumCard>
                 </motion.div>
 
                 {/* Professional Links */}
-                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
-                    <Card style={{ 
-                        background: 'rgba(10, 10, 10, 0.4)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid var(--ghost-border)',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
-                        borderRadius: '16px'
-                    }}>
+                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                    <PremiumCard>
                         <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
                             <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
                             Professional Links
@@ -1203,7 +1174,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </PremiumCard>
                 </motion.div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 32, borderTop: '1px solid var(--ghost-border)', paddingTop: 24 }}>

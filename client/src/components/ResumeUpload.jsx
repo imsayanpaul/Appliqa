@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FileText, Upload, X, Cpu, SlidersHorizontal, Target, Briefcase, GraduationCap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { analyzeResume } from '../services/api';
+import { analyzeResume, incrementStat } from '../services/api';
 import * as pdfjsLib from 'pdfjs-dist';
 import { createWorker } from 'tesseract.js';
 
@@ -194,6 +194,9 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null }) {
             setFileName(selectedFile.name);
             setSelectedFile(null);
             setStatusText('Completed');
+            
+            // Increment resumes optimized count
+            try { await incrementStat('resumes_optimized_count'); } catch (_) {}
             
             if (onResumeAnalyzed) onResumeAnalyzed(analysisData);
         } catch (err) {

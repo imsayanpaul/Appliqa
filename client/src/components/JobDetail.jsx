@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiExternalLink, FiBookmark, FiMapPin, FiDollarSign, FiClock, FiBriefcase, FiFileText, FiCopy, FiCheck, FiZap, FiHome, FiInfo, FiMessageSquare, FiTarget } from 'react-icons/fi';
-import { saveJob, getSavedJobs, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM } from '../services/api';
+import { FiX, FiExternalLink, FiBookmark, FiMapPin, FiDollarSign, FiClock, FiBriefcase, FiFileText, FiCopy, FiCheck, FiZap, FiHome, FiInfo, FiMessageSquare, FiTarget, FiRefreshCw } from 'react-icons/fi';
+import { saveJob, getSavedJobs, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
 import ATSScorer from './ATSScorer';
 
 function JobDetail({ job, user, resumeData, onClose }) {
@@ -82,6 +82,8 @@ function JobDetail({ job, user, resumeData, onClose }) {
                 jobDescription: job.description
             });
             setCoverLetter(res.data.coverLetter);
+            // Increment cover letters generated count
+            try { await incrementStat('cover_letters_generated_count'); } catch (_) {}
             // Auto-save cover letter if job is saved
             if (savedJobId) {
                 try { await saveCoverLetter(savedJobId, res.data.coverLetter); } catch (_) {}
@@ -112,6 +114,8 @@ function JobDetail({ job, user, resumeData, onClose }) {
                 matchReasons: matchData?.reasons || []
             });
             setRecruiterDM(res.data.recruiterDM);
+            // Increment recruiter DMs sent count
+            try { await incrementStat('recruiter_dms_sent_count'); } catch (_) {}
             // Auto-save recruiter DM if job is saved
             if (savedJobId) {
                 try { await saveRecruiterDM(savedJobId, res.data.recruiterDM); } catch (_) {}
@@ -197,33 +201,48 @@ function JobDetail({ job, user, resumeData, onClose }) {
                         </h3>
                         {matchData && (
                             <div className="ai-match-body">
-                                {matchData.reasons?.length > 0 && (
-                                    <div className="ai-match-reasons-list">
-                                        {matchData.reasons.map((r, i) => (
-                                            <div key={i} className="ai-match-reason-item">
-                                                <span className="check-icon-wrap">
-                                                    <FiCheck size={12} />
-                                                </span>
-                                                <span className="reason-text">{r}</span>
+                                {matchData.reasons?.length > 0 && matchData.reasons[0]?.includes('Unable to analyze') ? (
+                                    <div className="ai-match-retry-section">
+                                        <p className="ai-match-error-text">Analysis failed — likely due to API rate limits.</p>
+                                        <button
+                                            className="ai-match-retry-btn"
+                                            onClick={() => { setMatchData(null); fetchMatchScore(); }}
+                                            disabled={loadingMatch}
+                                        >
+                                            <FiRefreshCw size={14} /> Retry Analysis
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {matchData.reasons?.length > 0 && (
+                                            <div className="ai-match-reasons-list">
+                                                {matchData.reasons.map((r, i) => (
+                                                    <div key={i} className="ai-match-reason-item">
+                                                        <span className="check-icon-wrap">
+                                                            <FiCheck size={12} />
+                                                        </span>
+                                                        <span className="reason-text">{r}</span>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {matchData.missingSkills?.length > 0 && (
-                                    <div className="ai-missing-skills-section">
-                                        <span className="section-label">Skills to improve:</span>
-                                        <div className="skill-tags-to-improve">
-                                            {matchData.missingSkills.map((s, i) => (
-                                                <span key={i} className="skill-tag-missing">{s}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {matchData.recommendation && (
-                                    <div className="ai-recommendation-alert">
-                                        <FiInfo size={14} className="info-icon" />
-                                        <span className="recommendation-text">{matchData.recommendation}</span>
-                                    </div>
+                                        )}
+                                        {matchData.missingSkills?.length > 0 && (
+                                            <div className="ai-missing-skills-section">
+                                                <span className="section-label">Skills to improve:</span>
+                                                <div className="skill-tags-to-improve">
+                                                    {matchData.missingSkills.map((s, i) => (
+                                                        <span key={i} className="skill-tag-missing">{s}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {matchData.recommendation && (
+                                            <div className="ai-recommendation-alert">
+                                                <FiInfo size={14} className="info-icon" />
+                                                <span className="recommendation-text">{matchData.recommendation}</span>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}
