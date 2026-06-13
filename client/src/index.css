@@ -6503,6 +6503,14 @@ input[type="number"] {
     gap: 8px !important;
     padding: 0 12px !important;
   }
+}
+
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
 
   /* Job Card mobile responsiveness overrides */
   .results-grid {
@@ -6544,13 +6552,5 @@ input[type="number"] {
     margin-left: 0 !important;
     width: 100% !important;
     justify-content: flex-end !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .section-header {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 8px !important;
   }
 }
