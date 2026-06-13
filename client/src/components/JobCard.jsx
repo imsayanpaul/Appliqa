@@ -77,7 +77,15 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
     };
 
     return (
-        <Card className="job-card group" onClick={onClick}>
+        <Card 
+            className="job-card group" 
+            onClick={onClick}
+            style={{
+                minWidth: 0,
+                maxWidth: '100%',
+                boxSizing: 'border-box'
+            }}
+        >
             {/* Header section: Logo, Title, and Bookmark */}
             <div className="flex gap-4 items-start justify-between w-full mb-4">
                 <div className="flex gap-4 items-start flex-1 min-w-0">

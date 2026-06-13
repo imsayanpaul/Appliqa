@@ -180,7 +180,9 @@ function SavedJobs({ user, resumeData }) {
                                         onClick={() => setSelectedJob(job)}
                                         style={{
                                             padding: isMobile ? '16px' : '24px',
-                                            boxSizing: 'border-box'
+                                            boxSizing: 'border-box',
+                                            minWidth: 0,
+                                            maxWidth: '100%'
                                         }}
                                     >
                                         <div 
