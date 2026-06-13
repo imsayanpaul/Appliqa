@@ -14,7 +14,7 @@ export function Features() {
                 {/* Box 1: AI Resume Builder */}
                 <div 
                     onClick={() => navigate('/resume-creator')}
-                    className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                    className="border-b border-white/5 md:border-r p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
                 >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
@@ -22,7 +22,7 @@ export function Features() {
                             AI Resume Builder
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Build and optimize your resume with AI-generated summaries, professional templates, and bullet enhancers.
                         </p>
                     </div>
@@ -44,7 +44,7 @@ export function Features() {
                 {/* Box 2: AI Career Advisor */}
                 <div 
                     onClick={() => navigate('/advisor')}
-                    className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                    className="border-b border-white/5 p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
                 >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
@@ -52,7 +52,7 @@ export function Features() {
                             AI Career Advisor
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Chat with an interactive AI mentor for personalized career guidance, mock interviews, and resume critique.
                         </p>
                     </div>
@@ -71,22 +71,22 @@ export function Features() {
                 </div>
 
                 {/* Box 3: Location Matching */}
-                <div className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                <div className="border-b border-white/5 md:border-r p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <MapIcon className="size-4 text-orange-500" />
                             Smart Location Matching
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Global opportunities. Instantly find jobs in your preferred city or remote worldwide.
                         </p>
                     </div>
 
                     <div aria-hidden className="relative mt-8">
                         <div className="absolute inset-0 z-10 m-auto size-fit">
-                            <div className="rounded-xl bg-zinc-900/90 backdrop-blur-md z-[1] relative flex size-fit w-fit items-center gap-2 border border-white/10 px-4 py-2 text-xs font-medium text-white shadow-xl">
-                                <span className="text-base">🇺🇸</span> Match: React Developer in San Francisco
+                            <div className="rounded-xl bg-zinc-900/90 backdrop-blur-md z-[1] relative flex size-fit w-fit items-center gap-2 border border-white/10 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-medium text-white shadow-xl">
+                                <span className="text-sm sm:text-base">🇺🇸</span> Match: React Developer in San Francisco
                             </div>
                             <div className="rounded-xl bg-zinc-950/80 absolute inset-2 -bottom-2 mx-auto border border-white/5 px-3 py-4 shadow-lg"></div>
                         </div>
@@ -99,24 +99,24 @@ export function Features() {
                 </div>
 
                 {/* Box 4: AI Match Score & Skills */}
-                <div className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
+                <div className="border-b border-white/5 p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.015] transition-colors duration-300">
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <TrendingUp className="size-4 text-emerald-400" />
                             AI Match Score & Skill Gap
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Analyze your compatibility with any job. Instantly identify missing skills to improve your pass rate.
                         </p>
                     </div>
 
-                    <div aria-hidden className="mt-8 p-4 rounded-xl bg-zinc-900/60 border border-white/5 flex items-center justify-between gap-4">
+                    <div aria-hidden className="mt-8 p-4 rounded-xl bg-zinc-900/60 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Match Score</span>
                             <span className="text-3xl font-extrabold text-emerald-400">87%</span>
                         </div>
-                        <div className="flex flex-col gap-1.5 flex-1 pl-4 border-l border-white/5">
+                        <div className="flex flex-col gap-1.5 flex-1 sm:pl-4 sm:border-l border-white/5">
                             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Skills to Add</span>
                             <div className="flex flex-wrap gap-1.5">
                                 <span className="px-2.5 py-0.5 rounded-full text-[10px] bg-red-500/10 text-red-300 border border-red-500/20 font-medium">System Design</span>
@@ -129,7 +129,7 @@ export function Features() {
                 {/* Box 5: ATS Keyword Scanner & Fixer */}
                 <div 
                     onClick={() => navigate('/resume-creator')}
-                    className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                    className="border-b border-white/5 md:border-r p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
                 >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
@@ -137,13 +137,13 @@ export function Features() {
                             ATS Keyword Scanner & Fixer
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Compare your resume directly with job postings. Scan for missing keywords and get priority fixes.
                         </p>
                     </div>
 
                     <div aria-hidden className="mt-8 space-y-3 p-4 rounded-xl bg-zinc-900/60 border border-white/5">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Keywords Found</span>
                             <div className="flex gap-1.5">
                                 <span className="px-2 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-medium font-mono">✓ React</span>
@@ -151,7 +151,7 @@ export function Features() {
                             </div>
                         </div>
                         <div className="h-px bg-white/5 my-1" />
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Missing Keywords</span>
                             <div className="flex gap-1.5">
                                 <span className="px-2 py-0.5 rounded text-[9px] bg-red-500/10 text-red-300 border border-red-500/20 font-medium font-mono">✗ System Design</span>
@@ -164,7 +164,7 @@ export function Features() {
                 {/* Box 6: AI Cover Letter Generator */}
                 <div 
                     onClick={() => navigate('/resume-creator')}
-                    className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                    className="border-b border-white/5 p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
                 >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
@@ -172,7 +172,7 @@ export function Features() {
                             AI Cover Letter Generator
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Generate tailored cover letters matching the requirements and tone of the role in seconds.
                         </p>
                     </div>
@@ -193,7 +193,7 @@ export function Features() {
                 {/* Box 7: LinkedIn Cold Outreach */}
                 <div 
                     onClick={() => navigate('/resume-creator')}
-                    className="border-b border-white/5 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                    className="border-b border-white/5 md:border-r p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
                 >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
@@ -201,7 +201,7 @@ export function Features() {
                             LinkedIn Cold Outreach
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Create personalized DMs and introduction notes to grab the attention of recruiters.
                         </p>
                     </div>
@@ -220,7 +220,7 @@ export function Features() {
                 {/* Box 8: Career Path Visualizer */}
                 <div 
                     onClick={() => navigate('/career')}
-                    className="border-b border-white/5 p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                    className="border-b border-white/5 p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
                 >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
@@ -228,25 +228,25 @@ export function Features() {
                             Career Path Visualizer
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Map your long-term career growth. Discover key skills required to level up your career role.
                         </p>
                     </div>
 
-                    <div aria-hidden className="mt-8 p-3 rounded-xl bg-zinc-900/60 border border-white/5 flex items-center justify-around gap-2 text-center">
+                    <div aria-hidden className="mt-8 p-2.5 rounded-xl bg-zinc-900/60 border border-white/5 flex items-center justify-between gap-1 px-2 text-center">
                         <div className="flex flex-col items-center">
-                            <span className="text-[9px] text-slate-400 font-medium">Current</span>
-                            <span className="text-xs font-semibold text-white mt-0.5">Frontend Dev</span>
+                            <span className="text-[8px] sm:text-[9px] text-slate-400 font-medium">Current</span>
+                            <span className="text-[10px] sm:text-xs font-semibold text-white mt-0.5">Frontend Dev</span>
                         </div>
-                        <span className="text-slate-500 text-xs">➔</span>
+                        <span className="text-slate-500 text-[10px] sm:text-xs">➔</span>
                         <div className="flex flex-col items-center">
-                            <span className="text-[9px] text-slate-400 font-medium">Level Up</span>
-                            <span className="text-xs font-semibold text-orange-400 mt-0.5">Senior React</span>
+                            <span className="text-[8px] sm:text-[9px] text-slate-400 font-medium">Level Up</span>
+                            <span className="text-[10px] sm:text-xs font-semibold text-orange-400 mt-0.5">Senior React</span>
                         </div>
-                        <span className="text-slate-500 text-xs">➔</span>
+                        <span className="text-slate-500 text-[10px] sm:text-xs">➔</span>
                         <div className="flex flex-col items-center">
-                            <span className="text-[9px] text-slate-400 font-medium">Target</span>
-                            <span className="text-xs font-semibold text-orange-400 mt-0.5">Tech Architect</span>
+                            <span className="text-[8px] sm:text-[9px] text-slate-400 font-medium">Target</span>
+                            <span className="text-[10px] sm:text-xs font-semibold text-orange-400 mt-0.5">Tech Architect</span>
                         </div>
                     </div>
                 </div>
@@ -254,7 +254,7 @@ export function Features() {
                 {/* Box 9: AI Interview Prep Coach */}
                 <div 
                     onClick={() => navigate('/saved')}
-                    className="border-b border-white/5 md:border-b-0 md:border-r p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                    className="border-b border-white/5 md:border-b-0 md:border-r p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
                 >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
@@ -262,7 +262,7 @@ export function Features() {
                             AI Interview Prep Coach
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Generate custom behavioral and technical questions with model talking points for saved jobs.
                         </p>
                     </div>
@@ -284,7 +284,7 @@ export function Features() {
                 {/* Box 10: Smart Application Tracker */}
                 <div 
                     onClick={() => navigate('/saved')}
-                    className="p-6 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
+                    className="p-5 sm:p-12 flex flex-col justify-between hover:bg-white/[0.025] hover:border-orange-500/20 transition-all duration-300 cursor-pointer group"
                 >
                     <div>
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
@@ -292,7 +292,7 @@ export function Features() {
                             Smart Application Tracker
                         </span>
 
-                        <p className="mt-6 text-xl font-semibold text-white leading-snug">
+                        <p className="mt-4 md:mt-6 text-lg sm:text-xl font-semibold text-white leading-snug">
                             Bookmark jobs and track application status seamlessly from Saved, Applied, Interview, to Offer.
                         </p>
                     </div>
@@ -318,8 +318,8 @@ export function Features() {
                 </div>
 
                 {/* Box 9: ATS Stat */}
-                <div className="col-span-full border-t border-white/5 p-12 bg-white/[0.01] flex flex-col items-center justify-center hover:bg-white/[0.02] transition-colors duration-300">
-                    <p className="text-center text-5xl font-bold lg:text-7xl bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight">
+                <div className="col-span-full border-t border-white/5 p-6 sm:p-12 bg-white/[0.01] flex flex-col items-center justify-center hover:bg-white/[0.02] transition-colors duration-300">
+                    <p className="text-center text-3xl sm:text-5xl lg:text-7xl bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent tracking-tight">
                         98% ATS Pass Rate
                     </p>
                     <p className="text-slate-400 text-sm mt-3 text-center max-w-md">
@@ -328,18 +328,18 @@ export function Features() {
                 </div>
 
                 {/* Box 10: Application Tracking Graph */}
-                <div className="relative col-span-full border-t border-white/5 bg-white/[0.01] hover:bg-white/[0.02] transition-colors duration-300">
-                    <div className="absolute z-10 max-w-lg px-6 pr-12 pt-6 md:px-12 md:pt-12">
+                <div className="col-span-full border-t border-white/5 bg-white/[0.01] hover:bg-white/[0.02] transition-colors duration-300 flex flex-col md:relative">
+                    <div className="md:absolute md:z-10 max-w-lg px-6 pr-12 pt-6 md:px-12 md:pt-12">
                         <span className="text-slate-400 flex items-center gap-2 text-sm font-medium">
                             <Activity className="size-4 text-emerald-400" />
                             Application Activity Feed
                         </span>
 
-                        <p className="my-6 text-2xl font-semibold text-white leading-snug">
+                        <p className="my-4 md:my-6 text-xl md:text-2xl font-semibold text-white leading-snug">
                             Track your status. <span className="text-slate-400">Monitor recruiter views, resume downloads, and matches in real-time.</span>
                         </p>
                     </div>
-                    <div className="pt-36 md:pt-40">
+                    <div className="pt-4 md:pt-40 flex-1">
                         <MonitoringChart />
                     </div>
                 </div>
