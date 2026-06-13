@@ -676,11 +676,8 @@ function AppContent() {
 
             {showLocationPrompt && !customAlert.show && (
                 <div 
+                    className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 w-auto md:w-[380px] z-[1100]"
                     style={{ 
-                        position: 'fixed', 
-                        bottom: '24px', 
-                        right: '24px', 
-                        width: '380px', 
                         background: 'radial-gradient(circle at top left, rgba(249, 115, 22, 0.05) 0%, transparent 60%), rgba(13, 13, 17, 0.75)', 
                         backdropFilter: 'blur(20px)',
                         WebkitBackdropFilter: 'blur(20px)',
@@ -688,7 +685,6 @@ function AppContent() {
                         borderRadius: '20px',
                         padding: '24px',
                         boxShadow: '0 24px 50px -12px rgba(0, 0, 0, 0.7), 0 0 32px rgba(249, 115, 22, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-                        zIndex: 1100,
                         animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}
                 >
