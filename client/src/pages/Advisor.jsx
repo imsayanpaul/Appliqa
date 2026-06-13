@@ -119,6 +119,8 @@ const parseInline = (text) => {
 function Advisor({ user, resumeData }) {
     const navigate = useNavigate();
     const chatContainerRef = useRef(null);
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [messages, setMessages] = useState(() => {
         const saved = window.localStorage.getItem('appliqa_advisor_chat');
         if (saved) {
@@ -148,6 +150,12 @@ function Advisor({ user, resumeData }) {
     const [isInputFocused, setIsInputFocused] = useState(false);
     const [newSessionHovered, setNewSessionHovered] = useState(false);
     const [isSendHovered, setIsSendHovered] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Starter prompts
     const suggestedPrompts = [
@@ -250,11 +258,12 @@ function Advisor({ user, resumeData }) {
             width: '100%',
             background: 'transparent',
             color: '#FFFFFF',
-            padding: '24px 32px 32px 32px',
+            padding: isMobile ? '16px 12px 16px 12px' : '24px 32px 32px 32px',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            position: 'relative'
+            position: 'relative',
+            boxSizing: 'border-box'
         }} className="fade-in">
             
             {/* Glowing Accent Orbs */}
@@ -286,14 +295,16 @@ function Advisor({ user, resumeData }) {
             {/* Header Toolbar */}
             <div style={{
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: isMobile ? 'flex-start' : 'center',
                 justifyContent: 'space-between',
-                paddingBottom: '20px',
-                marginBottom: '24px',
+                paddingBottom: isMobile ? '12px' : '20px',
+                marginBottom: isMobile ? '12px' : '24px',
                 position: 'relative',
-                zIndex: 10
+                zIndex: 10,
+                gap: isMobile ? '8px' : '12px',
+                flexWrap: 'wrap'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
                     <span style={{
                         width: '7px',
                         height: '7px',
@@ -302,9 +313,9 @@ function Advisor({ user, resumeData }) {
                         boxShadow: '0 0 12px rgba(249, 115, 22, 0.8)',
                         flexShrink: 0
                     }} />
-                    <div>
+                    <div style={{ minWidth: 0 }}>
                         <h1 style={{ 
-                            fontSize: '20px', 
+                            fontSize: isMobile ? '17px' : '20px', 
                             fontWeight: '800', 
                             letterSpacing: '-0.03em',
                             background: 'linear-gradient(to right, #ffffff 30%, #f4f4f5 70%, #a1a1aa 100%)',
@@ -316,65 +327,93 @@ function Advisor({ user, resumeData }) {
                             AI Resume & Career Advisor
                         </h1>
                         <p style={{ 
-                            fontSize: '11.5px', 
+                            fontSize: isMobile ? '10.5px' : '11.5px', 
                             color: 'var(--text-muted)', 
-                            marginTop: '4px', 
                             fontWeight: '500',
-                            margin: 0
+                            margin: 0,
+                            marginTop: '2px'
                         }}>
                             Unlock expert recruiter insights and mock coaching powered by Gemini-3.5
                         </p>
                     </div>
                 </div>
 
-                <button 
-                    onClick={handleClearChat}
-                    onMouseEnter={() => setNewSessionHovered(true)}
-                    onMouseLeave={() => setNewSessionHovered(false)}
-                    style={{
-                        background: newSessionHovered ? 'rgba(255, 255, 255, 0.07)' : 'rgba(255, 255, 255, 0.03)',
-                        border: newSessionHovered ? '1px solid rgba(249, 115, 22, 0.35)' : '1px solid rgba(255, 255, 255, 0.06)',
-                        color: '#FFFFFF',
-                        padding: '9px 18px',
-                        borderRadius: '9999px',
-                        fontSize: '12px',
-                        fontWeight: '650',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '7px',
-                        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                        boxShadow: newSessionHovered 
-                            ? '0 0 20px rgba(249, 115, 22, 0.08), inset 0 1px 0 rgba(255,255,255,0.05)' 
-                            : 'inset 0 1px 0 rgba(255,255,255,0.03)'
-                    }}
-                >
-                    <PlusCircle size={15} style={{ color: newSessionHovered ? 'var(--accent-primary)' : '#FFFFFF', transition: 'color 0.25s' }} />
-                    New Session
-                </button>
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                    {isMobile && (
+                        <button 
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            style={{
+                                background: sidebarOpen ? 'rgba(249, 115, 22, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                                border: sidebarOpen ? '1px solid rgba(249, 115, 22, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                                color: '#FFFFFF',
+                                padding: '8px 12px',
+                                borderRadius: '9999px',
+                                fontSize: '11px',
+                                fontWeight: '650',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.25s ease'
+                            }}
+                        >
+                            <Compass size={13} />
+                            {sidebarOpen ? 'Hide' : 'Context'}
+                        </button>
+                    )}
+                    <button 
+                        onClick={handleClearChat}
+                        onMouseEnter={() => setNewSessionHovered(true)}
+                        onMouseLeave={() => setNewSessionHovered(false)}
+                        style={{
+                            background: newSessionHovered ? 'rgba(255, 255, 255, 0.07)' : 'rgba(255, 255, 255, 0.03)',
+                            border: newSessionHovered ? '1px solid rgba(249, 115, 22, 0.35)' : '1px solid rgba(255, 255, 255, 0.06)',
+                            color: '#FFFFFF',
+                            padding: isMobile ? '8px 12px' : '9px 18px',
+                            borderRadius: '9999px',
+                            fontSize: isMobile ? '11px' : '12px',
+                            fontWeight: '650',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: isMobile ? '5px' : '7px',
+                            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                            boxShadow: newSessionHovered 
+                                ? '0 0 20px rgba(249, 115, 22, 0.08), inset 0 1px 0 rgba(255,255,255,0.05)' 
+                                : 'inset 0 1px 0 rgba(255,255,255,0.03)'
+                        }}
+                    >
+                        <PlusCircle size={isMobile ? 13 : 15} style={{ color: newSessionHovered ? 'var(--accent-primary)' : '#FFFFFF', transition: 'color 0.25s' }} />
+                        New Session
+                    </button>
+                </div>
             </div>
 
             {/* Main Content Layout */}
             <div style={{
                 display: 'flex',
-                flexDirection: 'row',
-                gap: '24px',
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? '12px' : '24px',
                 flex: 1,
                 alignItems: 'stretch',
                 minHeight: 0,
                 position: 'relative',
-                zIndex: 10
-            }} className="flex-col md:flex-row min-h-0 overflow-hidden">
+                zIndex: 10,
+                overflow: 'hidden'
+            }}>
                 
                 {/* Left Sidebar: Resume Context & Quick Actions */}
+                {(!isMobile || sidebarOpen) && (
                 <div style={{
                     width: '100%',
-                    maxWidth: '300px',
+                    maxWidth: isMobile ? '100%' : '300px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '18px',
-                    overflowY: 'auto'
-                }} className="w-full md:w-[300px] shrink-0">
+                    gap: isMobile ? '10px' : '18px',
+                    overflowY: 'auto',
+                    flexShrink: 0,
+                    ...(isMobile ? { maxHeight: '35vh' } : {})
+                }}>
                     
                     {/* Resume Context Card */}
                     <div style={{
@@ -557,6 +596,7 @@ function Advisor({ user, resumeData }) {
                         ))}
                     </div>
                 </div>
+                )}
 
                 {/* Right Chat Panel */}
                 <div style={{
@@ -579,10 +619,10 @@ function Advisor({ user, resumeData }) {
                         style={{
                             flex: 1,
                             overflowY: 'auto',
-                            padding: '28px',
+                            padding: isMobile ? '14px' : '28px',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: '24px'
+                            gap: isMobile ? '16px' : '24px'
                         }}
                     >
                         <AnimatePresence initial={false}>
@@ -666,10 +706,10 @@ function Advisor({ user, resumeData }) {
                                                 ? '1px solid rgba(255, 255, 255, 0.08)'
                                                 : '1px solid rgba(255, 255, 255, 0.12)',
                                             color: '#FFFFFF',
-                                            padding: '16px 20px',
-                                            fontSize: '12.5px',
+                                            padding: isMobile ? '12px 14px' : '16px 20px',
+                                            fontSize: isMobile ? '12px' : '12.5px',
                                             lineHeight: '1.6',
-                                            maxWidth: '80%'
+                                            maxWidth: isMobile ? '92%' : '80%'
                                         }}
                                     >
                                         {msg.role === 'user' ? (
@@ -750,7 +790,7 @@ function Advisor({ user, resumeData }) {
 
                     {/* Chat Input Field Container */}
                     <div style={{
-                        padding: '12px 28px 16px 28px',
+                        padding: isMobile ? '8px 12px 12px 12px' : '12px 28px 16px 28px',
                         background: 'transparent',
                         display: 'flex',
                         flexDirection: 'column',
@@ -766,7 +806,7 @@ function Advisor({ user, resumeData }) {
                                 alignItems: 'center',
                                 background: '#222226',
                                 borderRadius: '28px',
-                                padding: '6px 6px 6px 18px',
+                                padding: isMobile ? '4px 4px 4px 12px' : '6px 6px 6px 18px',
                                 transition: 'all 0.25s ease',
                                 border: isInputFocused ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(255, 255, 255, 0.05)',
                                 boxShadow: isInputFocused ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none'
@@ -786,7 +826,7 @@ function Advisor({ user, resumeData }) {
                                     border: 'none',
                                     outline: 'none',
                                     color: '#FFFFFF',
-                                    fontSize: '14px',
+                                    fontSize: isMobile ? '13px' : '14px',
                                     padding: '8px 0',
                                     fontWeight: '450'
                                 }}
