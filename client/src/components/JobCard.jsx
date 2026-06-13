@@ -81,6 +81,7 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
             className="job-card group" 
             onClick={onClick}
             style={{
+                width: '100%',
                 minWidth: 0,
                 maxWidth: '100%',
                 boxSizing: 'border-box'

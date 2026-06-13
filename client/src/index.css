@@ -3919,6 +3919,7 @@ input[type="number"] {
   overflow: visible !important;
   min-width: 0 !important;
   max-width: 100% !important;
+  width: 100% !important;
 }
 
 .job-card:hover {

@@ -181,6 +181,7 @@ function SavedJobs({ user, resumeData }) {
                                         style={{
                                             padding: isMobile ? '16px' : '24px',
                                             boxSizing: 'border-box',
+                                            width: '100%',
                                             minWidth: 0,
                                             maxWidth: '100%'
                                         }}
