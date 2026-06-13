@@ -304,14 +304,15 @@ function Advisor({ user, resumeData }) {
                 gap: '12px',
                 flexWrap: 'wrap'
             }}>
-                <div className="advisor-brand-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                <div className="advisor-brand-header" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', minWidth: 0, flex: 1 }}>
                     <span style={{
                         width: '7px',
                         height: '7px',
                         borderRadius: '50%',
                         backgroundColor: 'var(--accent-primary)',
                         boxShadow: '0 0 12px rgba(249, 115, 22, 0.8)',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        marginTop: '7px'
                     }} />
                     <div style={{ minWidth: 0 }}>
                         <h1 className="advisor-title" style={{ 
