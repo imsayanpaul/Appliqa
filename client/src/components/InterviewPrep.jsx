@@ -105,13 +105,13 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
 
                 {/* Header */}
                 <div className="modal-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                        <div style={{ background: 'rgba(249, 115, 22, 0.15)', borderRadius: 10, padding: 10, display: 'flex' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+                        <div style={{ background: 'rgba(249, 115, 22, 0.15)', borderRadius: 10, padding: 10, display: 'flex', flexShrink: 0 }}>
                             <FiZap size={20} color="#f97316" />
                         </div>
-                        <div>
-                            <h2 style={{ fontSize: 20, margin: 0 }}>Interview Prep</h2>
-                            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                            <h2 style={{ fontSize: 20, margin: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>Interview Prep</h2>
+                            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2, whiteSpace: 'normal', wordBreak: 'break-word' }}>
                                 {job.title} at {job.company}
                             </div>
                         </div>
@@ -140,7 +140,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
 
                         {/* Questions */}
                         {prepData.questions?.length > 0 && (
-                            <div className="ui-card" style={{ padding: '24px 20px' }}>
+                            <div className="ui-card prep-section-card">
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: 16, fontWeight: 700 }}>
                                     <FiMessageCircle size={18} color="#f97316" /> Likely Questions
                                 </h3>
@@ -148,17 +148,9 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                                     {prepData.questions.map((q, i) => {
                                         const colors = typeColors[q.type] || typeColors.behavioral;
                                         return (
-                                            <div key={i} style={{ 
-                                                background: 'rgba(255, 255, 255, 0.01)', 
-                                                borderRadius: 14, 
-                                                padding: 20, 
-                                                border: '1px solid rgba(255, 255, 255, 0.04)',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: 12
-                                            }}>
+                                            <div key={i} className="prep-question-card">
                                                 {/* Header with tag */}
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                                                <div className="prep-question-header">
                                                     <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.45 }}>
                                                         {i + 1}. {q.question}
                                                     </span>
@@ -178,7 +170,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                                                         {q.type}
                                                     </span>
                                                 </div>
-
+ 
                                                 {/* Talking Points */}
                                                 {q.talkingPoints?.length > 0 && (
                                                     <div style={{ marginTop: 4 }}>
@@ -200,7 +192,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                                                         </div>
                                                     </div>
                                                 )}
-
+ 
                                                 {/* Sample Answer Box */}
                                                 {q.sampleAnswer && (
                                                     <div style={{ 
@@ -242,16 +234,16 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                                 </div>
                             </div>
                         )}
-
+ 
                         {/* Technical Topics */}
                         {prepData.technicalTopics?.length > 0 && (
-                            <div className="ui-card" style={{ padding: 20 }}>
+                            <div className="ui-card prep-section-card-sm">
                                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontSize: 15 }}>
                                     <FiBookOpen size={16} color="#f97316" /> Technical Topics to Review
                                 </h3>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                     {prepData.technicalTopics.map((t, i) => (
-                                        <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 16px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                                        <div key={i} className="prep-topic-item">
                                             <span style={{
                                                 fontSize: 11, padding: '2px 8px', borderRadius: 6, flexShrink: 0, marginTop: 2,
                                                 background: t.importance === 'high' ? 'rgba(234, 88, 12, 0.12)' : 'rgba(253, 186, 116, 0.08)',
@@ -269,11 +261,11 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                                 </div>
                             </div>
                         )}
-
+ 
                         {/* Company Insights + Tips in a two-column layout */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                        <div className="prep-insights-grid">
                             {prepData.companyInsights?.length > 0 && (
-                                <div className="ui-card" style={{ padding: 20 }}>
+                                <div className="ui-card prep-section-card-sm">
                                     <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 15 }}>
                                         <FiTarget size={16} color="#f97316" /> Company Insights
                                     </h3>
@@ -285,7 +277,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                                 </div>
                             )}
                             {prepData.tips?.length > 0 && (
-                                <div className="ui-card" style={{ padding: 20 }}>
+                                <div className="ui-card prep-section-card-sm">
                                     <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 15 }}>
                                         <FiZap size={16} color="#f97316" /> Pro Tips
                                     </h3>
