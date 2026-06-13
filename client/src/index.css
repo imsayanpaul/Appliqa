@@ -81,6 +81,32 @@ body {
   display: none; /* Chrome, Safari, Edge */
 }
 
+/* Custom premium vertical scrollbar for the main scrollable viewport */
+main {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(249, 115, 22, 0.45) transparent !important;
+}
+
+main::-webkit-scrollbar {
+  width: 6px !important;
+  display: block !important;
+}
+
+main::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+main::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.25) !important;
+  border-radius: 99px !important;
+  transition: all 0.3s ease !important;
+}
+
+main::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.6) !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.45) !important;
+}
+
 /* ===== ANIMATED BACKGROUND DELETED (Stitch Aesthetic: Flat Dark) ===== */
 .app-bg {
   display: none;
@@ -2284,35 +2310,14 @@ body {
   }
 
   .filters-bar {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    padding-bottom: 10px !important;
-    scrollbar-width: thin !important;
-    scrollbar-color: rgba(249, 115, 22, 0.5) transparent !important;
-    -webkit-overflow-scrolling: touch;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding-bottom: 0 !important;
+    overflow-x: visible !important;
     width: 100% !important;
-    max-width: 100% !important;
     box-sizing: border-box !important;
-    gap: 12px !important;
-  }
-
-  .filters-bar::-webkit-scrollbar {
-    height: 4px !important;
-    display: block !important;
-  }
-
-  .filters-bar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03) !important;
-    border-radius: 99px !important;
-  }
-
-  .filters-bar::-webkit-scrollbar-thumb {
-    background: rgba(249, 115, 22, 0.45) !important;
-    border-radius: 99px !important;
-  }
-
-  .filters-bar::-webkit-scrollbar-thumb:hover {
-    background: rgba(249, 115, 22, 0.8) !important;
   }
 
   .preferences-form {
