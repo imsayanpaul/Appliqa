@@ -6885,4 +6885,36 @@ input[type="number"] {
     font-size: 10px !important;
     gap: 6px !important;
   }
+}
+
+/* Cool small orange scrollbar for the Resume Creator panels */
+.resume-creator-form-scroll,
+.resume-creator-preview-panel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(249, 115, 22, 0.45) transparent;
+}
+
+.resume-creator-form-scroll::-webkit-scrollbar,
+.resume-creator-preview-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.resume-creator-form-scroll::-webkit-scrollbar-track,
+.resume-creator-preview-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.resume-creator-form-scroll::-webkit-scrollbar-thumb,
+.resume-creator-preview-panel::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.25);
+  border-radius: 99px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: all 0.3s ease;
+}
+
+.resume-creator-form-scroll::-webkit-scrollbar-thumb:hover,
+.resume-creator-preview-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.6) !important;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.45);
 }

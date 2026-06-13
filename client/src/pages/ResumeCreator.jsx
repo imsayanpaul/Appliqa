@@ -1011,7 +1011,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     </div>
 
                     {/* Scrollable Tab Content Container */}
-                    <div className="flex-1 overflow-y-auto py-4 px-6 space-y-5">
+                    <div className="flex-1 overflow-y-auto py-4 px-6 space-y-5 resume-creator-form-scroll">
                         {activeTab === 'personal' && (
                             <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-4">
