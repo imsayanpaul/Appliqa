@@ -50,11 +50,11 @@ function SavedJobs({ user, resumeData }) {
     const [prepJob, setPrepJob] = useState(null);
     const [coverLetterJob, setCoverLetterJob] = useState(null);
     const [clCopied, setClCopied] = useState(false);
-    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false);
 
     useEffect(() => {
         const handleResize = () => {
-            setIsMobile(window.innerWidth <= 768);
+            setIsMobile(window.innerWidth <= 1024);
         };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);

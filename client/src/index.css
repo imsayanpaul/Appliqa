@@ -3917,6 +3917,8 @@ input[type="number"] {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
   overflow: visible !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
 }
 
 .job-card:hover {
@@ -6505,7 +6507,7 @@ input[type="number"] {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .section-header {
     flex-direction: column !important;
     align-items: flex-start !important;
