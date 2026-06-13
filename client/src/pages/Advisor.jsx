@@ -304,7 +304,7 @@ function Advisor({ user, resumeData }) {
                 gap: '12px',
                 flexWrap: 'wrap'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                <div className="advisor-brand-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
                     <span style={{
                         width: '7px',
                         height: '7px',
@@ -338,7 +338,7 @@ function Advisor({ user, resumeData }) {
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <div className="advisor-actions-header" style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                     <button 
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                         className={`advisor-context-toggle ${sidebarOpen ? 'open' : ''}`}

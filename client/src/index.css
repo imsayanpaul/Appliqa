@@ -6739,10 +6739,21 @@ input[type="number"] {
   }
 
   .advisor-header {
+    flex-direction: column !important;
     align-items: flex-start !important;
     padding-bottom: 12px !important;
     margin-bottom: 12px !important;
-    gap: 8px !important;
+    gap: 12px !important;
+  }
+
+  .advisor-brand-header {
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  .advisor-actions-header {
+    width: 100% !important;
+    justify-content: flex-start !important;
   }
 
   .advisor-title {
