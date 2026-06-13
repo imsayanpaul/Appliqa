@@ -6503,6 +6503,48 @@ input[type="number"] {
     gap: 8px !important;
     padding: 0 12px !important;
   }
+
+  /* Job Card mobile responsiveness overrides */
+  .results-grid {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  .job-card {
+    padding: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  .job-card-header {
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .job-card-info {
+    padding-right: 80px !important;
+  }
+
+  .job-card-status-badge {
+    top: 16px !important;
+    right: 16px !important;
+    padding: 3px 8px !important;
+    font-size: 10px !important;
+  }
+  
+  .job-card-footer-custom {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    margin-top: 14px !important;
+    padding-top: 12px !important;
+  }
+  
+  .job-card-actions {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: flex-end !important;
+  }
 }
 
 @media (max-width: 768px) {
