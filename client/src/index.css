@@ -6476,7 +6476,10 @@ input[type="number"] {
   stroke: #f97316;
 }
 
-/* ===== NEW STYLES AND RESPONSIVENESS OVERRIDES ===== */
+/* Trending Section Margin & Overflow Fixes */
+.trending-section {
+  margin-top: -24px !important;
+}
 
 /* Trending Roles Wrapper */
 .trending-roles-wrapper {
@@ -6544,6 +6547,10 @@ input[type="number"] {
   .trending-roles-wrapper {
     gap: 8px !important;
     padding: 0 12px !important;
+  }
+
+  .trending-section {
+    margin-top: -6px !important;
   }
 }
 

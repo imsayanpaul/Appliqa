@@ -161,7 +161,7 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
 
             <div className="main-content w-full box-border">
                 {/* Suggested / Trending Searches */}
-                <div className="page-section w-full max-w-full overflow-hidden box-border" style={{ marginTop: '-24px', marginBottom: 40 }}>
+                <div className="trending-section page-section w-full max-w-full box-border" style={{ marginBottom: 40 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginBottom: 16 }}>
                         <FiTrendingUp size={14} color="#f97316" />
                         <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>Trending Searches</span>
