@@ -6917,4 +6917,18 @@ input[type="number"] {
 .resume-creator-preview-panel::-webkit-scrollbar-thumb:hover {
   background: rgba(249, 115, 22, 0.6) !important;
   box-shadow: 0 0 10px rgba(249, 115, 22, 0.45);
+}
+
+/* Keyframes for mobile soft glow pulse background */
+@keyframes mobile-glow-pulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.7;
+    filter: blur(28px);
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 1.1;
+    filter: blur(36px);
+  }
 }

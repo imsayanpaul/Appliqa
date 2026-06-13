@@ -13,8 +13,8 @@ export const LampContainer = ({
         className
       )}
     >
-      {/* Absolute Lamp Background Graphic */}
-      <div className="absolute inset-x-0 top-0 h-[350px] flex items-center justify-center isolate z-0 overflow-hidden pointer-events-none scale-y-125">
+      {/* Absolute Lamp Background Graphic (Visible on Desktop/Tablet landscape) */}
+      <div className="hidden md:flex absolute inset-x-0 top-0 h-[350px] items-center justify-center isolate z-0 overflow-hidden pointer-events-none scale-y-125">
         {/* Left conic gradient beam */}
         <motion.div
           initial={{ opacity: 0.5, width: "15rem" }}
@@ -80,6 +80,29 @@ export const LampContainer = ({
         ></motion.div>
 
         <div className="absolute inset-auto z-40 h-44 w-full -translate-y-[12.5rem] bg-black"></div>
+      </div>
+
+      {/* Mobile/Tablet Portrait Glow Background */}
+      <div className="flex md:hidden absolute inset-0 z-0 pointer-events-none overflow-hidden items-center justify-center">
+        <div style={{
+          position: "absolute",
+          width: "120%",
+          height: "220px",
+          top: "-40px",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(249, 115, 22, 0.16) 0%, rgba(249, 115, 22, 0.04) 60%, transparent 100%)",
+          filter: "blur(32px)",
+          animation: "mobile-glow-pulse 5s ease-in-out infinite alternate"
+        }} />
+        <div style={{
+          position: "absolute",
+          width: "80%",
+          height: "120px",
+          top: "0",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(236, 72, 153, 0.08) 0%, transparent 80%)",
+          filter: "blur(24px)"
+        }} />
       </div>
 
       {/* Children content layout naturally */}
