@@ -2284,9 +2284,35 @@ body {
   }
 
   .filters-bar {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    padding-bottom: 8px;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 10px !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(249, 115, 22, 0.5) transparent !important;
+    -webkit-overflow-scrolling: touch;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 12px !important;
+  }
+
+  .filters-bar::-webkit-scrollbar {
+    height: 4px !important;
+    display: block !important;
+  }
+
+  .filters-bar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 99px !important;
+  }
+
+  .filters-bar::-webkit-scrollbar-thumb {
+    background: rgba(249, 115, 22, 0.45) !important;
+    border-radius: 99px !important;
+  }
+
+  .filters-bar::-webkit-scrollbar-thumb:hover {
+    background: rgba(249, 115, 22, 0.8) !important;
   }
 
   .preferences-form {
