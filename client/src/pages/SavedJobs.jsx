@@ -243,7 +243,7 @@ function SavedJobs({ user, resumeData }) {
                                                 onChange={(val) => handleStatusChange(job._id, val)}
                                                 placeholder="Select Status"
                                                 variant="ghost"
-                                                direction="up"
+                                                direction="down"
                                             />
 
                                             <div 
