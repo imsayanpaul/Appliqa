@@ -9,7 +9,7 @@ export function Features() {
     const navigate = useNavigate();
     return (
         <section className="px-4 pt-4 pb-16 md:pt-8 md:pb-24">
-            <div className="mx-auto grid max-w-5xl border border-white/5 rounded-2xl bg-zinc-950/20 backdrop-blur-md md:grid-cols-2 overflow-hidden">
+            <div className="mx-auto grid w-full max-w-5xl border border-white/5 rounded-2xl bg-zinc-950/20 backdrop-blur-md md:grid-cols-2 overflow-hidden">
                 
                 {/* Box 1: AI Resume Builder */}
                 <div 
@@ -89,7 +89,7 @@ export function Features() {
                                 <span className="text-sm sm:text-base flex-shrink-0">🇺🇸</span>
                                 <span className="text-left leading-normal">Match: React Developer in San Francisco</span>
                             </div>
-                            <div className="rounded-xl bg-zinc-950/80 absolute inset-2 -bottom-2 w-[220px] sm:w-auto mx-auto border border-white/5 px-3 py-4 shadow-lg"></div>
+                            <div className="rounded-xl bg-zinc-950/80 absolute left-1/2 -translate-x-1/2 -bottom-2 w-[220px] sm:w-auto border border-white/5 px-3 py-4 shadow-lg"></div>
                         </div>
 
                         <div className="relative overflow-hidden opacity-30 h-36 flex items-center justify-center">
@@ -391,7 +391,7 @@ const chartData = [
 
 const MonitoringChart = () => {
     return (
-        <ChartContainer className="h-64 md:h-80 w-full" config={chartConfig}>
+        <ChartContainer className="aspect-auto h-64 md:h-80 w-full" config={chartConfig}>
             <AreaChart
                 accessibilityLayer
                 data={chartData}
