@@ -39,3 +39,6 @@ pnpm-debug.log*
 
 # Personal documents
 *.pdf
+
+# Backend server directory (sensitive/private)
+server/
