@@ -174,6 +174,7 @@ function SavedJobs({ user, resumeData }) {
                                     animate="visible"
                                     exit={{ opacity: 0, scale: 0.9, y: 12 }}
                                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                    style={{ minWidth: 0, overflowX: 'hidden' }}
                                 >
                                     <Card 
                                         className={`job-card status-${job.status}`} 

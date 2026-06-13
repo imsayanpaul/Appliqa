@@ -506,6 +506,7 @@ body {
   margin: 0 auto;
   padding: 40px;
   position: relative;
+  overflow: hidden;
 }
 
 /* ===== SEARCH SECTION ===== */
@@ -979,12 +980,15 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
   gap: 16px;
+  overflow: hidden;
 }
 
 /* Elevate active/focused grid item card above siblings and layout overlays */
 .results-grid > div {
   position: relative;
   transition: z-index 0s step-end;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .results-grid > div:focus-within {
