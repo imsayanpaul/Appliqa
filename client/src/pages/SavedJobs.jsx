@@ -223,11 +223,13 @@ function SavedJobs({ user, resumeData }) {
                                             onClick={(e) => e.stopPropagation()}
                                             style={{
                                                 display: 'flex',
-                                                flexDirection: isMobile ? 'column' : 'row',
-                                                alignItems: isMobile ? 'stretch' : 'center',
-                                                gap: isMobile ? 10 : 12,
-                                                marginTop: isMobile ? 14 : 20,
-                                                paddingTop: isMobile ? 12 : 18,
+                                                flexDirection: 'row',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                flexWrap: 'wrap',
+                                                gap: '12px',
+                                                marginTop: '20px',
+                                                paddingTop: '18px',
                                                 borderTop: '1px solid rgba(255, 255, 255, 0.05)'
                                             }}
                                         >
@@ -243,11 +245,11 @@ function SavedJobs({ user, resumeData }) {
                                                 className="job-card-actions"
                                                 style={{
                                                     display: 'flex',
-                                                    gap: 6,
+                                                    gap: '6px',
                                                     alignItems: 'center',
-                                                    marginLeft: isMobile ? 0 : 'auto',
-                                                    width: isMobile ? '100%' : 'auto',
-                                                    justifyContent: isMobile ? 'flex-end' : 'flex-start'
+                                                    flexGrow: 1,
+                                                    justifyContent: 'flex-end',
+                                                    minWidth: '184px'
                                                 }}
                                             >
                                                  {/* Interview Prep button */}
