@@ -6712,7 +6712,7 @@ input[type="number"] {
 
 @media (max-width: 768px) {
   .advisor-page {
-    padding: 16px 12px !important;
+    padding: 16px 20px !important;
   }
 
   .advisor-layout {
@@ -6805,6 +6805,6 @@ input[type="number"] {
 
 @media (max-width: 480px) {
   .advisor-page {
-    padding: 12px 8px !important;
+    padding: 12px 16px !important;
   }
 }
