@@ -543,7 +543,7 @@ main::-webkit-scrollbar-thumb:hover {
   margin: 0 auto;
   padding: 40px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* ===== SEARCH SECTION ===== */
