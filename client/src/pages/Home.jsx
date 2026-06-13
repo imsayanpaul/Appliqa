@@ -159,26 +159,25 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
                 </form>
             </LampContainer>
 
-            <div className="main-content">
+            <div className="main-content w-full box-border">
                 {/* Suggested / Trending Searches */}
-                <div className="page-section" style={{ marginTop: '-24px', marginBottom: 40 }}>
+                <div className="page-section w-full max-w-full overflow-hidden box-border" style={{ marginTop: '-24px', marginBottom: 40 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginBottom: 16 }}>
                         <FiTrendingUp size={14} color="#f97316" />
                         <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>Trending Searches</span>
                     </div>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <div className="trending-roles-wrapper">
                         {suggestedRoles.map((tag, index) => {
                             const isTop3 = index < 3;
                             const rankText = index === 0 ? '1st' : index === 1 ? '2nd' : '3rd';
                             return (
                                 <button
                                     key={tag}
-                                    className="suggested-role-chip"
+                                    className={`suggested-role-chip ${isTop3 ? 'top-rank-chip' : ''}`}
                                     onClick={() => navigate(`/search?query=${encodeURIComponent(tag)}`)}
-                                    style={isTop3 ? { paddingLeft: 8 } : {}}
                                 >
                                     {isTop3 && (
-                                        <span className="trending-rank-badge">
+                                        <span className="trending-rank-badge font-sans">
                                             {rankText}
                                         </span>
                                     )}

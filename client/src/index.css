@@ -6432,4 +6432,75 @@ input[type="number"] {
 
 .feedback-rating-opt:hover svg polygon {
   stroke: #f97316;
+}
+
+/* ===== NEW STYLES AND RESPONSIVENESS OVERRIDES ===== */
+
+/* Trending Roles Wrapper */
+.trending-roles-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.suggested-role-chip.top-rank-chip {
+  padding-left: 8px;
+}
+
+@media (max-width: 640px) {
+  /* Search bar (omnibar) mobile stack layout */
+  .omnibar {
+    flex-wrap: wrap !important;
+    border-radius: 20px !important;
+    padding: 12px 16px !important;
+    gap: 12px !important;
+  }
+  
+  .omnibar .search-input-group {
+    flex: 1 1 100% !important;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 8px;
+    width: 100% !important;
+  }
+  
+  .omnibar .search-icon {
+    margin-left: 4px;
+  }
+  
+  .omnibar input.search-input {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+  }
+  
+  .omnibar .ai-toggle {
+    flex: 1 !important;
+    justify-content: center !important;
+    height: 38px !important;
+    border-radius: 99px !important;
+    font-size: 12px !important;
+    padding: 0 12px !important;
+  }
+  
+  .omnibar .btn-primary,
+  .omnibar button[type="submit"] {
+    flex: 1 !important;
+    justify-content: center !important;
+    height: 38px !important;
+    border-radius: 99px !important;
+    font-size: 12px !important;
+    padding: 0 12px !important;
+  }
+
+  /* Trending roles wrapper mobile spacing */
+  .trending-roles-wrapper {
+    gap: 8px !important;
+    padding: 0 12px !important;
+  }
 }
