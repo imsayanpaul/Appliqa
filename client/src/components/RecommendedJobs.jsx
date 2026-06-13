@@ -61,7 +61,7 @@ function RecommendedJobs({ user, resumeData }) {
         <div className="page-section" style={{ marginTop: 60 }}>
             <div className="section-header">
                 <h2>Recommended For You</h2>
-                <p style={{ color: 'var(--text-muted)', marginTop: 8 }}>
+                <p style={{ color: 'var(--text-muted)' }}>
                     Based on your {profileRole ? 'profile preference' : 'resume role'}: <span style={{ color: 'var(--accent-primary)' }}>{targetRole} {userLocation && ` in ${userLocation}`}</span>
                 </p>
             </div>

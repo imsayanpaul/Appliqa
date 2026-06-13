@@ -6503,4 +6503,12 @@ input[type="number"] {
     gap: 8px !important;
     padding: 0 12px !important;
   }
+}
+
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
 }
