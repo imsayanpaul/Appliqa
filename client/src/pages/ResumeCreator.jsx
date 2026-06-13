@@ -949,12 +949,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 {/* Left Workspace Panel: Form Editor */}
                 <div className="resume-creator-editor-panel">
                     {/* Creator Header Actions */}
-                    <div className="flex items-center justify-between border-b border-zinc-800/80 px-6 py-4 bg-zinc-950/40">
+                    <div className="resume-creator-header-actions border-b border-zinc-800/80 px-6 py-4 bg-zinc-950/40">
                         <div className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse shrink-0" />
                             <h2 className="text-xs font-bold text-white tracking-widest uppercase">AI Resume Workspace</h2>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="resume-creator-header-btns">
                             <button 
                                 onClick={() => setShowTailorModal(true)}
                                 className="resume-btn-secondary"
