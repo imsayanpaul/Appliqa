@@ -53,11 +53,11 @@ export const ContainerScroll = ({
 
   const rotate = useTransform(smoothProgress, [0, 1], [20, 0]);
   const scale = useTransform(smoothProgress, [0, 1], scaleDimensions());
-  const translate = useTransform(smoothProgress, [0, 1], [0, -100]);
+  const translate = useTransform(smoothProgress, [0, 1], isMobile ? [0, -15] : [0, -100]);
 
   return (
     <div
-      className="h-[50rem] md:h-[65rem] flex items-center justify-center relative p-2 md:p-10"
+      className="h-auto min-h-[45rem] md:h-[65rem] flex items-center justify-center relative p-2 md:p-10 pt-24 md:pt-10"
       ref={containerRef}
     >
       <div

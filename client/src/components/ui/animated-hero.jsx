@@ -75,9 +75,9 @@ function Hero() {
 
   return (
     <div className="w-full overflow-hidden pt-16 lg:pt-24 relative">
-      {/* Top-left logo for logged-out landing page */}
+      {/* Top logo for logged-out landing page */}
       <div 
-        className="absolute top-6 left-6 z-10 cursor-pointer" 
+        className="absolute top-6 left-6 md:left-6 md:top-6 z-10 cursor-pointer max-md:left-1/2 max-md:-translate-x-1/2 max-md:top-6" 
         onClick={() => navigate("/")}
       >
         <img src="/logotext.svg" alt="Appliqa" height="22" style={{ display: 'block', height: '22px' }} />
