@@ -654,7 +654,7 @@ function AppContent() {
             </div>
             )}
 
-            <main onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', paddingTop: user ? '106px' : '0px', scrollBehavior: 'smooth' }}>
+            <main onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: user ? '106px' : '0px', scrollBehavior: 'smooth' }}>
                 <Routes>
                     <Route path="/" element={
                         <Home user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
