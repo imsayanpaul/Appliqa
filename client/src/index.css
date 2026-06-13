@@ -196,10 +196,15 @@ main::-webkit-scrollbar-thumb:hover {
 }
 
 @media (min-width: 768px) {
+  .navbar-pill {
+    max-width: 880px;
+  }
+  
   .navbar-desktop-nav {
     display: flex;
     align-items: center;
     gap: 8px; /* Standard spacing for pill-style links */
+    margin: 0 24px !important; /* Ensure logo and CTA are never too close to the navigation */
   }
 }
 

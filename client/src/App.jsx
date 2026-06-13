@@ -519,8 +519,8 @@ function AppContent() {
                 <motion.div 
                     className="navbar-pill"
                     animate={{
-                        maxWidth: scrolled ? '720px' : '820px',
-                        padding: scrolled ? '7px 20px' : '10px 24px',
+                        maxWidth: scrolled ? '800px' : '880px',
+                        padding: scrolled ? '7px 24px' : '10px 28px',
                         y: visible ? 0 : -100,
                     }}
                     transition={{
