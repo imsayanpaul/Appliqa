@@ -1104,9 +1104,10 @@ function AppContent() {
                         onClick={() => setCustomAlert(prev => ({ ...prev, show: false }))}
                         style={{
                             position: 'fixed',
-                            bottom: '24px',
-                            right: '24px',
-                            width: '340px',
+                            bottom: isMobileViewport ? '16px' : '24px',
+                            left: isMobileViewport ? '16px' : 'auto',
+                            right: isMobileViewport ? '16px' : '24px',
+                            width: isMobileViewport ? 'auto' : '340px',
                             background: `radial-gradient(circle at top left, ${customAlert.type === 'error' ? 'rgba(239, 68, 68, 0.06)' : 'rgba(249, 115, 22, 0.06)'} 0%, transparent 60%), rgba(13, 13, 17, 0.85)`,
                             backdropFilter: 'blur(16px)',
                             WebkitBackdropFilter: 'blur(16px)',
