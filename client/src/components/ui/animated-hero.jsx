@@ -91,6 +91,7 @@ function Hero() {
             className="w-full h-full object-cover object-top block rounded-2xl"
             draggable={false}
             fetchpriority="high"
+            loading="eager"
           />
         </ContainerScroll>
       </div>
