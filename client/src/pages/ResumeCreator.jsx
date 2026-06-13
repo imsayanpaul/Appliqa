@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
     User, Briefcase, BookOpen, Cpu, FileText, 
     Sparkles, Sparkle, Download, Save, Upload, X, 
     Plus, Trash2, Check, ArrowRight, RefreshCw,
     MessageSquare, Send, Wand2, Gauge, Activity, AlertCircle, CheckCircle2,
-    Award, Languages, Sliders, Star, Target
+    Award, Languages, Sliders, Star, Target, Monitor
 } from 'lucide-react';
 import { 
     enhanceResumeBullet, suggestResumeSkills, analyzeResume, createOrUpdateUser, incrementStat,
@@ -18,6 +19,167 @@ import { createWorker } from 'tesseract.js';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
+    const navigate = useNavigate();
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    if (isMobile) {
+        return (
+            <div className="resume-creator-mobile-notice-container" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 'calc(100vh - 120px)',
+                padding: '24px',
+                textAlign: 'center',
+                background: '#09090b',
+                color: '#FFFFFF',
+                boxSizing: 'border-box',
+                position: 'relative',
+                overflow: 'hidden'
+            }}>
+                {/* Background glow effects */}
+                <div style={{
+                    position: 'absolute',
+                    width: '300px',
+                    height: '300px',
+                    borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(249, 115, 22, 0.08) 0%, rgba(236, 72, 153, 0.02) 70%, transparent 100%)',
+                    top: '20%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 0,
+                    pointerEvents: 'none'
+                }} />
+
+                <div className="resume-creator-mobile-notice-card" style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    maxWidth: '400px',
+                    background: 'rgba(255, 255, 255, 0.01)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: '24px',
+                    padding: '36px 24px',
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)'
+                }}>
+                    {/* Glowing Accent Badge */}
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: 'rgba(249, 115, 22, 0.1)',
+                        border: '1px solid rgba(249, 115, 22, 0.3)',
+                        borderRadius: '99px',
+                        padding: '4px 12px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        color: 'var(--accent-primary)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: '24px'
+                    }}>
+                        <span style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: 'var(--accent-primary)',
+                            boxShadow: '0 0 8px rgba(249, 115, 22, 0.8)'
+                        }} />
+                        Desktop Recommended
+                    </div>
+
+                    {/* Animated Monitor/PC Icon */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '72px',
+                        height: '72px',
+                        borderRadius: '20px',
+                        background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
+                        border: '1px solid rgba(249, 115, 22, 0.15)',
+                        margin: '0 auto 24px auto',
+                        boxShadow: '0 8px 24px rgba(249, 115, 22, 0.05)'
+                    }}>
+                        <Monitor size={32} style={{ color: 'var(--accent-primary)' }} />
+                    </div>
+
+                    <h2 style={{
+                        fontSize: '22px',
+                        fontWeight: '800',
+                        lineHeight: '1.25',
+                        letterSpacing: '-0.02em',
+                        color: '#FFFFFF',
+                        marginBottom: '12px'
+                    }}>
+                        Optimize Your Builder Experience
+                    </h2>
+
+                    <p style={{
+                        fontSize: '13.5px',
+                        lineHeight: '1.6',
+                        color: '#A1A1AA',
+                        marginBottom: '28px',
+                        fontWeight: '400'
+                    }}>
+                        Appliqa's real-time visual resume generator, live ATS scanner, and split-screen design editor require a larger screen. Please open Appliqa on your computer or tablet to build and export your resume.
+                    </p>
+
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px'
+                    }}>
+                        <button
+                            onClick={() => navigate('/advisor')}
+                            style={{
+                                width: '100%',
+                                padding: '12px 20px',
+                                borderRadius: '12px',
+                                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                                color: '#FFFFFF',
+                                fontWeight: '600',
+                                fontSize: '14px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 4px 12px rgba(249, 115, 22, 0.25)'
+                            }}
+                        >
+                            Ask Career Advisor
+                        </button>
+                        <button
+                            onClick={() => navigate('/')}
+                            style={{
+                                width: '100%',
+                                padding: '12px 20px',
+                                borderRadius: '12px',
+                                background: 'rgba(255, 255, 255, 0.03)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                color: '#A1A1AA',
+                                fontWeight: '500',
+                                fontSize: '13.5px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                            }}
+                        >
+                            Back to Home
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     // Current Active Edit Tab
     const [activeTab, setActiveTab] = useState('personal');
     const [template, setTemplate] = useState('modern'); // 'modern' | 'classic' | 'elegant'
