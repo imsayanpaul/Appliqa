@@ -6702,4 +6702,98 @@ input[type="number"] {
     padding: 1px 4px !important;
     font-size: 9px !important;
   }
+}
+
+/* ===== ADVISOR PAGE RESPONSIVENESS ===== */
+.advisor-page {
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+  .advisor-page {
+    padding: 16px 12px !important;
+  }
+
+  .advisor-layout {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .advisor-sidebar {
+    display: none !important;
+  }
+
+  .advisor-sidebar.advisor-sidebar-open {
+    display: flex !important;
+    max-width: 100% !important;
+    max-height: 35vh !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .advisor-chat-panel {
+    flex: 1 !important;
+    min-height: 0 !important;
+    border-radius: 16px !important;
+  }
+
+  .advisor-header {
+    align-items: flex-start !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 12px !important;
+    gap: 8px !important;
+  }
+
+  .advisor-title {
+    font-size: 17px !important;
+  }
+
+  .advisor-subtitle {
+    font-size: 10.5px !important;
+  }
+
+  .advisor-context-toggle {
+    display: flex !important;
+  }
+
+  .advisor-new-session-btn {
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    gap: 5px !important;
+  }
+
+  .advisor-new-session-icon {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .advisor-chat-messages {
+    padding: 14px !important;
+    gap: 16px !important;
+  }
+
+  .advisor-msg-bubble {
+    padding: 12px 14px !important;
+    font-size: 12px !important;
+    max-width: 92% !important;
+  }
+
+  .advisor-input-area {
+    padding: 8px 12px 12px 12px !important;
+  }
+
+  .advisor-input-wrapper {
+    padding: 4px 4px 4px 12px !important;
+  }
+
+  .advisor-input {
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .advisor-page {
+    padding: 12px 8px !important;
+  }
 }

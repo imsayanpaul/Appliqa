@@ -264,7 +264,7 @@ function Advisor({ user, resumeData }) {
             overflow: 'hidden',
             position: 'relative',
             boxSizing: 'border-box'
-        }} className="fade-in">
+        }} className="fade-in advisor-page">
             
             {/* Glowing Accent Orbs */}
             <div style={{
@@ -293,15 +293,15 @@ function Advisor({ user, resumeData }) {
             }} />
 
             {/* Header Toolbar */}
-            <div style={{
+            <div className="advisor-header" style={{
                 display: 'flex',
-                alignItems: isMobile ? 'flex-start' : 'center',
+                alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingBottom: isMobile ? '12px' : '20px',
-                marginBottom: isMobile ? '12px' : '24px',
+                paddingBottom: '20px',
+                marginBottom: '24px',
                 position: 'relative',
                 zIndex: 10,
-                gap: isMobile ? '8px' : '12px',
+                gap: '12px',
                 flexWrap: 'wrap'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
@@ -314,8 +314,8 @@ function Advisor({ user, resumeData }) {
                         flexShrink: 0
                     }} />
                     <div style={{ minWidth: 0 }}>
-                        <h1 style={{ 
-                            fontSize: isMobile ? '17px' : '20px', 
+                        <h1 className="advisor-title" style={{ 
+                            fontSize: '20px', 
                             fontWeight: '800', 
                             letterSpacing: '-0.03em',
                             background: 'linear-gradient(to right, #ffffff 30%, #f4f4f5 70%, #a1a1aa 100%)',
@@ -326,8 +326,8 @@ function Advisor({ user, resumeData }) {
                         }}>
                             AI Resume & Career Advisor
                         </h1>
-                        <p style={{ 
-                            fontSize: isMobile ? '10.5px' : '11.5px', 
+                        <p className="advisor-subtitle" style={{ 
+                            fontSize: '11.5px', 
                             color: 'var(--text-muted)', 
                             fontWeight: '500',
                             margin: 0,
@@ -339,61 +339,61 @@ function Advisor({ user, resumeData }) {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                    {isMobile && (
-                        <button 
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
-                            style={{
-                                background: sidebarOpen ? 'rgba(249, 115, 22, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                                border: sidebarOpen ? '1px solid rgba(249, 115, 22, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
-                                color: '#FFFFFF',
-                                padding: '8px 12px',
-                                borderRadius: '9999px',
-                                fontSize: '11px',
-                                fontWeight: '650',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                transition: 'all 0.25s ease'
-                            }}
-                        >
-                            <Compass size={13} />
-                            {sidebarOpen ? 'Hide' : 'Context'}
-                        </button>
-                    )}
+                    <button 
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className={`advisor-context-toggle ${sidebarOpen ? 'open' : ''}`}
+                        style={{
+                            background: sidebarOpen ? 'rgba(249, 115, 22, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+                            border: sidebarOpen ? '1px solid rgba(249, 115, 22, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
+                            color: '#FFFFFF',
+                            padding: '8px 12px',
+                            borderRadius: '9999px',
+                            fontSize: '11px',
+                            fontWeight: '650',
+                            cursor: 'pointer',
+                            display: 'none',
+                            alignItems: 'center',
+                            gap: '5px',
+                            transition: 'all 0.25s ease'
+                        }}
+                    >
+                        <Compass size={13} />
+                        {sidebarOpen ? 'Hide' : 'Context'}
+                    </button>
                     <button 
                         onClick={handleClearChat}
                         onMouseEnter={() => setNewSessionHovered(true)}
                         onMouseLeave={() => setNewSessionHovered(false)}
+                        className="advisor-new-session-btn"
                         style={{
                             background: newSessionHovered ? 'rgba(255, 255, 255, 0.07)' : 'rgba(255, 255, 255, 0.03)',
                             border: newSessionHovered ? '1px solid rgba(249, 115, 22, 0.35)' : '1px solid rgba(255, 255, 255, 0.06)',
                             color: '#FFFFFF',
-                            padding: isMobile ? '8px 12px' : '9px 18px',
+                            padding: '9px 18px',
                             borderRadius: '9999px',
-                            fontSize: isMobile ? '11px' : '12px',
+                            fontSize: '12px',
                             fontWeight: '650',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: isMobile ? '5px' : '7px',
+                            gap: '7px',
                             transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
                             boxShadow: newSessionHovered 
                                 ? '0 0 20px rgba(249, 115, 22, 0.08), inset 0 1px 0 rgba(255,255,255,0.05)' 
                                 : 'inset 0 1px 0 rgba(255,255,255,0.03)'
                         }}
                     >
-                        <PlusCircle size={isMobile ? 13 : 15} style={{ color: newSessionHovered ? 'var(--accent-primary)' : '#FFFFFF', transition: 'color 0.25s' }} />
+                        <PlusCircle className="advisor-new-session-icon" size={15} style={{ color: newSessionHovered ? 'var(--accent-primary)' : '#FFFFFF', transition: 'color 0.25s' }} />
                         New Session
                     </button>
                 </div>
             </div>
 
             {/* Main Content Layout */}
-            <div style={{
+            <div className="advisor-layout" style={{
                 display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? '12px' : '24px',
+                flexDirection: 'row',
+                gap: '24px',
                 flex: 1,
                 alignItems: 'stretch',
                 minHeight: 0,
@@ -403,16 +403,14 @@ function Advisor({ user, resumeData }) {
             }}>
                 
                 {/* Left Sidebar: Resume Context & Quick Actions */}
-                {(!isMobile || sidebarOpen) && (
-                <div style={{
+                <div className={`advisor-sidebar${sidebarOpen ? ' advisor-sidebar-open' : ''}`} style={{
                     width: '100%',
-                    maxWidth: isMobile ? '100%' : '300px',
+                    maxWidth: '300px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: isMobile ? '10px' : '18px',
+                    gap: '18px',
                     overflowY: 'auto',
-                    flexShrink: 0,
-                    ...(isMobile ? { maxHeight: '35vh' } : {})
+                    flexShrink: 0
                 }}>
                     
                     {/* Resume Context Card */}
@@ -596,10 +594,9 @@ function Advisor({ user, resumeData }) {
                         ))}
                     </div>
                 </div>
-                )}
 
                 {/* Right Chat Panel */}
-                <div style={{
+                <div className="advisor-chat-panel" style={{
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
@@ -608,21 +605,23 @@ function Advisor({ user, resumeData }) {
                     WebkitBackdropFilter: 'blur(20px)',
                     backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.001) 100%)',
                     border: '1px solid rgba(255, 255, 255, 0.05)',
-                    borderRadius: '24px',
+                    borderRadius: isMobile ? '16px' : '24px',
                     overflow: 'hidden',
+                    minHeight: 0,
                     boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03)'
                 }}>
                     
                     {/* Chat Messages Log */}
                     <div 
                         ref={chatContainerRef}
+                        className="advisor-chat-messages"
                         style={{
                             flex: 1,
                             overflowY: 'auto',
-                            padding: isMobile ? '14px' : '28px',
+                            padding: '28px',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: isMobile ? '16px' : '24px'
+                            gap: '24px'
                         }}
                     >
                         <AnimatePresence initial={false}>
@@ -693,6 +692,7 @@ function Advisor({ user, resumeData }) {
 
                                     {/* Message Text Bubble */}
                                     <div 
+                                        className="advisor-msg-bubble"
                                         style={{
                                             wordBreak: 'break-word',
                                             borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
@@ -706,10 +706,10 @@ function Advisor({ user, resumeData }) {
                                                 ? '1px solid rgba(255, 255, 255, 0.08)'
                                                 : '1px solid rgba(255, 255, 255, 0.12)',
                                             color: '#FFFFFF',
-                                            padding: isMobile ? '12px 14px' : '16px 20px',
-                                            fontSize: isMobile ? '12px' : '12.5px',
+                                            padding: '16px 20px',
+                                            fontSize: '12.5px',
                                             lineHeight: '1.6',
-                                            maxWidth: isMobile ? '92%' : '80%'
+                                            maxWidth: '80%'
                                         }}
                                     >
                                         {msg.role === 'user' ? (
@@ -789,8 +789,8 @@ function Advisor({ user, resumeData }) {
                     </div>
 
                     {/* Chat Input Field Container */}
-                    <div style={{
-                        padding: isMobile ? '8px 12px 12px 12px' : '12px 28px 16px 28px',
+                    <div className="advisor-input-area" style={{
+                        padding: '12px 28px 16px 28px',
                         background: 'transparent',
                         display: 'flex',
                         flexDirection: 'column',
@@ -801,18 +801,20 @@ function Advisor({ user, resumeData }) {
                                 e.preventDefault();
                                 handleSendMessage();
                             }}
+                            className="advisor-input-wrapper"
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 background: '#222226',
                                 borderRadius: '28px',
-                                padding: isMobile ? '4px 4px 4px 12px' : '6px 6px 6px 18px',
+                                padding: '6px 6px 6px 18px',
                                 transition: 'all 0.25s ease',
                                 border: isInputFocused ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(255, 255, 255, 0.05)',
                                 boxShadow: isInputFocused ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none'
                             }}
                         >
                             <input 
+                                className="advisor-input"
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
@@ -826,7 +828,7 @@ function Advisor({ user, resumeData }) {
                                     border: 'none',
                                     outline: 'none',
                                     color: '#FFFFFF',
-                                    fontSize: isMobile ? '13px' : '14px',
+                                    fontSize: '14px',
                                     padding: '8px 0',
                                     fontWeight: '450'
                                 }}
