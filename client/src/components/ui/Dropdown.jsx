@@ -9,7 +9,8 @@ export function Dropdown({
     placeholder = 'Select Option',
     disabled = false,
     className = '',
-    variant = 'filter' // 'filter', 'ghost', 'form'
+    variant = 'filter', // 'filter', 'ghost', 'form'
+    direction = 'down' // 'down' or 'up'
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef(null);
@@ -95,11 +96,13 @@ export function Dropdown({
                 {isOpen && (
                     <motion.div
                         role="listbox"
-                        initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                        initial={{ opacity: 0, y: direction === 'up' ? 8 : -8, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                        exit={{ opacity: 0, y: direction === 'up' ? 8 : -8, scale: 0.96 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
-                        className={`dropdown-menu-custom absolute top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/95 backdrop-filter backdrop-blur-xl shadow-2xl p-1 ${
+                        className={`dropdown-menu-custom absolute ${
+                            direction === 'up' ? 'bottom-[calc(100%+0.5rem)]' : 'top-[calc(100%+0.5rem)]'
+                        } z-50 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/95 backdrop-filter backdrop-blur-xl shadow-2xl p-1 ${
                             variant === 'form' ? 'w-full left-0 translate-x-0' : 'min-w-full left-1/2 -translate-x-1/2'
                         }`}
                         style={variant === 'form' ? {} : { width: 'max-content' }}
