@@ -84,11 +84,12 @@ export function Features() {
                     </div>
 
                     <div aria-hidden className="relative mt-8">
-                        <div className="absolute inset-0 z-10 m-auto size-fit">
-                            <div className="rounded-xl bg-zinc-900/90 backdrop-blur-md z-[1] relative flex size-fit w-fit items-center gap-2 border border-white/10 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-medium text-white shadow-xl">
-                                <span className="text-sm sm:text-base">🇺🇸</span> Match: React Developer in San Francisco
+                        <div className="absolute inset-0 z-10 m-auto size-fit flex items-center justify-center">
+                            <div className="rounded-xl bg-zinc-900/90 backdrop-blur-md z-[1] relative flex max-w-[240px] sm:max-w-none items-center gap-2 border border-white/10 px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-medium text-white shadow-xl">
+                                <span className="text-sm sm:text-base flex-shrink-0">🇺🇸</span>
+                                <span className="text-left leading-normal">Match: React Developer in San Francisco</span>
                             </div>
-                            <div className="rounded-xl bg-zinc-950/80 absolute inset-2 -bottom-2 mx-auto border border-white/5 px-3 py-4 shadow-lg"></div>
+                            <div className="rounded-xl bg-zinc-950/80 absolute inset-2 -bottom-2 w-[220px] sm:w-auto mx-auto border border-white/5 px-3 py-4 shadow-lg"></div>
                         </div>
 
                         <div className="relative overflow-hidden opacity-30 h-36 flex items-center justify-center">
@@ -233,20 +234,20 @@ export function Features() {
                         </p>
                     </div>
 
-                    <div aria-hidden className="mt-8 p-2.5 rounded-xl bg-zinc-900/60 border border-white/5 flex items-center justify-between gap-1 px-2 text-center">
+                    <div aria-hidden className="mt-8 p-2.5 rounded-xl bg-zinc-900/60 border border-white/5 flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-between gap-y-2 gap-x-1 px-2 text-center">
                         <div className="flex flex-col items-center">
                             <span className="text-[8px] sm:text-[9px] text-slate-400 font-medium">Current</span>
-                            <span className="text-[10px] sm:text-xs font-semibold text-white mt-0.5">Frontend Dev</span>
+                            <span className="text-[9.5px] sm:text-xs font-semibold text-white mt-0.5">Frontend Dev</span>
                         </div>
-                        <span className="text-slate-500 text-[10px] sm:text-xs">➔</span>
+                        <span className="text-slate-500 text-[9.5px] sm:text-xs">➔</span>
                         <div className="flex flex-col items-center">
                             <span className="text-[8px] sm:text-[9px] text-slate-400 font-medium">Level Up</span>
-                            <span className="text-[10px] sm:text-xs font-semibold text-orange-400 mt-0.5">Senior React</span>
+                            <span className="text-[9.5px] sm:text-xs font-semibold text-orange-400 mt-0.5">Senior React</span>
                         </div>
-                        <span className="text-slate-500 text-[10px] sm:text-xs">➔</span>
+                        <span className="text-slate-500 text-[9.5px] sm:text-xs">➔</span>
                         <div className="flex flex-col items-center">
                             <span className="text-[8px] sm:text-[9px] text-slate-400 font-medium">Target</span>
-                            <span className="text-[10px] sm:text-xs font-semibold text-orange-400 mt-0.5">Tech Architect</span>
+                            <span className="text-[9.5px] sm:text-xs font-semibold text-orange-400 mt-0.5">Tech Architect</span>
                         </div>
                     </div>
                 </div>
