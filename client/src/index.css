@@ -6710,6 +6710,30 @@ input[type="number"] {
   box-sizing: border-box !important;
 }
 
+/* Premium custom scrollbar for advisor-sidebar */
+.advisor-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) rgba(255, 255, 255, 0.02);
+}
+
+.advisor-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.advisor-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 99px;
+}
+
+.advisor-sidebar::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 99px;
+}
+
+.advisor-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #ea580c;
+}
+
 @media (max-width: 768px) {
   .advisor-page {
     padding: 16px 20px !important;
