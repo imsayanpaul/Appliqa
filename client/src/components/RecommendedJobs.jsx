@@ -8,6 +8,15 @@ function RecommendedJobs({ user, resumeData }) {
     const [savedJobs, setSavedJobs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     const profileRole = user?.preferences?.desiredRole;
     const resumeRole = resumeData?.suggestedRoles?.[0];
     const targetRole = profileRole || resumeRole;
@@ -59,9 +68,18 @@ function RecommendedJobs({ user, resumeData }) {
 
     return (
         <div className="page-section" style={{ marginTop: 60 }}>
-            <div className="section-header">
+            <div 
+                className="section-header"
+                style={{
+                    display: 'flex',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: isMobile ? 'flex-start' : 'baseline',
+                    gap: isMobile ? 8 : 12,
+                    marginBottom: 24
+                }}
+            >
                 <h2>Recommended For You</h2>
-                <p style={{ color: 'var(--text-muted)' }}>
+                <p style={{ color: 'var(--text-muted)', margin: 0 }}>
                     Based on your {profileRole ? 'profile preference' : 'resume role'}: <span style={{ color: 'var(--accent-primary)' }}>{targetRole} {userLocation && ` in ${userLocation}`}</span>
                 </p>
             </div>

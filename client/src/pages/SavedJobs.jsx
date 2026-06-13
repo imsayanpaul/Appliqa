@@ -50,6 +50,15 @@ function SavedJobs({ user, resumeData }) {
     const [prepJob, setPrepJob] = useState(null);
     const [coverLetterJob, setCoverLetterJob] = useState(null);
     const [clCopied, setClCopied] = useState(false);
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         if (user) fetchSavedJobs();
@@ -117,7 +126,13 @@ function SavedJobs({ user, resumeData }) {
         >
             <motion.div 
                 className="section-header" 
-                style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 24 }}
+                style={{ 
+                    display: 'flex', 
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: isMobile ? 'flex-start' : 'baseline', 
+                    gap: isMobile ? 8 : 12, 
+                    marginBottom: 24 
+                }}
                 variants={cardVariants}
             >
                 <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', margin: 0 }}>Application Tracker</h2>
@@ -160,8 +175,23 @@ function SavedJobs({ user, resumeData }) {
                                     exit={{ opacity: 0, scale: 0.9, y: 12 }}
                                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                 >
-                                    <Card className={`job-card status-${job.status}`} onClick={() => setSelectedJob(job)}>
-                                        <div className="job-card-status-badge">
+                                    <Card 
+                                        className={`job-card status-${job.status}`} 
+                                        onClick={() => setSelectedJob(job)}
+                                        style={{
+                                            padding: isMobile ? '16px' : '24px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    >
+                                        <div 
+                                            className="job-card-status-badge"
+                                            style={{
+                                                top: isMobile ? 16 : 24,
+                                                right: isMobile ? 16 : 24,
+                                                padding: isMobile ? '3px 8px' : '4px 12px',
+                                                fontSize: isMobile ? 10 : 11
+                                            }}
+                                        >
                                             <span className="status-dot" />
                                             <span>{statusConfig.label}</span>
                                         </div>
@@ -174,7 +204,7 @@ function SavedJobs({ user, resumeData }) {
                                                     {(job.company || '?')[0]}
                                                 </div>
                                             )}
-                                            <div className="job-card-info flex-1 min-w-0" style={{ paddingRight: 110 }}>
+                                            <div className="job-card-info flex-1 min-w-0" style={{ paddingRight: isMobile ? 80 : 110 }}>
                                                 <h3 className="whitespace-normal line-clamp-2 break-words" title={job.title}>{job.title}</h3>
                                                 <div className="job-card-company truncate" title={job.company}>{job.company}</div>
                                             </div>
@@ -188,7 +218,19 @@ function SavedJobs({ user, resumeData }) {
                                         </div>
 
                                         {/* Status Selector & Footer */}
-                                        <div className="job-card-footer-custom" onClick={(e) => e.stopPropagation()}>
+                                        <div 
+                                            className="job-card-footer-custom" 
+                                            onClick={(e) => e.stopPropagation()}
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: isMobile ? 'column' : 'row',
+                                                alignItems: isMobile ? 'stretch' : 'center',
+                                                gap: isMobile ? 10 : 12,
+                                                marginTop: isMobile ? 14 : 20,
+                                                paddingTop: isMobile ? 12 : 18,
+                                                borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+                                            }}
+                                        >
                                             <Dropdown
                                                 options={Object.entries(STATUS_CONFIG).map(([key, val]) => ({ value: key, label: val.label }))}
                                                 value={job.status}
@@ -197,7 +239,17 @@ function SavedJobs({ user, resumeData }) {
                                                 variant="ghost"
                                             />
 
-                                            <div className="job-card-actions">
+                                            <div 
+                                                className="job-card-actions"
+                                                style={{
+                                                    display: 'flex',
+                                                    gap: 6,
+                                                    alignItems: 'center',
+                                                    marginLeft: isMobile ? 0 : 'auto',
+                                                    width: isMobile ? '100%' : 'auto',
+                                                    justifyContent: isMobile ? 'flex-end' : 'flex-start'
+                                                }}
+                                            >
                                                  {/* Interview Prep button */}
                                                  {job.status === 'interview' && (
                                                      <button
