@@ -814,7 +814,7 @@ function Advisor({ user, resumeData }) {
                                 boxShadow: isInputFocused ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none'
                             }}
                         >
-                            <input 
+                             <input 
                                 className="advisor-input"
                                 type="text"
                                 value={inputValue}
@@ -822,9 +822,11 @@ function Advisor({ user, resumeData }) {
                                 onFocus={() => setIsInputFocused(true)}
                                 onBlur={() => setIsInputFocused(false)}
                                 disabled={loading}
-                                placeholder="Ask me anything about your resume, skills, or target jobs"
+                                placeholder={isMobile ? "Ask me anything..." : "Ask me anything about your resume, skills, or target jobs"}
                                 style={{
                                     flex: 1,
+                                    minWidth: 0,
+                                    marginRight: '8px',
                                     background: 'transparent',
                                     border: 'none',
                                     outline: 'none',
