@@ -27,24 +27,8 @@
 <div align="center">
   <br />
   <a href="https://www.appliqa.xyz">
-    <!-- Replace the src URL below with your own desktop screenshot/gif (just drag and drop it into GitHub editor) -->
-    <img src="https://github.com/user-attachments/assets/c58ad6fc-d40b-4813-90d5-39d1b54b0870" alt="Appliqa Desktop Showcase" width="850" style="border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);" />
+    <img src="client/public/github.png" alt="Appliqa Desktop Showcase" width="850" style="border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);" />
   </a>
-  <br /><br />
-
-  <!-- Responsive Comparison Layout (Optional: Uncomment and replace src links with your assets) -->
-  <!--
-  <table>
-    <tr>
-      <td align="center"><b>🖥️ Desktop View</b></td>
-      <td align="center"><b>📱 Mobile View</b></td>
-    </tr>
-    <tr>
-      <td><img src="https://github.com/user-attachments/assets/YOUR_DESKTOP_ASSET_ID" width="580" style="border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);" /></td>
-      <td><img src="https://github.com/user-attachments/assets/YOUR_MOBILE_ASSET_ID" width="220" style="border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08);" /></td>
-    </tr>
-  </table>
-  -->
 </div>
 
 <br />
