@@ -33,7 +33,12 @@ function Hero() {
   const titleComponent = (
     <div className="flex gap-6 items-center justify-center flex-col max-w-3xl mx-auto mb-4">
       <div className="flex gap-4 flex-col w-full">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl tracking-tighter text-center font-bold text-white leading-tight">
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-4xl sm:text-5xl md:text-6xl tracking-tighter text-center font-bold text-white leading-tight"
+        >
           <span>Outsmart the hiring algorithm with</span>
           <span className="relative flex w-full h-12 sm:h-14 md:h-20 justify-center overflow-hidden text-center text-orange-500 mt-2">
             &nbsp;
@@ -59,17 +64,27 @@ function Hero() {
               </motion.span>
             ))}
           </span>
-        </h1>
+        </motion.h1>
 
-        <p className="text-sm sm:text-base md:text-lg leading-relaxed tracking-tight text-zinc-400 max-w-2xl text-center mx-auto mt-2">
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
+          className="text-sm sm:text-base md:text-lg leading-relaxed tracking-tight text-zinc-400 max-w-2xl text-center mx-auto mt-2"
+        >
           Appliqa uses AI to scan your resume, optimize for ATS keyword matches, auto-generate cover letters, and tailor recruiter messages to land you interviews faster.
-        </p>
+        </motion.p>
       </div>
-      <div className="flex flex-row gap-3 mt-2">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+        className="flex flex-row gap-3 mt-2"
+      >
         <Button size="lg" className="gap-4 shadow-lg shadow-orange-500/20" onClick={() => navigate("/profile")}>
           Get Started <MoveRight className="w-4 h-4" />
         </Button>
-      </div>
+      </motion.div>
     </div>
   );
 
