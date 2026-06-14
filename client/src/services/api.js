@@ -16,15 +16,19 @@ supabase.auth.getSession().then(({ data: { session } }) => {
   cachedToken = session?.access_token || null;
 }).catch(() => {});
 
-// Memory cache for saved jobs to allow instant tab transitions
+// Memory caches to allow instant tab transitions and prevent UI layout jumps
 let savedJobsCache = null;
+let suggestedRolesCache = null;
+let searchHistoryCache = null;
 
 // Listen for auth state changes to keep cached token updated
 supabase.auth.onAuthStateChange((event, session) => {
   cachedToken = session?.access_token || null;
-  // Clear jobs cache on logout to prevent data leak between different user logins
+  // Clear caches on logout to prevent data leak between different user logins
   if (event === 'SIGNED_OUT') {
     savedJobsCache = null;
+    suggestedRolesCache = null;
+    searchHistoryCache = null;
   }
 });
 
@@ -43,8 +47,27 @@ api.interceptors.request.use(async (config) => {
 });
 
 // Jobs
-export const searchJobs = (params) => api.get('/jobs/search', { params });
-export const getSuggestedRoles = () => api.get('/jobs/suggested-roles');
+export const searchJobs = (params) => {
+  // Invalidate search history cache so it pulls the latest history when returning Home
+  searchHistoryCache = null;
+  return api.get('/jobs/search', { params });
+};
+
+export const getSuggestedRoles = async () => {
+  if (suggestedRolesCache) {
+    // Return cached data immediately, fetch fresh copy in the background
+    api.get('/jobs/suggested-roles')
+      .then(res => {
+        suggestedRolesCache = res;
+      })
+      .catch(() => {});
+    return suggestedRolesCache;
+  }
+
+  const res = await api.get('/jobs/suggested-roles');
+  suggestedRolesCache = res;
+  return res;
+};
 
 export const getSavedJobs = async () => {
   if (savedJobsCache) {
@@ -141,7 +164,29 @@ export const getAchievementFinderChat = (data) => api.post('/ai/achievement-find
 export const createOrUpdateUser = (data) => api.post('/user/profile', data);
 export const getUserProfile = () => api.get('/user/profile'); // Backend uses token
 export const incrementStat = (stat) => api.post('/user/increment-stat', { stat });
-export const getSearchHistory = () => api.get('/user/history'); // Backend uses token
-export const deleteSearchHistory = (query) => api.delete('/user/history', { params: { query } });
+export const getSearchHistory = async () => {
+  if (searchHistoryCache) {
+    // Return cached data immediately, fetch fresh copy in the background
+    api.get('/user/history')
+      .then(res => {
+        searchHistoryCache = res;
+      })
+      .catch(() => {});
+    return searchHistoryCache;
+  }
+
+  const res = await api.get('/user/history');
+  searchHistoryCache = res;
+  return res;
+};
+
+export const deleteSearchHistory = async (query) => {
+  const res = await api.delete('/user/history', { params: { query } });
+  // Update cache in-place
+  if (searchHistoryCache && searchHistoryCache.data?.history) {
+    searchHistoryCache.data.history = searchHistoryCache.data.history.filter(h => h.query !== query);
+  }
+  return res;
+};
 
 export default api;
