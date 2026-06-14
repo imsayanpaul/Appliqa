@@ -32,14 +32,6 @@ function AppContent() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Disable native scroll restoration and force window top position on initial load
-    useEffect(() => {
-        if ('scrollRestoration' in window.history) {
-            window.history.scrollRestoration = 'manual';
-        }
-        window.scrollTo(0, 0);
-    }, []);
-
     // Supabase Auth State
     const [session, setSession] = useState(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
@@ -489,7 +481,6 @@ function AppContent() {
                             }}
                             className="px-2 py-1.5 bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
                             style={{ color: '#A1A1AA', border: 'none', cursor: 'pointer' }}
-                            aria-label="Toggle repository options"
                         >
                             <FiChevronDown className="size-3" />
                         </button>
@@ -532,10 +523,7 @@ function AppContent() {
                     className="navbar-pill"
                     animate={{
                         maxWidth: scrolled ? '800px' : '880px',
-                        paddingTop: scrolled ? '7px' : '10px',
-                        paddingBottom: scrolled ? '7px' : '10px',
-                        paddingLeft: scrolled ? '24px' : '28px',
-                        paddingRight: scrolled ? '24px' : '28px',
+                        padding: scrolled ? '7px 24px' : '10px 28px',
                         y: visible ? 0 : -100,
                     }}
                     transition={{
@@ -700,8 +688,8 @@ function AppContent() {
                             <Profile user={user} session={session} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
                         } />
                     </Routes>
-                    <Footer />
                 </Suspense>
+                <Footer />
             </main>
 
             {showLocationPrompt && !customAlert.show && (
