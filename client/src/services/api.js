@@ -16,9 +16,16 @@ supabase.auth.getSession().then(({ data: { session } }) => {
   cachedToken = session?.access_token || null;
 }).catch(() => {});
 
+// Memory cache for saved jobs to allow instant tab transitions
+let savedJobsCache = null;
+
 // Listen for auth state changes to keep cached token updated
 supabase.auth.onAuthStateChange((event, session) => {
   cachedToken = session?.access_token || null;
+  // Clear jobs cache on logout to prevent data leak between different user logins
+  if (event === 'SIGNED_OUT') {
+    savedJobsCache = null;
+  }
 });
 
 // Add interceptor to automatically attach Supabase JWT token to every request
@@ -38,13 +45,81 @@ api.interceptors.request.use(async (config) => {
 // Jobs
 export const searchJobs = (params) => api.get('/jobs/search', { params });
 export const getSuggestedRoles = () => api.get('/jobs/suggested-roles');
-export const saveJob = (job) => api.post('/jobs/save', { job }); // Backend uses token to know user
-export const getSavedJobs = () => api.get('/jobs/saved'); // Backend uses token
-export const updateJobStatus = (id, status) => api.patch(`/jobs/saved/${id}/status`, { status });
-export const deleteSavedJob = (id) => api.delete(`/jobs/saved/${id}`);
-export const saveCoverLetter = (id, coverLetter) => api.patch(`/jobs/saved/${id}/cover-letter`, { coverLetter });
-export const saveRecruiterDM = (id, recruiterDM) => api.patch(`/jobs/saved/${id}/recruiter-dm`, { recruiterDM });
-export const saveInterviewPrep = (id, interviewPrep) => api.patch(`/jobs/saved/${id}/interview-prep`, { interviewPrep });
+
+export const getSavedJobs = async () => {
+  if (savedJobsCache) {
+    // Return cached data immediately, fetch fresh copy in the background
+    api.get('/jobs/saved')
+      .then(res => {
+        savedJobsCache = res;
+      })
+      .catch(() => {});
+    return savedJobsCache;
+  }
+
+  const res = await api.get('/jobs/saved');
+  savedJobsCache = res;
+  return res;
+};
+
+export const saveJob = async (job) => {
+  const res = await api.post('/jobs/save', { job });
+  savedJobsCache = null; // Invalidate cache so it pulls the new job
+  return res;
+};
+
+export const updateJobStatus = async (id, status) => {
+  const res = await api.patch(`/jobs/saved/${id}/status`, { status });
+  // Update cache in-place
+  if (savedJobsCache && savedJobsCache.data?.jobs) {
+    savedJobsCache.data.jobs = savedJobsCache.data.jobs.map(j =>
+      j._id === id ? { ...j, status } : j
+    );
+  }
+  return res;
+};
+
+export const deleteSavedJob = async (id) => {
+  const res = await api.delete(`/jobs/saved/${id}`);
+  // Update cache in-place
+  if (savedJobsCache && savedJobsCache.data?.jobs) {
+    savedJobsCache.data.jobs = savedJobsCache.data.jobs.filter(j => j._id !== id);
+  }
+  return res;
+};
+
+export const saveCoverLetter = async (id, coverLetter) => {
+  const res = await api.patch(`/jobs/saved/${id}/cover-letter`, { coverLetter });
+  // Update cache in-place
+  if (savedJobsCache && savedJobsCache.data?.jobs) {
+    savedJobsCache.data.jobs = savedJobsCache.data.jobs.map(j =>
+      j._id === id ? { ...j, coverLetter } : j
+    );
+  }
+  return res;
+};
+
+export const saveRecruiterDM = async (id, recruiterDM) => {
+  const res = await api.patch(`/jobs/saved/${id}/recruiter-dm`, { recruiterDM });
+  // Update cache in-place
+  if (savedJobsCache && savedJobsCache.data?.jobs) {
+    savedJobsCache.data.jobs = savedJobsCache.data.jobs.map(j =>
+      j._id === id ? { ...j, recruiterDM } : j
+    );
+  }
+  return res;
+};
+
+export const saveInterviewPrep = async (id, interviewPrep) => {
+  const res = await api.patch(`/jobs/saved/${id}/interview-prep`, { interviewPrep });
+  // Update cache in-place
+  if (savedJobsCache && savedJobsCache.data?.jobs) {
+    savedJobsCache.data.jobs = savedJobsCache.data.jobs.map(j =>
+      j._id === id ? { ...j, interviewPrep } : j
+    );
+  }
+  return res;
+};
 
 // AI
 export const analyzeResume = (resumeText) => api.post('/ai/analyze-resume', { resumeText });
