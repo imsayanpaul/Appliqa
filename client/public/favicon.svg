@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Dark circular background matching Appliqa UI -->
+  <circle cx="256" cy="256" r="240" fill="#0B0B0B" />
+  
+  <!-- Centered Logo Graphic -->
+  <g transform="translate(116, 116) scale(0.134)">
+    <defs>
+      <style type="text/css">
+        .fil1 {fill:#FF6600}
+        .fil0 {fill:#FFFFFF;fill-rule:nonzero}
+      </style>
+    </defs>
+    <path class="fil0" d="M543.69 2094.12l57.45 -182.79 -383.06 -463.75 -218.08 646.54 543.69 0zm208 -662.76l88.75 -282.97 194.14 -620.54 16.3 0 183.31 583.48 425.55 -282.27 -279.65 -829.06 -673.75 0 -437.3 1296.45 442.67 161.43 39.98 -26.52zm590.54 24.19l154.33 491.71 46.19 146.86 543.69 0 -352.1 -1043.87 -392.11 405.3z"/>
+    <polygon class="fil1" points="196.62,1331.21 719.32,1521.82 2055.89,635.28 742.83,1992.45 "/>
+  </g>
+</svg>
