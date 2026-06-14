@@ -9,12 +9,12 @@ export const LampContainer = ({
   return (
     <div
       className={cn(
-        "relative flex flex-col items-center justify-center overflow-hidden bg-black w-full rounded-md z-0 pt-28 pb-4",
+        "relative flex flex-col items-center justify-center overflow-hidden bg-black w-full rounded-md z-0 pt-[160px] pb-4",
         className
       )}
     >
       {/* Absolute Lamp Background Graphic (Visible on Desktop/Tablet landscape) */}
-      <div className="hidden md:flex absolute inset-x-0 top-0 h-[350px] items-center justify-center isolate z-0 overflow-hidden pointer-events-none scale-y-125">
+      <div className="hidden md:flex absolute inset-x-0 top-[70px] h-[350px] items-center justify-center isolate z-0 overflow-hidden pointer-events-none scale-y-125">
         {/* Left conic gradient beam */}
         <motion.div
           initial={{ opacity: 0.5, width: "15rem" }}
