@@ -520,10 +520,8 @@ function AppContent() {
             {user && (
                 <div className="navbar-wrapper">
                 <motion.div 
-                    className="navbar-pill"
+                    className={`navbar-pill ${scrolled ? 'scrolled' : ''}`}
                     animate={{
-                        maxWidth: scrolled ? '800px' : '880px',
-                        padding: scrolled ? '7px 24px' : '10px 28px',
                         y: visible ? 0 : -100,
                     }}
                     transition={{
@@ -536,10 +534,7 @@ function AppContent() {
                     <div className="navbar-brand-container" onClick={() => handleNavClick('/')}>
                         <motion.div
                             className="logo-icon-motion"
-                            initial={{ scale: 0.95, opacity: 0.9 }}
-                            animate={{ scale: 1, opacity: 1 }}
                             whileHover={{ scale: 1.05 }}
-                            transition={{ duration: 0.2 }}
                         >
                             <img src="/logotext.svg" alt="Appliqa" height="22" style={{ display: 'block', height: '22px' }} />
                         </motion.div>
@@ -550,9 +545,6 @@ function AppContent() {
                         {navItems.map((item) => (
                             <motion.div
                                 key={item.name}
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
                                 whileHover={{ scale: 1.05 }}
                             >
                                  <span
@@ -571,9 +563,6 @@ function AppContent() {
                     {/* Desktop CTA Button */}
                     <motion.div
                         className="navbar-desktop-cta"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: 0.2 }}
                         whileHover={{ scale: 1.05 }}
                     >
                         <button

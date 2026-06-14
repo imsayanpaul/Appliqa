@@ -139,7 +139,7 @@ main::-webkit-scrollbar-thumb:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 24px;
+  padding: 10px 28px;
   background-color: rgba(10, 10, 10, 0.6);
   background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
   backdrop-filter: blur(20px);
@@ -151,11 +151,16 @@ main::-webkit-scrollbar-thumb:hover {
     0 0 25px rgba(249, 115, 22, 0.03), /* Subtle theme color under-glow */
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   width: 100%;
-  max-width: 800px;
+  max-width: 880px;
   position: relative;
   z-index: 10;
   pointer-events: auto; /* Re-enable pointer events for the pill navbar */
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar-pill.scrolled {
+  max-width: 800px;
+  padding: 7px 24px;
 }
 
 .navbar-pill:hover {
