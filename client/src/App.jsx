@@ -32,6 +32,14 @@ function AppContent() {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Disable native scroll restoration and force window top position on initial load
+    useEffect(() => {
+        if ('scrollRestoration' in window.history) {
+            window.history.scrollRestoration = 'manual';
+        }
+        window.scrollTo(0, 0);
+    }, []);
+
     // Supabase Auth State
     const [session, setSession] = useState(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
