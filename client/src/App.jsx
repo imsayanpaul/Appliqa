@@ -688,8 +688,8 @@ function AppContent() {
                             <Profile user={user} session={session} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
                         } />
                     </Routes>
+                    <Footer />
                 </Suspense>
-                <Footer />
             </main>
 
             {showLocationPrompt && !customAlert.show && (
