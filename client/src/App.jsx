@@ -661,7 +661,7 @@ function AppContent() {
             </div>
             )}
 
-            <main onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: user ? '106px' : '0px', scrollBehavior: 'smooth' }}>
+            <main onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: (user && location.pathname !== '/') ? '106px' : '0px', scrollBehavior: 'smooth' }}>
                 <Suspense fallback={
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', color: 'var(--text-muted)' }}>
                         <div className="spinner primary-spinner"></div>
