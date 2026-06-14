@@ -42,7 +42,7 @@ function Hero() {
           <span>Outsmart the hiring algorithm with</span>
           <span className="relative flex w-full h-12 sm:h-14 md:h-20 justify-center overflow-hidden text-center text-orange-500 mt-2">
             &nbsp;
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
               <motion.span
                 key={titleNumber}
                 className="absolute font-bold whitespace-nowrap"
