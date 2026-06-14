@@ -14,7 +14,7 @@ export const LampContainer = ({
       )}
     >
       {/* Absolute Lamp Background Graphic (Visible on Desktop/Tablet landscape) */}
-      <div className="hidden md:flex absolute inset-x-0 top-0 h-[350px] items-center justify-center isolate z-0 overflow-hidden pointer-events-none scale-y-125">
+      <div className="hidden md:flex absolute inset-x-0 top-0 h-[350px] items-center justify-center isolate z-0 overflow-visible pointer-events-none scale-y-125">
         {/* Left conic gradient beam */}
         <motion.div
           initial={{ opacity: 0.5, width: "15rem" }}
@@ -78,8 +78,6 @@ export const LampContainer = ({
           }}
           className="absolute inset-auto z-50 h-0.5 w-[30rem] -translate-y-[7rem] bg-orange-500"
         ></motion.div>
-
-        <div className="absolute inset-auto z-40 h-44 w-full -translate-y-[12.5rem] bg-black"></div>
       </div>
 
       {/* Mobile/Tablet Portrait Glow Background */}
