@@ -1,0 +1,11 @@
+# robots.txt for Appliqa (https://www.appliqa.xyz)
+User-agent: *
+Allow: /
+Allow: /search
+
+# Disallow crawling private user-specific and dashboard routes
+Disallow: /saved
+Disallow: /career
+Disallow: /advisor
+Disallow: /resume-creator
+Disallow: /profile
