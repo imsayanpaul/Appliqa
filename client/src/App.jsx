@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 
 import Home from './pages/Home';
+import SearchResults from './pages/SearchResults';
+import SavedJobs from './pages/SavedJobs';
 // Lazy-loaded pages for code-splitting and performance optimization
-const SearchResults = lazy(() => import('./pages/SearchResults'));
-const SavedJobs = lazy(() => import('./pages/SavedJobs'));
 const Profile = lazy(() => import('./pages/Profile'));
 const CareerPath = lazy(() => import('./pages/CareerPath'));
 const Advisor = lazy(() => import('./pages/Advisor'));
