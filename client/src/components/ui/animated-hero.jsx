@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
@@ -42,27 +42,18 @@ function Hero() {
           <span>Outsmart the hiring algorithm with</span>
           <span className="relative flex w-full h-12 sm:h-14 md:h-20 justify-center overflow-hidden text-center text-orange-500 mt-2">
             &nbsp;
-            {titles.map((title, index) => (
+            <AnimatePresence mode="wait">
               <motion.span
-                key={index}
+                key={titleNumber}
                 className="absolute font-bold whitespace-nowrap"
-                initial={index === 0 ? { opacity: 0, y: 0 } : { opacity: 0, y: 20 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
-                animate={
-                  titleNumber === index
-                    ? {
-                        y: 0,
-                        opacity: 1,
-                      }
-                    : {
-                        y: titleNumber > index ? -20 : 20,
-                        opacity: 0,
-                      }
-                }
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -30, opacity: 0 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
               >
-                {title}
+                {titles[titleNumber]}
               </motion.span>
-            ))}
+            </AnimatePresence>
           </span>
         </h1>
 
