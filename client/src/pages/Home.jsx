@@ -8,7 +8,7 @@ import { smartSearch, getSearchHistory, deleteSearchHistory, getSuggestedRoles }
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
-const Features = lazy(() => import('../components/ui/features-9').then(module => ({ default: module.Features })));
+import { Features } from '../components/ui/features-9';
 import { LampContainer } from '@/components/ui/lamp';
 import { Hero } from '../components/ui/animated-hero';
 
@@ -103,13 +103,7 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
         return (
             <div className="fade-in" style={{ paddingBottom: '60px' }}>
                 <Hero />
-                <Suspense fallback={
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)' }}>
-                        <div className="spinner primary-spinner"></div>
-                    </div>
-                }>
-                    <Features />
-                </Suspense>
+                <Features />
             </div>
         );
     }

@@ -46,10 +46,10 @@ function Footer() {
   ];
 
   const socialLinks = [
-    { icon: <FiGithub size={18} />, href: 'https://github.com/imsayanpaul/Appliqa' },
-    { icon: <FiTwitter size={18} />, href: 'https://twitter' },
-    { icon: <FiLinkedin size={18} />, href: 'https://linkedin' },
-    { icon: <FiMail size={18} />, href: 'mailto:contact@appliqa.ai' },
+    { icon: <FiGithub size={18} />, href: 'https://github.com/imsayanpaul/Appliqa', label: 'GitHub Repository' },
+    { icon: <FiTwitter size={18} />, href: 'https://twitter', label: 'Twitter Profile' },
+    { icon: <FiLinkedin size={18} />, href: 'https://linkedin', label: 'LinkedIn Profile' },
+    { icon: <FiMail size={18} />, href: 'mailto:contact@appliqa.ai', label: 'Send Email' },
   ];
 
   return (
@@ -85,6 +85,7 @@ function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={social.label}
                   whileHover={{ scale: 1.05, y: -2 }}
                   className="w-10 h-10 rounded-full border border-zinc-800/80 bg-zinc-950/40 flex items-center justify-center text-zinc-400 hover:text-orange-500 hover:border-orange-500/30 transition-all duration-200"
                 >

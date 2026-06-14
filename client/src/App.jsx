@@ -481,6 +481,7 @@ function AppContent() {
                             }}
                             className="px-2 py-1.5 bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
                             style={{ color: '#A1A1AA', border: 'none', cursor: 'pointer' }}
+                            aria-label="Toggle repository options"
                         >
                             <FiChevronDown className="size-3" />
                         </button>
@@ -688,8 +689,8 @@ function AppContent() {
                             <Profile user={user} session={session} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
                         } />
                     </Routes>
+                    <Footer />
                 </Suspense>
-                <Footer />
             </main>
 
             {showLocationPrompt && !customAlert.show && (
