@@ -524,7 +524,10 @@ function AppContent() {
                     className="navbar-pill"
                     animate={{
                         maxWidth: scrolled ? '800px' : '880px',
-                        padding: scrolled ? '7px 24px' : '10px 28px',
+                        paddingTop: scrolled ? '7px' : '10px',
+                        paddingBottom: scrolled ? '7px' : '10px',
+                        paddingLeft: scrolled ? '24px' : '28px',
+                        paddingRight: scrolled ? '24px' : '28px',
                         y: visible ? 0 : -100,
                     }}
                     transition={{
