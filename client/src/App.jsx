@@ -1,15 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiChevronDown, FiCalendar } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
-import Home from './pages/Home';
-import SearchResults from './pages/SearchResults';
-import SavedJobs from './pages/SavedJobs';
-import Profile from './pages/Profile';
-import CareerPath from './pages/CareerPath';
-import Advisor from './pages/Advisor';
-import ResumeCreator from './pages/ResumeCreator';
+
+// Lazy-loaded pages for code-splitting and performance optimization
+const Home = lazy(() => import('./pages/Home'));
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const SavedJobs = lazy(() => import('./pages/SavedJobs'));
+const Profile = lazy(() => import('./pages/Profile'));
+const CareerPath = lazy(() => import('./pages/CareerPath'));
+const Advisor = lazy(() => import('./pages/Advisor'));
+const ResumeCreator = lazy(() => import('./pages/ResumeCreator'));
+
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
 import FeedbackWidget from './components/FeedbackWidget';
@@ -655,31 +658,37 @@ function AppContent() {
             )}
 
             <main onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: user ? '106px' : '0px', scrollBehavior: 'smooth' }}>
-                <Routes>
-                    <Route path="/" element={
-                        <Home user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
-                    } />
-                    <Route path="/search" element={
-                        <SearchResults user={user} resumeData={resumeData} />
-                    } />
-                    
-                    {/* Protected Routes */}
-                    <Route path="/saved" element={
-                        <ProtectedRoute session={session}><SavedJobs user={user} resumeData={resumeData} /></ProtectedRoute>
-                    } />
-                    <Route path="/career" element={
-                        <ProtectedRoute session={session}><CareerPath user={user} resumeData={resumeData} /></ProtectedRoute>
-                    } />
-                    <Route path="/advisor" element={
-                        <ProtectedRoute session={session}><Advisor user={user} resumeData={resumeData} /></ProtectedRoute>
-                    } />
-                    <Route path="/resume-creator" element={
-                        <ProtectedRoute session={session}><ResumeCreator user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
-                    } />
-                    <Route path="/profile" element={
-                        <Profile user={user} session={session} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
-                    } />
-                </Routes>
+                <Suspense fallback={
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', color: 'var(--text-muted)' }}>
+                        <div className="spinner primary-spinner"></div>
+                    </div>
+                }>
+                    <Routes>
+                        <Route path="/" element={
+                            <Home user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
+                        } />
+                        <Route path="/search" element={
+                            <SearchResults user={user} resumeData={resumeData} />
+                        } />
+                        
+                        {/* Protected Routes */}
+                        <Route path="/saved" element={
+                            <ProtectedRoute session={session}><SavedJobs user={user} resumeData={resumeData} /></ProtectedRoute>
+                        } />
+                        <Route path="/career" element={
+                            <ProtectedRoute session={session}><CareerPath user={user} resumeData={resumeData} /></ProtectedRoute>
+                        } />
+                        <Route path="/advisor" element={
+                            <ProtectedRoute session={session}><Advisor user={user} resumeData={resumeData} /></ProtectedRoute>
+                        } />
+                        <Route path="/resume-creator" element={
+                            <ProtectedRoute session={session}><ResumeCreator user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
+                        } />
+                        <Route path="/profile" element={
+                            <Profile user={user} session={session} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
+                        } />
+                    </Routes>
+                </Suspense>
                 <Footer />
             </main>
 

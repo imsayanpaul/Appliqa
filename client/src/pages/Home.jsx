@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiZap, FiUpload, FiArrowRight, FiFileText, FiBarChart2, FiClock, FiTrendingUp } from 'react-icons/fi';
-import ResumeUpload from '../components/ResumeUpload';
+const ResumeUpload = lazy(() => import('../components/ResumeUpload'));
 import RecommendedJobs from '../components/RecommendedJobs';
 import { smartSearch, getSearchHistory, deleteSearchHistory, getSuggestedRoles } from '../services/api';
 
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
-import { Features } from '../components/ui/features-9';
+const Features = lazy(() => import('../components/ui/features-9').then(module => ({ default: module.Features })));
 import { LampContainer } from '@/components/ui/lamp';
 import { Hero } from '../components/ui/animated-hero';
 
@@ -103,7 +103,13 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
         return (
             <div className="fade-in" style={{ paddingBottom: '60px' }}>
                 <Hero />
-                <Features />
+                <Suspense fallback={
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)' }}>
+                        <div className="spinner primary-spinner"></div>
+                    </div>
+                }>
+                    <Features />
+                </Suspense>
             </div>
         );
     }
@@ -227,17 +233,29 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
                             </h2>
                         </div>
                     </div>
-                    <ResumeUpload
-                        onResumeAnalyzed={onResumeAnalyzed}
-                        existingData={resumeData}
-                    />
+                    <Suspense fallback={
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed rgba(255, 255, 255, 0.08)', borderRadius: '12px', color: 'var(--text-muted)' }}>
+                            <div className="spinner primary-spinner"></div>
+                        </div>
+                    }>
+                        <ResumeUpload
+                            onResumeAnalyzed={onResumeAnalyzed}
+                            existingData={resumeData}
+                        />
+                    </Suspense>
                 </div>
 
                 {/* Recommended Jobs */}
                 <RecommendedJobs user={user} resumeData={resumeData} />
 
                 {/* Features Grid */}
-                <Features />
+                <Suspense fallback={
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)' }}>
+                        <div className="spinner primary-spinner"></div>
+                    </div>
+                }>
+                    <Features />
+                </Suspense>
             </div>
         </div>
     );
