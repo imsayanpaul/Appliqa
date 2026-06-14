@@ -987,7 +987,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Target Cities</label>
                                 <PremiumIconInput
                                     icon={FiGlobe}
-                                    placeholder="e.g. San Francisco, New York, Seattle"
+                                    placeholder="e.g. Bangalore, Mumbai, Delhi, Kolkata"
                                     value={form.targetCities}
                                     onChange={(e) => handleChange('targetCities', e.target.value)}
                                 />
