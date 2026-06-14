@@ -119,7 +119,13 @@ main::-webkit-scrollbar-thumb:hover {
   justify-content: center;
   width: 100%;
   padding: 16px 24px 28px 24px;
-  background: transparent;
+  background: linear-gradient(to bottom, 
+    #000000 0%, 
+    #000000 16px, 
+    rgba(0, 0, 0, 0.95) 36px, 
+    rgba(0, 0, 0, 0.4) 64px, 
+    rgba(0, 0, 0, 0) 100%
+  );
   position: absolute;
   top: 0;
   left: 0;
