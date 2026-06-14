@@ -1492,7 +1492,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             name="certInput"
                                             type="text"
                                             className="flex-1 resume-input-field"
-                                            placeholder="e.g. Kinaxis Certified Maestro Consultant"
+                                            placeholder="e.g. AWS Certified Solutions Architect"
                                         />
                                         <button
                                             type="submit"
