@@ -46,10 +46,10 @@ function Footer() {
   ];
 
   const socialLinks = [
-    { icon: <FiGithub size={18} />, href: 'https://github.com/imsayanpaul/Appliqa' },
-    { icon: <FiTwitter size={18} />, href: 'https://twitter' },
-    { icon: <FiLinkedin size={18} />, href: 'https://linkedin' },
-    { icon: <FiMail size={18} />, href: 'mailto:contact@appliqa.ai' },
+    { icon: <FiGithub size={18} />, href: 'https://github.com/imsayanpaul/Appliqa', label: 'GitHub Repository' },
+    { icon: <FiTwitter size={18} />, href: 'https://twitter', label: 'Twitter Profile' },
+    { icon: <FiLinkedin size={18} />, href: 'https://linkedin', label: 'LinkedIn Profile' },
+    { icon: <FiMail size={18} />, href: 'mailto:contact@appliqa.ai', label: 'Email Support' },
   ];
 
   return (
@@ -83,6 +83,7 @@ function Footer() {
                 <motion.a
                   key={i}
                   href={social.href}
+                  aria-label={social.label}
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.05, y: -2 }}

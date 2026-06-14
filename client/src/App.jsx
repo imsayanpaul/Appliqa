@@ -479,6 +479,7 @@ function AppContent() {
                                 e.stopPropagation();
                                 setStarDropdownOpen(!starDropdownOpen);
                             }}
+                            aria-label="Toggle GitHub statistics menu"
                             className="px-2 py-1.5 bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white transition-colors duration-200 flex items-center justify-center self-stretch rounded-r-lg"
                             style={{ color: '#A1A1AA', border: 'none', cursor: 'pointer' }}
                         >
