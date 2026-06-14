@@ -1055,7 +1055,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             value={personalInfo.phone}
                                             onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
                                             className="resume-input-field"
-                                            placeholder="+1 (555) 000-0000"
+                                            placeholder="+91 98765 43210"
                                         />
                                     </div>
                                 </div>
@@ -1091,7 +1091,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             value={personalInfo.address || ''}
                                             onChange={(e) => setPersonalInfo({ ...personalInfo, address: e.target.value })}
                                             className="resume-input-field"
-                                            placeholder="e.g. 22, Tarun Sengupta Sarani"
+                                            placeholder="e.g. Flat 3B, 12 Park Street, Kolkata"
                                         />
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
