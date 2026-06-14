@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiZap, FiUpload, FiArrowRight, FiFileText, FiBarChart2, FiClock, FiTrendingUp } from 'react-icons/fi';
 const ResumeUpload = lazy(() => import('../components/ResumeUpload'));
-import RecommendedJobs from '../components/RecommendedJobs';
+const RecommendedJobs = lazy(() => import('../components/RecommendedJobs'));
 import { smartSearch, getSearchHistory, deleteSearchHistory, getSuggestedRoles } from '../services/api';
 
 import { Button } from '../components/ui/Button';
@@ -246,7 +246,13 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
                 </div>
 
                 {/* Recommended Jobs */}
-                <RecommendedJobs user={user} resumeData={resumeData} />
+                <Suspense fallback={
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: 'var(--text-muted)' }}>
+                        <div className="spinner primary-spinner"></div>
+                    </div>
+                }>
+                    <RecommendedJobs user={user} resumeData={resumeData} />
+                </Suspense>
 
                 {/* Features Grid */}
                 <Suspense fallback={
