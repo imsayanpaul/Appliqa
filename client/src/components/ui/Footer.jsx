@@ -48,7 +48,7 @@ function Footer() {
   const socialLinks = [
     { icon: <FiGithub size={18} />, href: 'https://github.com/imsayanpaul/Appliqa', label: 'GitHub Repository' },
     { icon: <FiTwitter size={18} />, href: 'https://twitter', label: 'Twitter Profile' },
-    { icon: <FiLinkedin size={18} />, href: 'https://linkedin', label: 'LinkedIn Profile' },
+    { icon: <FiLinkedin size={18} />, href: 'https://www.linkedin.com/in/imsayanpaul/', label: 'LinkedIn Profile' },
     { icon: <FiMail size={18} />, href: 'mailto:contact@appliqa.ai', label: 'Email Support' },
   ];
 
