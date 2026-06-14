@@ -46,8 +46,8 @@ function Hero() {
               <motion.span
                 key={index}
                 className="absolute font-bold whitespace-nowrap"
-                initial={index === 0 ? { opacity: 0, y: 0 } : { opacity: 0, y: -80 }}
-                transition={{ type: "spring", stiffness: 120, damping: 16, mass: 0.8 }}
+                initial={index === 0 ? { opacity: 0, y: 0 } : { opacity: 0, y: 32 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 animate={
                   titleNumber === index
                     ? {
@@ -55,7 +55,7 @@ function Hero() {
                         opacity: 1,
                       }
                     : {
-                        y: titleNumber > index ? -80 : 80,
+                        y: titleNumber > index ? -32 : 32,
                         opacity: 0,
                       }
                 }
