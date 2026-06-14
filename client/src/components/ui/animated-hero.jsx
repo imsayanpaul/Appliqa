@@ -32,9 +32,9 @@ function Hero() {
 
   const titleComponent = (
     <motion.div 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1.0, ease: "easeOut" }}
       className="flex gap-6 items-center justify-center flex-col max-w-3xl mx-auto mb-4"
     >
       <div className="flex gap-4 flex-col w-full">
@@ -46,8 +46,8 @@ function Hero() {
               <motion.span
                 key={index}
                 className="absolute font-bold whitespace-nowrap"
-                initial={index === 0 ? { opacity: 0, y: 0 } : { opacity: 0, y: 32 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                initial={index === 0 ? { opacity: 0, y: 0 } : { opacity: 0, y: 20 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
                 animate={
                   titleNumber === index
                     ? {
@@ -55,7 +55,7 @@ function Hero() {
                         opacity: 1,
                       }
                     : {
-                        y: titleNumber > index ? -32 : 32,
+                        y: titleNumber > index ? -20 : 20,
                         opacity: 0,
                       }
                 }
