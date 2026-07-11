@@ -119,7 +119,7 @@ function SavedJobs({ user, resumeData }) {
 
     return (
         <motion.div 
-            className="main-content"
+            className="main-content tracker-container"
             variants={containerVariants}
             initial="hidden"
             animate="visible"

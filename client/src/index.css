@@ -3950,7 +3950,7 @@ input[type="number"] {
 /* ===== APPLICATION TRACKER PREMIUM REDESIGN ===== */
 
 /* Base Job Card with premium glassmorphic properties */
-.job-card {
+.tracker-container .job-card {
   border-left-width: 4px !important;
   border-left-style: solid !important;
   border-left-color: var(--accent-primary) !important;
@@ -3967,12 +3967,12 @@ input[type="number"] {
   width: 100% !important;
 }
 
-.job-card:hover {
+.tracker-container .job-card:hover {
   border-left-color: var(--accent-primary) !important;
 }
 
 /* Status-specific card glowing effects & radial highlights on hover */
-.job-card.status-saved:hover {
+.tracker-container .job-card.status-saved:hover {
   border-color: rgba(255, 255, 255, 0.2) !important;
   background: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 60%), rgba(18, 18, 24, 0.65) !important;
   box-shadow: 
@@ -3982,7 +3982,7 @@ input[type="number"] {
   transform: translateY(-4px) scale(1.01);
 }
 
-.job-card.status-applied:hover {
+.tracker-container .job-card.status-applied:hover {
   border-color: rgba(234, 88, 12, 0.3) !important;
   background: radial-gradient(circle at 10% 20%, rgba(234, 88, 12, 0.03) 0%, transparent 60%), rgba(18, 18, 24, 0.65) !important;
   box-shadow: 
@@ -3992,7 +3992,7 @@ input[type="number"] {
   transform: translateY(-4px) scale(1.01);
 }
 
-.job-card.status-interview:hover {
+.tracker-container .job-card.status-interview:hover {
   border-color: rgba(249, 115, 22, 0.3) !important;
   background: radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.03) 0%, transparent 60%), rgba(18, 18, 24, 0.65) !important;
   box-shadow: 
@@ -4002,7 +4002,7 @@ input[type="number"] {
   transform: translateY(-4px) scale(1.01);
 }
 
-.job-card.status-offer:hover {
+.tracker-container .job-card.status-offer:hover {
   border-color: rgba(16, 185, 129, 0.3) !important;
   background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 60%), rgba(18, 18, 24, 0.65) !important;
   box-shadow: 
@@ -4012,7 +4012,7 @@ input[type="number"] {
   transform: translateY(-4px) scale(1.01);
 }
 
-.job-card.status-rejected:hover {
+.tracker-container .job-card.status-rejected:hover {
   border-color: rgba(239, 68, 68, 0.3) !important;
   background: radial-gradient(circle at 10% 20%, rgba(239, 68, 68, 0.03) 0%, transparent 60%), rgba(18, 18, 24, 0.65) !important;
   box-shadow: 
