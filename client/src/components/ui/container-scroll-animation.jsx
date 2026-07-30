@@ -53,15 +53,15 @@ export const ContainerScroll = ({
 
   const rotate = useTransform(smoothProgress, [0, 1], [20, 0]);
   const scale = useTransform(smoothProgress, [0, 1], scaleDimensions());
-  const translate = useTransform(smoothProgress, [0, 1], isMobile ? [0, -15] : [0, -100]);
+  const translate = useTransform(smoothProgress, [0, 1], isMobile ? [0, 0] : [0, -100]);
 
   return (
     <div
-      className="h-auto min-h-[45rem] md:h-[65rem] flex items-center justify-center relative p-2 md:p-10 pt-10 md:pt-10"
+      className="h-auto md:min-h-[45rem] md:h-[65rem] flex items-center justify-center relative p-2 md:p-10 pt-4 md:pt-10"
       ref={containerRef}
     >
       <div
-        className="py-10 md:py-16 w-full relative"
+        className="py-4 md:py-16 w-full relative"
         style={{
           perspective: "1000px",
         }}
@@ -101,7 +101,7 @@ export const Card = ({
         boxShadow:
           "0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
       }}
-      className="max-w-5xl -mt-8 md:-mt-12 mx-auto h-[30rem] md:h-[40rem] w-full border-4 border-orange-500 p-1.5 md:p-3 bg-zinc-950 rounded-[30px] shadow-2xl shadow-orange-500/10"
+      className="hidden md:block max-w-5xl -mt-8 md:-mt-12 mx-auto h-[30rem] md:h-[40rem] w-full border-4 border-orange-500 p-1.5 md:p-3 bg-zinc-950 rounded-[30px] shadow-2xl shadow-orange-500/10"
     >
       <div className="h-full w-full overflow-hidden rounded-2xl bg-orange-500 md:rounded-2xl md:p-4 relative">
         {children}
