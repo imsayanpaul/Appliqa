@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FiSearch, FiBriefcase, FiZap, FiArrowRight, FiHome } from 'react-icons/fi';
+import { FiSearch, FiBriefcase, FiZap, FiArrowRight, FiHome, FiAward } from 'react-icons/fi';
 import JobCard from '../components/JobCard';
 import JobDetail from '../components/JobDetail';
 import { Dropdown } from '../components/ui/Dropdown';
@@ -142,7 +142,7 @@ function SearchResults({ user, resumeData }) {
                 </form>
 
                 {/* Filters */}
-                <div className="filters-bar" style={{ justifyContent: 'center', maxWidth: 720, margin: '0 auto 40px' }}>
+                <div className="filters-bar" style={{ justifyContent: 'center', maxWidth: 840, margin: '0 auto 40px' }}>
                     <Dropdown
                         options={[
                             { value: "", label: "All Types" },
@@ -174,6 +174,13 @@ function SearchResults({ user, resumeData }) {
                         onClick={() => handleFilterChange('remote', filters.remote === 'true' ? '' : 'true')}
                     >
                         <FiHome size={14} style={{ marginRight: 6 }} /> Remote Only
+                    </button>
+
+                    <button
+                        className={`filter-chip ${filters.employmentType === 'INTERN' ? 'active' : ''}`}
+                        onClick={() => handleFilterChange('employmentType', filters.employmentType === 'INTERN' ? '' : 'INTERN')}
+                    >
+                        <FiAward size={14} style={{ marginRight: 6 }} /> Internships
                     </button>
 
                     <Dropdown
