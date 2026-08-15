@@ -27,7 +27,7 @@
 <div align="center">
   <br />
   <a href="https://www.appliqa.xyz">
-    <img src="client/public/github.png" alt="Appliqa Desktop Showcase" width="850" style="border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);" />
+    <img src="client/public/gitimg.png" alt="Appliqa Showcase" width="850" style="border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.08); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);" />
   </a>
 </div>
 
