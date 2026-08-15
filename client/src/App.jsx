@@ -39,17 +39,14 @@ import { supabase } from './services/supabase';
 import { getUserProfile, createOrUpdateUser } from './services/api';
 import { Dropdown } from './components/ui/Dropdown';
 import PremiumDatePicker from './components/ui/PremiumDatePicker';
+import { PageSkeleton } from './components/ui/PageSkeleton';
 import './App.css';
 
 // Protected Route Wrapper with auth resolution check
 const ProtectedRoute = ({ children, session, authResolved }) => {
     const isOAuthHash = typeof window !== 'undefined' && (window.location.hash?.includes('access_token') || window.location.hash?.includes('refresh_token'));
     if (!authResolved || (!session && isOAuthHash)) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-muted)' }}>
-                <div className="spinner primary-spinner"></div>
-            </div>
-        );
+        return <PageSkeleton />;
     }
     if (!session) return <Navigate to="/profile" replace />;
     return children;
@@ -733,11 +730,7 @@ function AppContent() {
             </AnimatePresence>
 
             <main onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px', scrollBehavior: 'smooth' }}>
-                <Suspense fallback={
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '50vh', color: 'var(--text-muted)' }}>
-                        <div className="spinner primary-spinner"></div>
-                    </div>
-                }>
+                <Suspense fallback={<PageSkeleton />}>
                     <Routes>
                         <Route path="/" element={
                             <Home user={user} session={session} authResolved={authResolved} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />

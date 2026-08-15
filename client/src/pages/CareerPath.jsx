@@ -193,10 +193,42 @@ function CareerPath({ user, resumeData }) {
                 </div>
 
                 {loading ? (
-                    <div className="bg-white rounded-3xl p-16 text-center border border-neutral-200/80 shadow-sm">
-                        <div className="w-12 h-12 border-3 border-neutral-200 border-t-[#F45B25] rounded-full animate-spin mx-auto mb-4" />
-                        <h3 className="text-base font-bold text-[#171717]">Analyzing your career trajectory...</h3>
-                        <p className="text-xs text-neutral-500 mt-1">Evaluating market benchmarks, skill synergies, and compensation bands.</p>
+                    <div className="space-y-6 animate-pulse">
+                        {/* Current Position Baseline Skeleton */}
+                        <div className="bg-white rounded-xl p-6 sm:p-7 border border-neutral-200/80 shadow-xs space-y-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-neutral-200/80 shrink-0" />
+                                <div className="space-y-2 flex-1">
+                                    <div className="h-3 w-32 bg-neutral-200/60 rounded" />
+                                    <div className="h-6 w-64 bg-neutral-200/90 rounded-md" />
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-2">
+                                {[1, 2, 3, 4, 5].map(i => (
+                                    <div key={i} className="h-7 w-24 bg-neutral-200/50 rounded-lg" />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Trajectory Skeletons */}
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="bg-white rounded-2xl p-7 border border-neutral-200/80 shadow-xs space-y-5">
+                                <div className="flex items-center justify-between flex-wrap gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-neutral-200/80" />
+                                        <div className="space-y-1.5">
+                                            <div className="h-5 w-52 bg-neutral-200/80 rounded-md" />
+                                            <div className="h-3 w-36 bg-neutral-200/50 rounded" />
+                                        </div>
+                                    </div>
+                                    <div className="h-8 w-28 bg-neutral-200/70 rounded-full" />
+                                </div>
+                                <div className="space-y-2.5 pt-2">
+                                    <div className="h-3.5 bg-neutral-200/50 rounded w-full" />
+                                    <div className="h-3.5 bg-neutral-200/50 rounded w-4/5" />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : error ? (
                     <div className="bg-white rounded-3xl p-12 text-center border border-neutral-200 shadow-sm">
