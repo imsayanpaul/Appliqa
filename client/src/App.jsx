@@ -570,14 +570,31 @@ function AppContent() {
 
                     {/* Right Actions: Profile CTA & Mobile Toggle */}
                     <div className="navbar-right-actions">
-                        {/* CTA Button */}
+                        {/* Desktop Profile / Sign In CTA */}
                         <div className="navbar-desktop-cta">
-                            <button
-                                onClick={() => handleNavClick('/profile')}
-                                className={`navbar-cta-btn ${isActive('/profile') ? 'cta-active' : ''}`}
-                            >
-                                {ctaText}
-                            </button>
+                            {session ? (
+                                <button
+                                    onClick={() => handleNavClick('/profile')}
+                                    className={`navbar-profile-badge ${isActive('/profile') ? 'active' : ''}`}
+                                    title="Open Profile & Settings"
+                                >
+                                    <div className="navbar-profile-avatar">
+                                        {(user?.name?.trim()?.charAt(0) || session?.user?.email?.charAt(0) || 'P').toUpperCase()}
+                                    </div>
+                                    <span className="navbar-profile-name">
+                                        {user?.name?.trim() ? user.name.trim().split(' ')[0] : 'Profile'}
+                                    </span>
+                                    <FiChevronRight size={13} className="navbar-profile-arrow" />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => handleNavClick('/profile')}
+                                    className={`navbar-signin-btn ${isActive('/profile') ? 'active' : ''}`}
+                                >
+                                    <FiUser size={13} />
+                                    <span>Sign In</span>
+                                </button>
+                            )}
                         </div>
 
                         {/* Mobile Menu Button */}
