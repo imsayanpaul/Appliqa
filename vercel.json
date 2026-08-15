@@ -24,7 +24,7 @@
       "headers": [
         {
           "key": "Link",
-          "value": "</llms.txt>; rel=\"describedby\"; type=\"text/markdown\", </openapi.json>; rel=\"service-desc\"; type=\"application/json\", </sitemap.xml>; rel=\"sitemap\"; type=\"application/xml\""
+          "value": "</llms.txt>; rel=\"describedby\"; type=\"text/markdown\", </openapi.json>; rel=\"service-desc\"; type=\"application/json\", </.well-known/mcp/server-card.json>; rel=\"mcp-server\"; type=\"application/json\", </sitemap.xml>; rel=\"sitemap\"; type=\"application/xml\""
         },
         {
           "key": "Vary",

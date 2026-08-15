@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "appliqa-mcp-server",
+  "displayName": "Appliqa Job & Career Intelligence",
+  "description": "MCP Server providing AI agents real-time job discovery, ATS keyword match scoring, and career advisory tools.",
+  "version": "1.0.0",
+  "url": "https://www.appliqa.xyz",
+  "contact": {
+    "name": "Appliqa",
+    "url": "https://www.appliqa.xyz"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": true
+  },
+  "tools": [
+    {
+      "name": "search_jobs",
+      "description": "Search 50,000+ live verified job listings across LinkedIn, Indeed, Glassdoor with filters for remote, location, and employment type.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Target job title, technology stack, or keywords (e.g. 'React Developer', 'Data Scientist')"
+          },
+          "location": {
+            "type": "string",
+            "description": "City, state, or region (e.g. 'San Francisco', 'Remote', 'London')"
+          },
+          "country": {
+            "type": "string",
+            "description": "2-letter ISO country code (e.g. 'us', 'in', 'gb', 'ca')"
+          },
+          "remote": {
+            "type": "boolean",
+            "description": "Filter strictly for remote jobs"
+          },
+          "employment_type": {
+            "type": "string",
+            "enum": ["FULLTIME", "CONTRACTOR", "PARTTIME", "INTERN"],
+            "description": "Employment type classification"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "score_resume_ats",
+      "description": "Score resume text or skills against a specific job description to compute keyword match percentage, missing required skills, and ATS optimization advice.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "resume_text": {
+            "type": "string",
+            "description": "Raw text or extracted skills from candidate's resume"
+          },
+          "job_description": {
+            "type": "string",
+            "description": "Full job description text or required role skills"
+          }
+        },
+        "required": ["resume_text", "job_description"]
+      }
+    },
+    {
+      "name": "generate_career_path",
+      "description": "Generate step-by-step career progression ladders with milestone timelines and market salary benchmarks.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "current_role": {
+            "type": "string",
+            "description": "Candidate's current title or experience level"
+          },
+          "target_role": {
+            "type": "string",
+            "description": "Desired next-level title or career aspiration"
+          }
+        },
+        "required": ["current_role", "target_role"]
+      }
+    },
+    {
+      "name": "ai_career_advisor",
+      "description": "Interactive AI career mentor for mock interview preparation, recruiter outreach drafting, and compensation negotiation tips.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string",
+            "description": "Discussion topic (e.g. 'mock_interview', 'cover_letter', 'salary_negotiation')"
+          },
+          "context": {
+            "type": "string",
+            "description": "Relevant job or candidate background context"
+          }
+        },
+        "required": ["topic", "context"]
+      }
+    }
+  ]
+}
