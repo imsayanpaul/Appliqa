@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MoveRight } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import { MoveRight, Sparkles } from "lucide-react";
 
 function Hero() {
   const navigate = useNavigate();
@@ -30,67 +28,52 @@ function Hero() {
     return () => clearTimeout(timeoutId);
   }, [titleNumber, titles]);
 
-  const titleComponent = (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1.0, ease: "easeOut" }}
-      className="flex gap-6 items-center justify-center flex-col max-w-3xl mx-auto mb-4"
-    >
-      <div className="flex gap-4 flex-col w-full">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl tracking-tighter text-center font-bold text-white leading-tight">
-          <span>Outsmart the hiring algorithm with</span>
-          <span className="relative flex w-full h-12 sm:h-14 md:h-20 justify-center overflow-hidden text-center text-orange-500 mt-2">
-            &nbsp;
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={titleNumber}
-                className="absolute font-bold whitespace-nowrap"
-                initial={{ y: 30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -30, opacity: 0 }}
-                transition={{ duration: 0.25, ease: "easeInOut" }}
-              >
-                {titles[titleNumber]}
-              </motion.span>
-            </AnimatePresence>
-          </span>
-        </h1>
-
-        <p className="text-sm sm:text-base md:text-lg leading-relaxed tracking-tight text-zinc-400 max-w-2xl text-center mx-auto mt-2">
-          Appliqa uses AI to scan your resume, optimize for ATS keyword matches, auto-generate cover letters, and tailor recruiter messages to land you interviews faster.
-        </p>
-      </div>
-      <div className="flex flex-row gap-3 mt-2">
-        <Button size="lg" className="gap-4 shadow-lg shadow-orange-500/20" onClick={() => navigate("/profile")}>
-          Get Started <MoveRight className="w-4 h-4" />
-        </Button>
-      </div>
-    </motion.div>
-  );
-
   return (
-    <div className="w-full overflow-hidden pt-16 lg:pt-24 relative">
-      {/* Top logo for logged-out landing page */}
-      <div 
-        className="absolute top-6 left-6 md:left-6 md:top-6 z-10 cursor-pointer max-md:left-1/2 max-md:-translate-x-1/2 max-md:top-6" 
-        onClick={() => navigate("/")}
+    <div className="w-full pt-10 pb-12 px-4 sm:px-6 relative text-center">
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="flex gap-5 items-center justify-center flex-col max-w-4xl mx-auto"
       >
-        <img src="/logotext.svg" alt="Appliqa" height="22" style={{ display: 'block', height: '22px' }} />
-      </div>
+        {/* Subtle Pill Badge */}
+        
 
-      <div className="container mx-auto px-4">
-        <ContainerScroll titleComponent={titleComponent}>
-          <img 
-            src="/github.png" 
-            alt="Appliqa Dashboard Preview" 
-            className="w-full h-full object-cover object-top block rounded-2xl"
-            draggable={false}
-            fetchpriority="high"
-            loading="eager"
-          />
-        </ContainerScroll>
-      </div>
+        <div className="flex gap-3 flex-col w-full">
+          <h1 className="text-4xl sm:text-6xl md:text-7xl tracking-tight text-center font-black text-[#171717] leading-[1.08]">
+            <span>Outsmart the hiring algorithm with</span>
+            <span className="relative flex w-full h-14 sm:h-18 md:h-24 justify-center overflow-hidden text-center text-[#F45B25] mt-1">
+              &nbsp;
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={titleNumber}
+                  className="absolute font-black whitespace-nowrap text-[#F45B25]"
+                  initial={{ y: 35, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -35, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                >
+                  {titles[titleNumber]}
+                </motion.span>
+              </AnimatePresence>
+            </span>
+          </h1>
+
+          <p className="text-base sm:text-lg md:text-xl leading-relaxed text-[#66615C] max-w-2xl text-center mx-auto mt-2 font-normal">
+            Appliqa uses AI to scan your resume, optimize for ATS keyword matches, auto-generate cover letters, and tailor recruiter messages to land you interviews faster.
+          </p>
+        </div>
+
+        <div className="flex flex-row items-center justify-center gap-3 mt-3">
+          <button 
+            onClick={() => navigate("/profile")}
+            className="px-8 py-4 rounded-2xl bg-[#171717] hover:bg-[#F45B25] text-white text-sm font-bold transition-all duration-200 border-none cursor-pointer flex items-center gap-2.5 shadow-xl shadow-neutral-900/10 hover:shadow-[#F45B25]/25"
+          >
+            <span>Get Started</span>
+            <MoveRight className="w-4 h-4" />
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 }

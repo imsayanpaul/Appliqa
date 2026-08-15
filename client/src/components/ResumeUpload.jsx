@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
-import { FileText, Upload, X, Cpu, SlidersHorizontal, Target, Briefcase, GraduationCap } from 'lucide-react';
+import { FileText, Upload, X, ArrowUpRight, Copy, Check, Sparkles, ExternalLink, Sliders } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { analyzeResume, incrementStat } from '../services/api';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -9,65 +10,92 @@ import { createWorker } from 'tesseract.js';
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-/* ── Reusable Dark Grid Card ── */
-function DarkGridCard({ icon: Icon, title, badge, children, colSpan = '' }) {
-    return (
-        <div
-            className={`group relative overflow-visible rounded-xl border border-zinc-800 bg-gradient-to-b from-zinc-950/60 to-zinc-950/30 p-0 transition-colors duration-300 hover:border-orange-500/50 ${colSpan}`}
-        >
-            {/* subtle gradient on hover */}
-            <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-br from-orange-500/10 via-orange-500/5 to-transparent" />
-            </div>
-
-            {/* faint inner glow on hover */}
-            <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-tr from-white/0 to-white/0 group-hover:from-orange-500/[0.03] group-hover:to-orange-500/[0.06] transition-colors" />
-
-            {/* orange corner squares on hover */}
-            <div className="pointer-events-none absolute inset-0 hidden group-hover:block">
-                <div className="absolute -left-1.5 -top-1.5 h-2.5 w-2.5 bg-orange-500" />
-                <div className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 bg-orange-500" />
-                <div className="absolute -left-1.5 -bottom-1.5 h-2.5 w-2.5 bg-orange-500" />
-                <div className="absolute -right-1.5 -bottom-1.5 h-2.5 w-2.5 bg-orange-500" />
-            </div>
-
-            {/* Header */}
-            <div className="relative z-10 flex flex-row items-start gap-3 p-5 pb-0">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900/70 text-zinc-200">
-                    <Icon className="h-5 w-5 text-zinc-200" />
-                </div>
-                <div className="flex-1 pt-1.5">
-                    <div className="flex items-center gap-2">
-                        <h4 className="text-lg font-medium text-zinc-100">{title}</h4>
-                        {badge && (
-                            <span className="rounded-full border border-zinc-600 px-2 py-0.5 text-[10px] leading-none text-zinc-300">
-                                {badge}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="relative z-10 px-5 pb-5 pt-4 text-sm text-zinc-400">
-                {children}
-            </div>
-        </div>
-    );
+// Helper: Parse raw experience string into structured object
+function parseExperienceItem(str) {
+    if (!str) return { title: '', company: '', duration: '' };
+    // Pattern 1: "Title at Company (Duration)" or "Title @ Company (Duration)"
+    const match1 = str.match(/^(.*?)\s+(?:at|@)\s+(.*?)(?:\s*\((.*?)\))?$/i);
+    if (match1) {
+        return {
+            title: match1[1].trim(),
+            company: match1[2].trim(),
+            duration: match1[3]?.trim() || ''
+        };
+    }
+    // Pattern 2: "Title (Duration)"
+    const match2 = str.match(/^(.*?)(?:\s*\((.*?)\))$/i);
+    if (match2) {
+        return {
+            title: match2[1].trim(),
+            company: '',
+            duration: match2[2]?.trim() || ''
+        };
+    }
+    return { title: str, company: '', duration: '' };
 }
 
-function ResumeUpload({ onResumeAnalyzed, existingData = null }) {
+// Helper: Parse raw education string into structured object
+function parseEducationItem(str) {
+    if (!str) return { degree: '', school: '' };
+    const match = str.match(/^(.*?)\s+from\s+(.*)$/i);
+    if (match) {
+        return { degree: match[1].trim(), school: match[2].trim() };
+    }
+    return { degree: str, school: '' };
+}
+
+function ensureArray(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') return [val];
+    return [];
+}
+
+function getCleanAnalysis(data) {
+    if (!data) return null;
+    let base = data;
+    if (data.data?.analysis) {
+        base = { ...data.data.analysis, ...data };
+    } else if (data.analysis) {
+        base = { ...data.analysis, ...data };
+    }
+    return {
+        ...base,
+        skills: ensureArray(base.skills),
+        experience: ensureArray(base.experience),
+        education: ensureArray(base.education),
+        suggestedRoles: ensureArray(base.suggestedRoles),
+        certifications: ensureArray(base.certifications),
+        languages: ensureArray(base.languages),
+        industries: ensureArray(base.industries)
+    };
+}
+
+function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
+    const navigate = useNavigate();
+    const cleanExisting = getCleanAnalysis(existingData);
     const [uploading, setUploading] = useState(false);
     const [analyzing, setAnalyzing] = useState(false);
-    const [fileName, setFileName] = useState(existingData?.fileName || '');
-    const [analysis, setAnalysis] = useState(existingData || null);
+    const [fileName, setFileName] = useState(cleanExisting?.fileName || '');
+    const [analysis, setAnalysis] = useState(cleanExisting || null);
     const [error, setError] = useState('');
+    const [copiedSummary, setCopiedSummary] = useState(false);
     
-    // Staged file states for the horizontal upload layout
+    // Staged file states
     const [selectedFile, setSelectedFile] = useState(null);
     const [tempFileName, setTempFileName] = useState('');
     const [tempFileSize, setTempFileSize] = useState('');
-    const [statusText, setStatusText] = useState(existingData ? 'Completed' : '');
+    const [statusText, setStatusText] = useState(cleanExisting ? 'Completed' : '');
+
+    // Sync when existingData changes
+    useEffect(() => {
+        if (existingData) {
+            const cleaned = getCleanAnalysis(existingData);
+            setAnalysis(cleaned);
+            if (cleaned.fileName) setFileName(cleaned.fileName);
+            setStatusText('Completed');
+        }
+    }, [existingData]);
 
     const extractTextWithOCR = async (pdf) => {
         let ocrText = '';
@@ -105,98 +133,89 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null }) {
             fullText += pageText + '\n';
         }
 
-        // If the digital text layer is empty or too short, run OCR fallback
-        if (fullText.trim().length < 50) {
-            console.log("Empty or short PDF text layer. Falling back to Tesseract OCR...");
-            fullText = await extractTextWithOCR(pdf);
+        const cleanedText = fullText.trim();
+
+        if (cleanedText.length < 50) {
+            console.log('PDF text is empty or image-based, falling back to OCR...');
+            return await extractTextWithOCR(pdf);
         }
 
-        return fullText.trim();
+        return cleanedText;
     };
+
+    const onDrop = useCallback((acceptedFiles) => {
+        if (!acceptedFiles || acceptedFiles.length === 0) return;
+        const file = acceptedFiles[0];
+        
+        setError('');
+        setSelectedFile(file);
+        setTempFileName(file.name);
+        
+        const sizeInKB = (file.size / 1024).toFixed(1);
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+        setTempFileSize(file.size > 1024 * 1024 ? `${sizeInMB} MB` : `${sizeInKB} KB`);
+        setStatusText('Ready to analyze');
+    }, []);
 
     const handleClear = (e) => {
         if (e) e.stopPropagation();
         setSelectedFile(null);
         setTempFileName('');
         setTempFileSize('');
-        setStatusText('');
         setFileName('');
         setAnalysis(null);
         setError('');
-        if (onResumeAnalyzed) onResumeAnalyzed(null);
+        setStatusText('');
     };
 
-    const onDrop = useCallback(async (acceptedFiles) => {
-        const file = acceptedFiles[0];
-        if (!file) return;
-
-        setError('');
-        
-        if (file.type !== 'application/pdf' && !file.type.includes('text') && !file.name.endsWith('.txt')) {
-            setError('Please upload a PDF or TXT file');
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            setError('File size exceeds recommended 5 MB limit');
-            return;
-        }
-
-        setSelectedFile(file);
-        setTempFileName(file.name);
-        const formattedSize = file.size >= 1024 * 1024
-            ? (file.size / (1024 * 1024)).toFixed(1) + ' MB'
-            : (file.size / 1024).toFixed(0) + ' KB';
-        setTempFileSize(formattedSize);
-        setStatusText('Selected');
-        setFileName('');
-        setAnalysis(null);
-        if (onResumeAnalyzed) onResumeAnalyzed(null);
-    }, [onResumeAnalyzed]);
-
-    const handleUpload = async (e) => {
-        if (e) e.preventDefault();
+    const handleUpload = async () => {
         if (!selectedFile) return;
 
-        setError('');
         setUploading(true);
-        setStatusText('Reading resume...');
+        setError('');
+        setStatusText('Reading file...');
 
         try {
-            let text = '';
+            let extractedText = '';
 
             if (selectedFile.type === 'application/pdf') {
-                text = await extractTextFromPdf(selectedFile);
-            } else if (selectedFile.type.includes('text') || selectedFile.name.endsWith('.txt')) {
-                text = await selectedFile.text();
+                setStatusText('Extracting PDF text...');
+                extractedText = await extractTextFromPdf(selectedFile);
+            } else {
+                setStatusText('Reading text file...');
+                extractedText = await selectedFile.text();
             }
 
-            if (!text || text.length < 50) {
-                setError('Could not extract enough text from the file. Try a different format.');
-                setUploading(false);
-                setStatusText('Failed');
-                return;
+            if (!extractedText || extractedText.trim().length === 0) {
+                throw new Error('Could not extract any text from the file. Please ensure it contains readable text.');
             }
 
+            setStatusText('Analyzing with AI...');
             setUploading(false);
             setAnalyzing(true);
-            setStatusText('AI is analyzing...');
 
-            const res = await analyzeResume(text);
+            const res = await analyzeResume(extractedText);
+            const parsedAnalysis = res?.data?.analysis || res?.data || res || {};
+            
             const analysisData = {
-                ...res.data.analysis,
+                ...parsedAnalysis,
                 fileName: selectedFile.name,
                 fileSize: tempFileSize,
-                rawText: text.substring(0, 5000)
+                rawText: extractedText,
+                analyzedAt: new Date().toISOString()
             };
 
             setAnalysis(analysisData);
             setFileName(selectedFile.name);
-            setSelectedFile(null);
             setStatusText('Completed');
-            
-            // Increment resumes optimized count
-            try { await incrementStat('resumes_optimized_count'); } catch (_) {}
+
+            localStorage.setItem('appliqa_resume_analysis', JSON.stringify(analysisData));
+
+            try {
+                incrementStat('resumes_parsed');
+            } catch (err) {
+                console.warn('Failed to increment parsed stat:', err);
+            }
             
             if (onResumeAnalyzed) onResumeAnalyzed(analysisData);
         } catch (err) {
@@ -207,6 +226,13 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null }) {
             setUploading(false);
             setAnalyzing(false);
         }
+    };
+
+    const handleCopySummary = () => {
+        if (!analysis?.summary) return;
+        navigator.clipboard.writeText(analysis.summary);
+        setCopiedSummary(true);
+        setTimeout(() => setCopiedSummary(false), 2000);
     };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -220,246 +246,298 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null }) {
         disabled: uploading || analyzing
     });
 
+    const experienceLevel = analysis?.experienceLevel || 'Mid-Level';
+    const industries = analysis?.industries || ['Technology & Software'];
+
     return (
         <div>
-            {/* ── Upload Card — Dark Grid Style ── */}
-            <div className="group relative w-full max-w-[520px] mx-auto overflow-visible rounded-xl border border-zinc-800 bg-gradient-to-b from-zinc-950/60 to-zinc-950/30 p-0 transition-colors duration-300 hover:border-orange-500/50">
-                {/* subtle gradient on hover */}
-                <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-br from-orange-500/10 via-orange-500/5 to-transparent" />
+            {/* ── Upload Box ── */}
+            <div className="w-full max-w-[540px] mx-auto rounded-lg border border-[#D8D4CC] bg-white p-6" style={{ boxShadow: 'none' }}>
+                {/* Header */}
+                <div className="mb-5">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-1">
+                        RESUME SCANNER
+                    </span>
+                    <p className="text-xs text-[#66615C]">Upload your resume to extract skills, experience, and get matched career roles.</p>
                 </div>
 
-                {/* faint inner glow on hover */}
-                <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-tr from-white/0 to-white/0 group-hover:from-orange-500/[0.03] group-hover:to-orange-500/[0.06] transition-colors" />
-
-                {/* orange corner squares on hover */}
-                <div className="pointer-events-none absolute inset-0 hidden group-hover:block">
-                    <div className="absolute -left-1.5 -top-1.5 h-2.5 w-2.5 bg-orange-500" />
-                    <div className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 bg-orange-500" />
-                    <div className="absolute -left-1.5 -bottom-1.5 h-2.5 w-2.5 bg-orange-500" />
-                    <div className="absolute -right-1.5 -bottom-1.5 h-2.5 w-2.5 bg-orange-500" />
-                </div>
-
-                {/* Card Header */}
-                <div className="relative z-10 flex flex-row items-start gap-3 p-5 pb-0">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900/70 text-zinc-200">
-                        <Upload className="h-5 w-5 text-zinc-200" />
-                    </div>
-                    <div className="flex-1 pt-1.5">
-                        <h3 className="text-lg font-medium text-zinc-100">Resume Upload</h3>
-                    </div>
-                </div>
-
-                {/* Card Content */}
-                <div className="relative z-10 px-5 pb-5 pt-4">
-                    {/* Dropzone */}
-                    <div
-                        {...getRootProps()}
-                        className={`w-full flex justify-center items-center rounded-lg border border-dashed border-zinc-700 hover:border-zinc-500 bg-zinc-900/30 hover:bg-zinc-900/50 px-6 py-7 transition-all duration-200 cursor-pointer ${isDragActive ? 'border-zinc-500 bg-zinc-900/50' : ''} ${uploading || analyzing ? 'opacity-50 pointer-events-none' : ''}`}
-                    >
-                        <input {...getInputProps()} />
-                        <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-zinc-500" aria-hidden="true" />
-                            <div className="text-sm font-medium text-zinc-300">
-                                <span>Drag and drop or </span>
-                                <span className="text-zinc-100 underline underline-offset-2 decoration-zinc-600 hover:decoration-zinc-400 transition-colors">choose file</span>
-                            </div>
+                {/* Dropzone */}
+                <div
+                    {...getRootProps()}
+                    className={`w-full flex flex-col justify-center items-center rounded-md border-2 border-dashed bg-[#FAF8F5] px-6 py-10 transition-all duration-150 cursor-pointer ${isDragActive ? 'border-[#F45B25] bg-[#FFF0E8]' : 'border-[#D8D4CC] hover:border-[#171717] hover:bg-[#F7F5F2]'} ${uploading || analyzing ? 'opacity-50 pointer-events-none' : ''}`}
+                >
+                    <input {...getInputProps()} />
+                    <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="w-11 h-11 rounded-md bg-white border border-[#D8D4CC] flex items-center justify-center text-[#66615C]">
+                            <Upload className="h-5 w-5" aria-hidden="true" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-[#171717]">
+                                Drop your resume here or{' '}
+                                <span className="text-[#F45B25] font-bold">browse</span>
+                            </p>
+                            <p className="text-[11px] text-[#8A8580] mt-1">PDF or TXT · 5 MB max</p>
                         </div>
                     </div>
-                    
-                    {/* Hint */}
-                    <p className="mt-2 text-[11px] text-zinc-600">
-                        Max 5 MB · PDF, TXT
+                </div>
+
+                {/* Staged File Details */}
+                {(selectedFile || fileName) && (
+                    <div className="relative mt-4 flex items-center gap-3 rounded-md border border-[#D8D4CC] bg-[#FAF8F5] p-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[#D8D4CC] bg-white">
+                            <FileText className="h-4 w-4 text-[#171717]" aria-hidden="true" />
+                        </span>
+                        <div className="flex-1 min-w-0 pr-6">
+                            <p className="text-sm font-bold text-[#171717] truncate">
+                                {selectedFile ? tempFileName : fileName}
+                            </p>
+                            <div className="mt-0.5 flex items-center gap-2 text-[11px]">
+                                <span className="text-[#66615C] font-medium">{selectedFile ? tempFileSize : (analysis?.fileSize || '—')}</span>
+                                <span className="text-[#D8D4CC]">·</span>
+                                <span className={
+                                    statusText === 'Completed' ? 'text-emerald-600 font-bold' :
+                                    statusText === 'Failed' ? 'text-rose-500 font-bold' :
+                                    'text-[#F45B25] font-bold animate-pulse'
+                                }>
+                                    {statusText}
+                                </span>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#8A8580] hover:text-[#171717] hover:bg-neutral-200/50 transition-all cursor-pointer border-none bg-transparent"
+                            aria-label="Remove"
+                            onClick={handleClear}
+                            disabled={uploading || analyzing}
+                        >
+                            <X className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
+                )}
+
+                {/* Action Trigger */}
+                <button
+                    type="button"
+                    onClick={handleUpload}
+                    disabled={!selectedFile || uploading || analyzing}
+                    className={`mt-4 w-full flex items-center justify-center gap-2 rounded-md h-10 px-4 text-xs font-bold transition-all duration-150 border cursor-pointer ${
+                        selectedFile && !uploading && !analyzing
+                            ? 'bg-[#171717] hover:bg-[#2a2a2a] text-white border-[#171717]'
+                            : 'bg-[#FAF8F5] text-[#D8D4CC] border-[#D8D4CC] cursor-not-allowed'
+                    }`}
+                >
+                    {uploading ? (
+                        <>
+                            <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <span>{statusText || 'Uploading...'}</span>
+                        </>
+                    ) : analyzing ? (
+                        <>
+                            <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <span>{statusText || 'Analyzing...'}</span>
+                        </>
+                    ) : (
+                        <span>{analysis ? 'Re-analyze Resume' : 'Analyze Resume'}</span>
+                    )}
+                </button>
+
+                {error && (
+                    <p className="mt-3 text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-md p-3">
+                        {error}
                     </p>
-
-                    {/* File Status */}
-                    {(selectedFile || fileName) && (
-                        <div className="relative mt-4 flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/40 p-3.5">
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900/70">
-                                <FileText className="h-4 w-4 text-zinc-300" aria-hidden="true" />
-                            </span>
-                            <div className="flex-1 min-w-0 pr-6">
-                                <p className="text-sm font-medium text-zinc-200 truncate">
-                                    {selectedFile ? tempFileName : fileName}
-                                </p>
-                                <div className="mt-0.5 flex items-center gap-2 text-[11px]">
-                                    <span className="text-zinc-500">{selectedFile ? tempFileSize : (analysis?.fileSize || '—')}</span>
-                                    <span className="text-zinc-700">·</span>
-                                    <span className={
-                                        statusText === 'Completed' ? 'text-orange-500 font-medium' :
-                                        statusText === 'Failed' ? 'text-rose-400 font-medium' :
-                                        'text-zinc-400 font-medium animate-pulse'
-                                    }>
-                                        {statusText}
-                                    </span>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                className="absolute right-2.5 top-2.5 rounded-md p-1 text-zinc-600 hover:text-zinc-200 hover:bg-zinc-800 transition-all cursor-pointer border-none bg-transparent"
-                                aria-label="Remove"
-                                onClick={handleClear}
-                                disabled={uploading || analyzing}
-                            >
-                                <X className="h-3.5 w-3.5" aria-hidden="true" />
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    {selectedFile && (
-                        <div className="mt-4 flex items-center justify-end gap-2.5">
-                            <button
-                                type="button"
-                                className="px-3.5 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-100 bg-transparent hover:bg-zinc-800/60 border border-zinc-700 rounded-lg transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
-                                onClick={handleClear}
-                                disabled={uploading || analyzing}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                className="px-3.5 py-1.5 text-xs font-semibold text-zinc-950 bg-zinc-100 hover:bg-white border border-zinc-100 rounded-lg transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-1.5"
-                                onClick={handleUpload}
-                                disabled={uploading || analyzing}
-                            >
-                                {uploading || analyzing ? (
-                                    <>
-                                        <span className="inline-block h-3 w-3 animate-spin rounded-full border-[1.5px] border-zinc-950 border-t-transparent" />
-                                        Processing…
-                                    </>
-                                ) : (
-                                    'Upload'
-                                )}
-                            </button>
-                        </div>
-                    )}
-                </div>
+                )}
             </div>
 
-            {error && (
-                <div className="mt-4 text-sm text-rose-400 text-center font-medium max-w-[520px] mx-auto">
-                    {error}
-                </div>
-            )}
-
-            {/* ── Analysis Results — Dark Grid Cards ── */}
-            {analysis && !analyzing && (
+            {/* ── Authentic Editorial Dossier Layout with Extra Details ── */}
+            {analysis && (
                 <motion.div
-                    className="mt-8"
-                    initial={{ opacity: 0, y: 20 }}
+                    className="mt-16 w-full"
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.4 }}
                 >
-                    <p className="text-xs tracking-widest text-zinc-500 uppercase mb-2">[ Analysis ]</p>
-                    <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white mb-8">
-                        Resume Insights
-                    </h2>
+                    {/* Header */}
+                    <div className="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-neutral-200/80">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-[#F45B25] mb-1 font-mono">
+                                [ Candidate Profile Dossier ]
+                            </p>
+                            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171717]">
+                                Intelligence & Career Summary
+                            </h2>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {fileName && (
+                                <span className="text-xs font-mono text-[#66615C] bg-white px-3.5 py-1.5 rounded-full border border-neutral-200/80 shadow-2xs">
+                                    {fileName}
+                                </span>
+                            )}
+                            <button
+                                onClick={() => {
+                                    const savedRole = user?.preferences?.desiredRole?.trim() || user?.desiredRole?.trim();
+                                    const queryRole = savedRole || analysis.suggestedRoles?.[0] || 'Software Engineer';
+                                    navigate(`/search?query=${encodeURIComponent(queryRole)}`);
+                                }}
+                                className="px-4 py-1.5 rounded-full bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all border-none cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
+                            >
+                                Match Jobs <ArrowUpRight size={13} />
+                            </button>
+                        </div>
+                    </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {/* AI Summary — full width */}
+                    {/* Editorial Surface */}
+                    <div className="bg-white rounded-3xl border border-neutral-200/80 p-8 sm:p-10 shadow-xs space-y-8">
+
+                        {/* Executive Summary */}
                         {analysis.summary && (
-                            <motion.div
-                                className="sm:col-span-2 lg:col-span-3"
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1, duration: 0.4 }}
-                            >
-                                <DarkGridCard icon={Cpu} title="AI Summary">
-                                    <p className="text-[15px] leading-relaxed text-zinc-300">
-                                        {analysis.summary}
+                            <div>
+                                <div className="flex items-center justify-between gap-2 mb-3">
+                                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] font-mono">
+                                        01 // Professional Summary
                                     </p>
-                                </DarkGridCard>
-                            </motion.div>
+                                    <button
+                                        onClick={handleCopySummary}
+                                        className="text-xs font-semibold text-[#66615C] hover:text-[#171717] inline-flex items-center gap-1 bg-transparent border-none cursor-pointer"
+                                    >
+                                        {copiedSummary ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                                        {copiedSummary ? 'Copied' : 'Copy'}
+                                    </button>
+                                </div>
+                                <p className="text-base sm:text-[17px] leading-relaxed font-normal text-[#171717] max-w-4xl">
+                                    {analysis.summary}
+                                </p>
+                            </div>
                         )}
 
-                        {/* Skills */}
-                        {analysis.skills?.length > 0 && (
-                            <motion.div
-                                className="sm:col-span-1 lg:col-span-1"
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2, duration: 0.4 }}
-                            >
-                                <DarkGridCard icon={SlidersHorizontal} title="Skills" badge={`${analysis.skills.length}`}>
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysis.skills.map((skill, i) => (
-                                            <span
-                                                key={i}
-                                                className="rounded-full border border-zinc-700 bg-zinc-900/60 px-3 py-1 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
-                                            >
-                                                {skill}
-                                            </span>
-                                        ))}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-8 border-t border-neutral-100">
+                            {/* Left: Experience & Education (7 cols) */}
+                            <div className="lg:col-span-7 space-y-10">
+                                {/* Experience Timeline */}
+                                {analysis.experience?.length > 0 && (
+                                    <div>
+                                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] font-mono mb-4">
+                                            02 // Work Experience & Track Record ({analysis.experience.length})
+                                        </p>
+                                        <div className="space-y-4">
+                                            {analysis.experience.map((expStr, i) => {
+                                                const { title, company, duration } = parseExperienceItem(expStr);
+                                                return (
+                                                    <div 
+                                                        key={i} 
+                                                        className="p-4 rounded-2xl bg-[#F7F5F2]/70 hover:bg-[#F7F5F2] border border-neutral-200/60 transition-colors"
+                                                    >
+                                                        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-1">
+                                                            <h4 className="text-sm sm:text-[15px] font-bold text-[#171717]">
+                                                                {title}
+                                                            </h4>
+                                                            {duration && (
+                                                                <span className="text-xs font-mono text-[#8A8580] bg-white px-2.5 py-0.5 rounded-md border border-neutral-200/70 w-fit">
+                                                                    {duration}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {company && (
+                                                            <p className="text-xs font-semibold text-[#66615C]">
+                                                                {company}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </DarkGridCard>
-                            </motion.div>
-                        )}
+                                )}
 
-                        {/* Suggested Roles */}
-                        {analysis.suggestedRoles?.length > 0 && (
-                            <motion.div
-                                className="sm:col-span-1 lg:col-span-1"
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.25, duration: 0.4 }}
-                            >
-                                <DarkGridCard icon={Target} title="Suggested Roles">
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysis.suggestedRoles.map((role, i) => (
-                                            <span
-                                                key={i}
-                                                className="rounded-full border border-zinc-700 bg-zinc-900/60 px-3 py-1 text-xs font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-zinc-100"
-                                            >
-                                                {role}
-                                            </span>
-                                        ))}
+                                {/* Education */}
+                                {analysis.education?.length > 0 && (
+                                    <div>
+                                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] mb-4 font-mono">
+                                            03 // Academic Credentials & Degrees
+                                        </p>
+                                        <div className="space-y-3">
+                                            {analysis.education.map((eduStr, i) => {
+                                                const { degree, school } = parseEducationItem(eduStr);
+                                                return (
+                                                    <div key={i} className="p-4 rounded-2xl bg-[#F7F5F2]/70 border border-neutral-200/60">
+                                                        <h4 className="text-sm font-bold text-[#171717]">
+                                                            {degree}
+                                                        </h4>
+                                                        {school && (
+                                                            <p className="text-xs font-semibold text-[#66615C] mt-0.5">
+                                                                {school}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </DarkGridCard>
-                            </motion.div>
-                        )}
+                                )}
 
-                        {/* Experience */}
-                        {analysis.experience?.length > 0 && (
-                            <motion.div
-                                className="sm:col-span-1 lg:col-span-1"
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.3, duration: 0.4 }}
-                            >
-                                <DarkGridCard icon={Briefcase} title="Experience" badge={`${analysis.experience.length}`}>
-                                    <div className="space-y-3">
-                                        {analysis.experience.map((exp, i) => (
-                                            <div key={i} className="flex items-start gap-2.5">
-                                                <div className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-500" />
-                                                <p className="text-[13px] leading-relaxed text-zinc-400">{exp}</p>
-                                            </div>
-                                        ))}
+                                {/* Certifications & Languages (if present) */}
+                                {analysis.certifications?.length > 0 && (
+                                    <div>
+                                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] mb-3 font-mono">
+                                            04 // Verified Certifications
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {analysis.certifications.map((cert, i) => (
+                                                <span key={i} className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200/80 text-xs font-semibold text-[#171717]">
+                                                    {cert}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
-                                </DarkGridCard>
-                            </motion.div>
-                        )}
+                                )}
+                            </div>
 
-                        {/* Education */}
-                        {analysis.education?.length > 0 && (
-                            <motion.div
-                                className="sm:col-span-1 lg:col-span-2"
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.35, duration: 0.4 }}
-                            >
-                                <DarkGridCard icon={GraduationCap} title="Education">
-                                    <div className="space-y-3">
-                                        {analysis.education.map((edu, i) => (
-                                            <div key={i} className="flex items-start gap-2.5">
-                                                <div className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-500" />
-                                                <p className="text-[13px] leading-relaxed text-zinc-400">{edu}</p>
-                                            </div>
-                                        ))}
+                            {/* Right: Matched Roles & Skills (5 cols) */}
+                            <div className="lg:col-span-5 space-y-10">
+                                {/* Matched Roles */}
+                                {analysis.suggestedRoles?.length > 0 && (
+                                    <div>
+                                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] mb-4 font-mono">
+                                            05 // High-Match Target Roles
+                                        </p>
+                                        <div className="space-y-2">
+                                            {analysis.suggestedRoles.map((role, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => navigate(`/search?query=${encodeURIComponent(role)}`)}
+                                                    className="w-full px-4 py-3 rounded-2xl bg-[#F7F5F2] hover:bg-[#171717] text-[#171717] hover:text-white transition-all duration-200 flex items-center justify-between text-xs font-bold border border-neutral-200/60 hover:border-[#171717] cursor-pointer group"
+                                                >
+                                                    <span>{role}</span>
+                                                    <span className="text-[11px] font-mono text-[#8A8580] group-hover:text-white inline-flex items-center gap-1">
+                                                        Find Roles <ArrowUpRight size={13} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </DarkGridCard>
-                            </motion.div>
-                        )}
+                                )}
+
+                                {/* Skills */}
+                                {analysis.skills?.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] font-mono">
+                                                06 // Core Skills & Technologies ({analysis.skills.length})
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {analysis.skills.map((skill, i) => (
+                                                <span
+                                                    key={i}
+                                                    className="rounded-lg bg-[#F7F5F2] px-2.5 py-1 text-xs font-medium text-[#171717] border border-neutral-200/60 hover:border-[#171717] hover:bg-neutral-200/50 transition-colors cursor-default"
+                                                >
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </motion.div>
             )}

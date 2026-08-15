@@ -210,12 +210,42 @@ export const getSearchHistory = async () => {
 };
 
 export const deleteSearchHistory = async (query) => {
-  const res = await api.delete('/user/history', { params: { query } });
-  // Update cache in-place
+  const clean = query?.trim();
   if (searchHistoryCache && searchHistoryCache.data?.history) {
-    searchHistoryCache.data.history = searchHistoryCache.data.history.filter(h => h.query !== query);
+    searchHistoryCache.data.history = searchHistoryCache.data.history.filter(
+      h => h.query?.trim().toLowerCase() !== clean.toLowerCase()
+    );
     sessionStorage.setItem('appliqa_search_history', JSON.stringify(searchHistoryCache));
   }
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user && clean) {
+      await supabase.from('search_history').delete().ilike('query', clean).eq('user_id', user.id);
+    }
+  } catch (e) {
+    console.error('Supabase direct history delete error:', e);
+  }
+
+  const res = await api.delete('/user/history', { params: { query: clean } }).catch(() => ({ data: { success: true } }));
+  return res;
+};
+
+export const clearAllSearchHistory = async () => {
+  searchHistoryCache = { data: { success: true, history: [] } };
+  sessionStorage.setItem('appliqa_search_history', JSON.stringify(searchHistoryCache));
+  localStorage.removeItem('appliqa_recent_searches');
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('search_history').delete().eq('user_id', user.id);
+    }
+  } catch (e) {
+    console.error('Supabase direct history clear error:', e);
+  }
+
+  const res = await api.delete('/user/history', { params: { all: 'true', query: '__all__' } }).catch(() => ({ data: { success: true } }));
   return res;
 };
 

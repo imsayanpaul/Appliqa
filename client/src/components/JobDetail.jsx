@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiExternalLink, FiBookmark, FiMapPin, FiDollarSign, FiClock, FiBriefcase, FiFileText, FiCopy, FiCheck, FiZap, FiHome, FiInfo, FiMessageSquare, FiTarget, FiRefreshCw } from 'react-icons/fi';
+import { FiX, FiExternalLink, FiBookmark, FiMapPin, FiDollarSign, FiClock, FiBriefcase, FiFileText, FiCopy, FiCheck, FiZap, FiHome, FiInfo, FiMessageSquare, FiRefreshCw } from 'react-icons/fi';
+import { FileCheck } from 'lucide-react';
 import { saveJob, getSavedJobs, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
 import ATSScorer from './ATSScorer';
 
@@ -185,61 +186,106 @@ function JobDetail({ job, user, resumeData, onClose }) {
                     </div>
                 </div>
 
-                {/* AI Match Score */}
+                {/* Profile Alignment & Synergy Analysis */}
                 {(loadingMatch || matchData) && (
-                    <div className="ai-match-card-custom">
-                        <h3>
-                            <FiZap size={16} /> <span>AI Match Score</span>
-                            {loadingMatch ? (
-                                <span className="ai-analyzing-text">Analyzing...</span>
-                            ) : matchData && (
-                                <span className={`match-badge ${getScoreClass(matchData.score)}`}>
-                                    <span className="badge-dot" />
-                                    {matchData.score}% Match
+                    <div className="bg-[#FAF8F5] rounded-lg p-5 border border-[#D8D4CC] mb-6">
+                        {/* Header */}
+                        <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#D8D4CC]">
+                            <div>
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                    [ Profile Alignment Analysis ]
                                 </span>
-                            )}
-                        </h3>
+                                <h3 className="text-sm font-black uppercase tracking-wider text-[#171717] m-0">
+                                    Candidate Fit Evaluation
+                                </h3>
+                            </div>
+                            {loadingMatch ? (
+                                <span className="text-xs font-mono text-neutral-400 animate-pulse">Evaluating fit...</span>
+                            ) : matchData ? (
+                                <div className="text-right">
+                                    <div className="flex items-baseline gap-1 justify-end">
+                                        <span className="text-2xl font-mono font-black text-[#171717] leading-none">
+                                            {matchData.score}%
+                                        </span>
+                                        <span className="text-[10px] font-mono font-bold uppercase text-neutral-400">Match</span>
+                                    </div>
+                                    <span className={`inline-block text-[9.5px] font-mono font-bold uppercase px-1.5 py-0.2 rounded mt-1 ${
+                                        matchData.score >= 70
+                                            ? 'bg-[#171717] text-white'
+                                            : matchData.score >= 40
+                                            ? 'bg-[#FFF0E8] text-[#F45B25] border border-[#F45B25]/30'
+                                            : 'bg-neutral-200 text-neutral-700'
+                                    }`}>
+                                        {matchData.score >= 70 ? 'Strong Fit' : matchData.score >= 40 ? 'Moderate Fit' : 'Skill Overlap'}
+                                    </span>
+                                </div>
+                            ) : null}
+                        </div>
+
+                        {/* Progress Meter */}
+                        {matchData && !loadingMatch && (
+                            <div className="w-full bg-[#E8E4DC] h-1.5 rounded-full overflow-hidden mt-3 mb-3.5">
+                                <div 
+                                    className="bg-[#F45B25] h-full transition-all duration-500 rounded-full"
+                                    style={{ width: `${Math.min(100, Math.max(0, matchData.score))}%` }}
+                                />
+                            </div>
+                        )}
+
                         {matchData && (
-                            <div className="ai-match-body">
+                            <div>
                                 {matchData.reasons?.length > 0 && matchData.reasons[0]?.includes('Unable to analyze') ? (
-                                    <div className="ai-match-retry-section">
-                                        <p className="ai-match-error-text">Analysis failed — likely due to API rate limits.</p>
+                                    <div className="py-4 text-center">
+                                        <p className="text-xs text-neutral-500 mb-2">Analysis rate limit reached.</p>
                                         <button
-                                            className="ai-match-retry-btn"
+                                            className="h-8 px-3 rounded-md bg-white border border-[#D8D4CC] text-xs font-bold text-[#171717] hover:bg-neutral-100 inline-flex items-center gap-1.5 cursor-pointer"
                                             onClick={() => { setMatchData(null); fetchMatchScore(); }}
                                             disabled={loadingMatch}
                                         >
-                                            <FiRefreshCw size={14} /> Retry Analysis
+                                            <FiRefreshCw size={12} /> Retry Analysis
                                         </button>
                                     </div>
                                 ) : (
                                     <>
+                                        {/* Key Strengths & Alignment Points */}
                                         {matchData.reasons?.length > 0 && (
-                                            <div className="ai-match-reasons-list">
+                                            <div className="space-y-2.5 my-3">
                                                 {matchData.reasons.map((r, i) => (
-                                                    <div key={i} className="ai-match-reason-item">
-                                                        <span className="check-icon-wrap">
-                                                            <FiCheck size={12} />
+                                                    <div key={i} className="flex items-start gap-2.5 text-xs sm:text-[13px] text-neutral-800 leading-relaxed">
+                                                        <span className="font-mono text-[9.5px] font-bold text-[#F45B25] bg-[#FFF0E8] px-1.5 py-0.5 rounded border border-[#F45B25]/20 shrink-0 mt-0.5">
+                                                            0{i + 1}
                                                         </span>
-                                                        <span className="reason-text">{r}</span>
+                                                        <p className="m-0 text-neutral-800 font-medium">{r}</p>
                                                     </div>
                                                 ))}
                                             </div>
                                         )}
+
+                                        {/* Target Skills to Expand */}
                                         {matchData.missingSkills?.length > 0 && (
-                                            <div className="ai-missing-skills-section">
-                                                <span className="section-label">Skills to improve:</span>
-                                                <div className="skill-tags-to-improve">
+                                            <div className="pt-3 border-t border-[#D8D4CC] mt-3">
+                                                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-neutral-500 block mb-2">
+                                                    Target Skills to Expand
+                                                </span>
+                                                <div className="flex flex-wrap gap-1.5">
                                                     {matchData.missingSkills.map((s, i) => (
-                                                        <span key={i} className="skill-tag-missing">{s}</span>
+                                                        <span key={i} className="font-mono text-[11px] font-semibold bg-white text-[#171717] border border-[#D8D4CC] rounded-md px-2 py-0.5">
+                                                            + {s}
+                                                        </span>
                                                     ))}
                                                 </div>
                                             </div>
                                         )}
+
+                                        {/* Hiring Synthesis & Advice */}
                                         {matchData.recommendation && (
-                                            <div className="ai-recommendation-alert">
-                                                <FiInfo size={14} className="info-icon" />
-                                                <span className="recommendation-text">{matchData.recommendation}</span>
+                                            <div className="bg-white rounded-md p-3.5 border border-[#D8D4CC] border-l-[3px] border-l-[#171717] mt-3.5">
+                                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#171717] block mb-1">
+                                                    Hiring Synthesis & Advice
+                                                </span>
+                                                <p className="text-xs sm:text-[12.5px] text-neutral-700 leading-relaxed m-0 font-normal">
+                                                    {matchData.recommendation}
+                                                </p>
                                             </div>
                                         )}
                                     </>
@@ -300,7 +346,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
                             className="btn btn-secondary ats-check-btn-custom"
                             onClick={() => setShowATS(true)}
                         >
-                            <FiTarget size={14} />
+                            <FileCheck size={14} />
                             ATS Check
                         </button>
                     ) : null}

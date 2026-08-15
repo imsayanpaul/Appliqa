@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FiSearch, FiBriefcase, FiZap, FiArrowRight, FiHome, FiAward } from 'react-icons/fi';
+import { FiSearch, FiBriefcase, FiZap, FiArrowRight, FiHome, FiAward, FiCheckCircle, FiFilter } from 'react-icons/fi';
 import JobCard from '../components/JobCard';
 import JobDetail from '../components/JobDetail';
 import { Dropdown } from '../components/ui/Dropdown';
@@ -81,7 +81,7 @@ function SearchResults({ user, resumeData }) {
     };
 
     const handleSearch = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         if (!query.trim()) return;
 
         if (aiMode) {
@@ -112,37 +112,45 @@ function SearchResults({ user, resumeData }) {
     };
 
     return (
-        <div className="main-content fade-in">
-            {/* Search Bar - Omnibar */}
-            <div className="search-section">
-                <form onSubmit={handleSearch} className="omnibar">
-                    <div className="search-input-group">
-                        <FiSearch className="search-icon" size={18} />
-                        <Input
-                            variant="search"
-                            type="text"
-                            placeholder={aiMode ? 'Describe your ideal job in natural language...' : 'Job title, skills, or company...'}
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            style={{ paddingLeft: 12, paddingRight: 12 }}
-                        />
-                    </div>
-                    <button
-                        type="button"
-                        className={`ai-toggle ${aiMode ? 'active' : ''}`}
-                        onClick={() => setAiMode(!aiMode)}
-                        style={{ border: 'none', background: aiMode ? '' : 'transparent' }}
-                    >
-                        <FiZap size={14} />
-                        AI Search
-                    </button>
-                    <Button type="submit" variant="primary" disabled={loading} style={{ borderRadius: 99 }}>
-                        {loading ? '...' : 'Search'}
-                    </Button>
-                </form>
+        <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717] pb-24">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8">
+                {/* Search Bar - Omnibar */}
+                <div className="w-full max-w-3xl mx-auto mb-6">
+                    <form onSubmit={handleSearch} className="w-full bg-white rounded-2xl p-2.5 flex items-center gap-2 shadow-lg border border-neutral-200/80">
+                        <div className="flex-1 flex items-center gap-2.5 pl-3">
+                            <FiSearch className="text-[#66615C]" size={18} />
+                            <input
+                                type="text"
+                                placeholder={aiMode ? 'Describe your dream tech role with natural language...' : 'Job title, skills, or target company...'}
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                className="w-full bg-transparent border-none outline-none text-[#171717] text-sm placeholder-[#66615C] font-medium"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setAiMode(!aiMode)}
+                            className={`px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border-none cursor-pointer whitespace-nowrap ${
+                                aiMode ? 'bg-[#FFF0E8] text-[#F45B25]' : 'bg-neutral-100 text-[#66615C] hover:text-[#171717]'
+                            }`}
+                            title="Toggle AI Smart Search"
+                        >
+                            <FiZap size={13} className={aiMode ? 'text-[#F45B25]' : 'text-[#66615C]'} />
+                            <span>AI Search</span>
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-4 sm:px-6 py-2.5 rounded-xl bg-[#F45B25] hover:bg-[#D94B1F] text-white text-xs font-bold flex items-center gap-1.5 transition-all border-none cursor-pointer shadow-md shadow-[#F45B25]/20 whitespace-nowrap"
+                        >
+                            <span>{loading ? '...' : 'Search'}</span>
+                            <FiArrowRight size={14} />
+                        </button>
+                    </form>
+                </div>
 
-                {/* Filters */}
-                <div className="filters-bar" style={{ justifyContent: 'center', maxWidth: 840, margin: '0 auto 40px' }}>
+                {/* Filters Row */}
+                <div className="flex items-center justify-center gap-2.5 flex-wrap max-w-4xl mx-auto mb-10">
                     <Dropdown
                         options={[
                             { value: "", label: "All Types" },
@@ -173,14 +181,14 @@ function SearchResults({ user, resumeData }) {
                         className={`filter-chip ${filters.remote === 'true' ? 'active' : ''}`}
                         onClick={() => handleFilterChange('remote', filters.remote === 'true' ? '' : 'true')}
                     >
-                        <FiHome size={14} style={{ marginRight: 6 }} /> Remote Only
+                        Remote Only
                     </button>
 
                     <button
                         className={`filter-chip ${filters.employmentType === 'INTERN' ? 'active' : ''}`}
                         onClick={() => handleFilterChange('employmentType', filters.employmentType === 'INTERN' ? '' : 'INTERN')}
                     >
-                        <FiAward size={14} style={{ marginRight: 6 }} /> Internships
+                        Internships
                     </button>
 
                     <Dropdown
@@ -217,91 +225,99 @@ function SearchResults({ user, resumeData }) {
                         placeholder={filters.country ? 'All Cities' : 'Select country first'}
                     />
                 </div>
-            </div>
 
-            {/* Results */}
-            <div className="results-header">
-                <span className="results-count">
-                    {loading ? 'Searching...' : `${jobs.length} jobs found`}
-                </span>
-            </div>
-
-            {error && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '16px', borderRadius: '8px', color: '#fca5a5', marginBottom: '24px', textAlign: 'center' }}>
-                    <FiZap size={18} style={{ marginBottom: 4 }} /> <br/>
-                    {error}
+                {/* Results Header */}
+                <div className="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-neutral-200/80">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#F45B25] animate-pulse" />
+                        <span className="text-sm font-bold text-[#171717]">
+                            {loading ? 'Searching opportunities...' : `${jobs.length} Opportunities Found ${query ? `for "${query}"` : ''}`}
+                        </span>
+                    </div>
                 </div>
-            )}
 
-            {loading ? (
-                <EmptyState loading title="Searching for jobs..." />
-            ) : jobs.length > 0 ? (
-                 <div className="results-grid">
-                    {jobs.map((job, i) => {
-                        const isSaved = savedJobs.some(sj => sj.jobId === job.id);
-                        const savedId = savedJobs.find(sj => sj.jobId === job.id)?._id;
-                        return (
-                            <JobCard
-                                key={job.id || i}
-                                job={job}
-                                user={user}
-                                onClick={() => setSelectedJob(job)}
-                                initialSaved={isSaved}
-                                initialSavedId={savedId}
-                                onToggleSave={(jobId, isSavedVal, dbId) => {
-                                    if (isSavedVal) {
-                                        setSavedJobs(prev => [...prev, { jobId, _id: dbId }]);
-                                    } else {
-                                        setSavedJobs(prev => prev.filter(sj => sj.jobId !== jobId));
-                                    }
+                {error && (
+                    <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm mb-6 text-center">
+                        <FiZap size={18} className="mb-1 inline-block" /> <br/>
+                        {error}
+                    </div>
+                )}
+
+                {/* Grid of Job Cards */}
+                {loading ? (
+                    <EmptyState loading title="Searching for matched roles..." />
+                ) : jobs.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {jobs.map((job, i) => {
+                            const isSaved = savedJobs.some(sj => sj.jobId === job.id);
+                            const savedId = savedJobs.find(sj => sj.jobId === job.id)?._id;
+                            return (
+                                <JobCard
+                                    key={job.id || i}
+                                    job={job}
+                                    user={user}
+                                    onClick={() => setSelectedJob(job)}
+                                    initialSaved={isSaved}
+                                    initialSavedId={savedId}
+                                    onToggleSave={(jobId, isSavedVal, dbId) => {
+                                        if (isSavedVal) {
+                                            setSavedJobs(prev => [...prev, { jobId, _id: dbId }]);
+                                        } else {
+                                            setSavedJobs(prev => prev.filter(sj => sj.jobId !== jobId));
+                                        }
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
+                ) : query ? (
+                    <EmptyState 
+                        icon={FiSearch} 
+                        title="No opportunities found"
+                        description="Try broadening your keywords or adjusting filter parameters." 
+                    />
+                ) : (
+                    <EmptyState 
+                        icon={FiBriefcase} 
+                        title="Explore tech careers"
+                        description="Enter a skill, role title, or activate AI Search to find verified opportunities." 
+                    />
+                )}
+
+                {/* Load More Button */}
+                {jobs.length >= 10 && (
+                    <div className="flex justify-center items-center mt-12 mb-6">
+                        {loadingMore ? (
+                            <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-[#D8D4CC] shadow-sm text-xs font-mono text-[#171717]">
+                                <span className="w-3.5 h-3.5 rounded-full border-2 border-neutral-200 border-t-[#F45B25] animate-spin shrink-0" />
+                                <span className="tracking-wider">FETCHING MORE ROLES...</span>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    const nextPage = page + 1;
+                                    setPage(nextPage);
+                                    fetchJobs(query, filters, nextPage, true);
                                 }}
-                            />
-                        );
-                    })}
-                </div>
-            ) : query ? (
-                <EmptyState 
-                    icon={FiSearch} 
-                    title="No jobs found"
-                    description="Try different keywords or adjust your filters" 
-                />
-            ) : (
-                <EmptyState 
-                    icon={FiBriefcase} 
-                    title="Start searching"
-                    description="Enter a job title, skill, or use AI search to find your perfect match" 
-                />
-            )}
+                                className="h-10 px-6 rounded-md bg-[#FAF8F5] hover:bg-[#171717] text-[#171717] hover:text-white border border-[#D8D4CC] hover:border-[#171717] text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm group"
+                            >
+                                <span>Load More Roles</span>
+                                <FiArrowRight size={13} className="text-[#F45B25] group-hover:text-white transition-colors" />
+                            </button>
+                        )}
+                    </div>
+                )}
 
-            {/* Load More */}
-            {jobs.length >= 10 && (
-                <div style={{ textAlign: 'center', marginTop: 24 }}>
-                    {loadingMore ? (
-                        <div className="loading-spinner"><div className="spinner" /></div>
-                    ) : (
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const nextPage = page + 1;
-                                setPage(nextPage);
-                                fetchJobs(query, filters, nextPage, true);
-                            }}
-                        >
-                            Load More <FiArrowRight size={14} />
-                        </Button>
-                    )}
-                </div>
-            )}
-
-            {/* Job Detail Modal */}
-            {selectedJob && (
-                <JobDetail
-                    job={selectedJob}
-                    user={user}
-                    resumeData={resumeData}
-                    onClose={() => setSelectedJob(null)}
-                />
-            )}
+                {/* Job Detail Modal */}
+                {selectedJob && (
+                    <JobDetail
+                        job={selectedJob}
+                        user={user}
+                        resumeData={resumeData}
+                        onClose={() => setSelectedJob(null)}
+                    />
+                )}
+            </div>
         </div>
     );
 }

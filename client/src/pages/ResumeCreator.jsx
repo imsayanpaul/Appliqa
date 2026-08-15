@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-    User, Briefcase, BookOpen, Cpu, FileText, 
+    User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
     Sparkles, Sparkle, Download, Save, Upload, X, 
     Plus, Trash2, Check, ArrowRight, RefreshCw,
     MessageSquare, Send, Wand2, Gauge, Activity, AlertCircle, CheckCircle2,
-    Award, Languages, Sliders, Star, Target, Monitor
+    Sliders, Monitor, FileText, FileCheck
 } from 'lucide-react';
 import { 
     enhanceResumeBullet, suggestResumeSkills, analyzeResume, createOrUpdateUser, incrementStat,
@@ -37,98 +37,79 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: 'calc(100vh - 120px)',
-                padding: '24px',
+                minHeight: 'calc(100vh - 64px)',
+                padding: '32px 20px',
                 textAlign: 'center',
-                background: '#09090b',
-                color: '#FFFFFF',
-                boxSizing: 'border-box',
-                position: 'relative',
-                overflow: 'hidden'
+                background: '#FAF8F5',
+                color: '#171717',
+                boxSizing: 'border-box'
             }}>
-                {/* Background glow effects */}
-                <div style={{
-                    position: 'absolute',
-                    width: '300px',
-                    height: '300px',
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(249, 115, 22, 0.08) 0%, rgba(236, 72, 153, 0.02) 70%, transparent 100%)',
-                    top: '20%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    zIndex: 0,
-                    pointerEvents: 'none'
-                }} />
-
                 <div className="resume-creator-mobile-notice-card" style={{
                     position: 'relative',
-                    zIndex: 1,
-                    maxWidth: '400px',
-                    background: 'rgba(255, 255, 255, 0.01)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                    borderRadius: '24px',
+                    width: '100%',
+                    maxWidth: '420px',
+                    background: '#FFFFFF',
+                    border: '1px solid #D8D4CC',
+                    borderRadius: '8px',
                     padding: '36px 24px',
-                    backdropFilter: 'blur(12px)',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)'
+                    boxShadow: '0 16px 40px -8px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)'
                 }}>
-                    {/* Glowing Accent Badge */}
+                    {/* Accent Badge */}
                     <div style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '6px',
-                        background: 'rgba(249, 115, 22, 0.1)',
-                        border: '1px solid rgba(249, 115, 22, 0.3)',
-                        borderRadius: '99px',
-                        padding: '4px 12px',
+                        background: '#FFF0E8',
+                        border: '1px solid rgba(244, 91, 37, 0.3)',
+                        borderRadius: '4px',
+                        padding: '4px 10px',
                         fontSize: '11px',
-                        fontWeight: '600',
-                        color: 'var(--accent-primary)',
+                        fontWeight: '700',
+                        color: '#F45B25',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: '24px'
+                        letterSpacing: '0.04em',
+                        marginBottom: '20px'
                     }}>
                         <span style={{
                             width: '6px',
                             height: '6px',
                             borderRadius: '50%',
-                            backgroundColor: 'var(--accent-primary)',
-                            boxShadow: '0 0 8px rgba(249, 115, 22, 0.8)'
+                            backgroundColor: '#F45B25'
                         }} />
                         Desktop Recommended
                     </div>
 
-                    {/* Animated Monitor/PC Icon */}
+                    {/* Monitor Icon Container */}
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: '72px',
-                        height: '72px',
-                        borderRadius: '20px',
-                        background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)',
-                        border: '1px solid rgba(249, 115, 22, 0.15)',
-                        margin: '0 auto 24px auto',
-                        boxShadow: '0 8px 24px rgba(249, 115, 22, 0.05)'
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '8px',
+                        background: '#FFF0E8',
+                        border: '1px solid rgba(244, 91, 37, 0.25)',
+                        margin: '0 auto 20px auto'
                     }}>
-                        <Monitor size={32} style={{ color: 'var(--accent-primary)' }} />
+                        <Monitor size={28} className="text-[#F45B25]" />
                     </div>
 
                     <h2 style={{
-                        fontSize: '22px',
+                        fontSize: '20px',
                         fontWeight: '800',
-                        lineHeight: '1.25',
+                        lineHeight: '1.3',
                         letterSpacing: '-0.02em',
-                        color: '#FFFFFF',
-                        marginBottom: '12px'
+                        color: '#171717',
+                        margin: '0 0 10px 0'
                     }}>
                         Optimize Your Builder Experience
                     </h2>
 
                     <p style={{
-                        fontSize: '13.5px',
+                        fontSize: '13px',
                         lineHeight: '1.6',
-                        color: '#A1A1AA',
-                        marginBottom: '28px',
+                        color: '#66615C',
+                        margin: '0 0 24px 0',
                         fontWeight: '400'
                     }}>
                         Appliqa's real-time visual resume generator, live ATS scanner, and split-screen design editor require a larger screen. Please open Appliqa on your computer or tablet to build and export your resume.
@@ -137,22 +118,30 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '10px'
+                        gap: '8px'
                     }}>
                         <button
                             onClick={() => navigate('/advisor')}
                             style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                                 width: '100%',
-                                padding: '12px 20px',
-                                borderRadius: '12px',
-                                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                                padding: '11px 20px',
+                                borderRadius: '6px',
+                                background: '#171717',
                                 color: '#FFFFFF',
-                                fontWeight: '600',
-                                fontSize: '14px',
+                                fontWeight: '700',
+                                fontSize: '13px',
                                 border: 'none',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                boxShadow: '0 4px 12px rgba(249, 115, 22, 0.25)'
+                                transition: 'all 0.15s ease'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#F45B25';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#171717';
                             }}
                         >
                             Ask Career Advisor
@@ -160,16 +149,27 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         <button
                             onClick={() => navigate('/')}
                             style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                                 width: '100%',
-                                padding: '12px 20px',
-                                borderRadius: '12px',
-                                background: 'rgba(255, 255, 255, 0.03)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
-                                color: '#A1A1AA',
-                                fontWeight: '500',
-                                fontSize: '13.5px',
+                                padding: '10px 20px',
+                                borderRadius: '6px',
+                                background: '#FAF8F5',
+                                border: '1px solid #D8D4CC',
+                                color: '#171717',
+                                fontWeight: '700',
+                                fontSize: '13px',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s ease'
+                                transition: 'all 0.15s ease'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#FFFFFF';
+                                e.currentTarget.style.borderColor = '#171717';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#FAF8F5';
+                                e.currentTarget.style.borderColor = '#D8D4CC';
                             }}
                         >
                             Back to Home
@@ -918,96 +918,72 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
     return (
         <div className="resume-creator-outer-wrapper">
-            {/* Glowing Accent Orbs */}
-            <div style={{
-                position: 'absolute',
-                top: '10%',
-                right: '30%',
-                width: '350px',
-                height: '350px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(249, 115, 22, 0.045) 0%, transparent 70%)',
-                filter: 'blur(70px)',
-                pointerEvents: 'none',
-                zIndex: 0
-            }} />
-            <div style={{
-                position: 'absolute',
-                bottom: '10%',
-                left: '15%',
-                width: '300px',
-                height: '300px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(249, 115, 22, 0.02) 0%, transparent 70%)',
-                filter: 'blur(60px)',
-                pointerEvents: 'none',
-                zIndex: 0
-            }} />
-
-            {/* Main Container */}
-            <div className="resume-creator-container relative z-10">
+            {/* Main Full-Page Studio Container */}
+            <div className="resume-creator-container">
                 {/* Left Workspace Panel: Form Editor */}
                 <div className="resume-creator-editor-panel">
-                    {/* Creator Header Actions */}
-                    <div className="resume-creator-header-actions border-b border-zinc-800/80 px-6 py-4 bg-zinc-950/40">
-                        <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse shrink-0" />
-                            <h2 className="text-xs font-bold text-white tracking-widest uppercase">AI Resume Workspace</h2>
-                        </div>
-                        <div className="resume-creator-header-btns">
-                            <button 
-                                onClick={() => setShowTailorModal(true)}
-                                className="resume-btn-secondary"
-                            >
-                                <span className="text-[9px] font-black tracking-tight leading-none select-none text-orange-500 mr-0.5">AI</span>
-                                <span>Tailor to Job</span>
-                            </button>
-                            <button 
-                                onClick={() => setShowUploadModal(true)}
-                                className="resume-btn-secondary"
-                            >
-                                <Upload size={13} />
-                                <span>Scan Existing</span>
-                            </button>
-                            <button 
-                                onClick={handleSync}
-                                disabled={syncing}
-                                className="resume-btn-secondary disabled:opacity-40"
-                            >
-                                <Save size={13} />
-                                <span>{syncing ? 'Syncing...' : 'Sync Profile'}</span>
-                            </button>
-                            <button 
-                                onClick={handleDownloadPDF}
-                                className="resume-btn-primary"
-                            >
-                                <Download size={13} />
-                                <span>Download PDF</span>
-                            </button>
-                        </div>
+                    {/* Creator Header Actions (Clean Single-Row Layout) */}
+                    <div className="resume-creator-header-actions border-b border-[#D8D4CC] px-6 py-3.5 bg-white flex items-center justify-end gap-2">
+                        <button 
+                            onClick={() => setShowTailorModal(true)}
+                            className="h-8 px-3 rounded-md bg-[#FFF0E8] hover:bg-[#FFE4D6] text-[#F45B25] text-xs font-bold transition-all border border-[#F45B25]/30 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                            style={{ boxShadow: 'none' }}
+                            title="Calibrate resume keywords to match a target job"
+                        >
+                            <Sliders size={13} className="stroke-[2.5]" />
+                            <span>Tailor to Job</span>
+                        </button>
+                        <button 
+                            onClick={() => setShowUploadModal(true)}
+                            className="h-8 px-3 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-[#171717] text-xs font-bold transition-all border border-[#D8D4CC] flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                            style={{ boxShadow: 'none' }}
+                        >
+                            <Upload size={13} />
+                            <span>Scan Existing</span>
+                        </button>
+                        <button 
+                            onClick={handleSync}
+                            disabled={syncing}
+                            className="h-8 px-3 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-[#171717] text-xs font-bold transition-all border border-[#D8D4CC] flex items-center gap-1.5 cursor-pointer disabled:opacity-40 whitespace-nowrap"
+                            style={{ boxShadow: 'none' }}
+                        >
+                            <Save size={13} />
+                            <span>{syncing ? 'Syncing...' : 'Sync Profile'}</span>
+                        </button>
                     </div>
 
-                    {/* Tabs Selector */}
-                    <div className="resume-tabs-bar">
+                    {/* Sleek Integrated Section Tabs Bar */}
+                    <div className="border-b border-[#D8D4CC] bg-[#FAF8F5] px-4 flex items-center gap-0.5 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {[
                             { id: 'personal', name: 'Personal', icon: User },
-                            { id: 'summary', name: 'Summary', icon: FileText },
+                            { id: 'summary', name: 'Summary', icon: AlignLeft },
                             { id: 'experience', name: 'Experience', icon: Briefcase },
-                            { id: 'education', name: 'Education', icon: BookOpen },
-                            { id: 'skills', name: 'Skills', icon: Target },
-                            { id: 'expertise', name: 'Expertise', icon: Star },
-                            { id: 'certifications', name: 'Certifications', icon: Award },
-                            { id: 'languages', name: 'Languages', icon: Languages }
-                        ].map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`resume-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-                            >
-                                <tab.icon size={13} />
-                                <span>{tab.name}</span>
-                            </button>
-                        ))}
+                            { id: 'education', name: 'Education', icon: GraduationCap },
+                            { id: 'skills', name: 'Skills', icon: Layers },
+                            { id: 'expertise', name: 'Expertise', icon: Compass },
+                            { id: 'certifications', name: 'Certifications', icon: ShieldCheck },
+                            { id: 'languages', name: 'Languages', icon: Globe }
+                        ].map(tab => {
+                            const isActive = activeTab === tab.id;
+                            const Icon = tab.icon;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`relative py-2.5 px-3 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap border-none bg-transparent select-none shrink-0 ${
+                                        isActive 
+                                            ? 'text-[#171717]' 
+                                            : 'text-[#8A8580] hover:text-[#171717]'
+                                    }`}
+                                >
+                                    <Icon size={13} className={isActive ? 'text-[#F45B25]' : 'text-[#8A8580]'} />
+                                    <span>{tab.name}</span>
+                                    {isActive && (
+                                        <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#F45B25] rounded-t-full" />
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
 
                     {/* Scrollable Tab Content Container */}
@@ -1167,10 +1143,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 </div>
                                 <div className="flex justify-end">
                                     <button
+                                        type="button"
                                         onClick={() => triggerEnhanceBullet(null, null, summary)}
-                                        className="ai-glow-btn"
+                                        disabled={!summary.trim()}
+                                        className="h-8 px-3 rounded-md bg-[#FAF8F5] hover:bg-[#171717] text-[#171717] hover:text-white text-xs font-bold border border-[#D8D4CC] hover:border-[#171717] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group"
                                     >
-                                        <span className="text-[9px] font-black tracking-tight leading-none select-none text-orange-500 mr-1.5">AI</span>
+                                        <Sliders size={13} className="text-[#F45B25] group-hover:text-white transition-colors" />
                                         <span>Enhance Summary with AI</span>
                                     </button>
                                 </div>
@@ -1267,13 +1245,18 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                     <span>Add Bullet Point</span>
                                                 </button>
                                             </div>
-                                            <div className="flex justify-between items-center mt-3 pt-3 border-t border-zinc-900/50">
+                                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-100">
+                                                <span className="text-[11px] text-neutral-500 font-normal">
+                                                    Need quantifiable impact metrics?
+                                                </span>
                                                 <button
+                                                    type="button"
                                                     onClick={() => handleStartChatbot(expIdx)}
-                                                    className="achievement-chat-btn border-none"
+                                                    className="h-7 px-2.5 rounded-md bg-[#FAF8F5] hover:bg-[#FFF0E8] text-[#171717] hover:text-[#F45B25] text-[11px] font-bold border border-[#D8D4CC] hover:border-[#F45B25]/40 transition-all flex items-center gap-1.5 cursor-pointer"
+                                                    style={{ boxShadow: 'none' }}
                                                 >
-                                                    <span className="text-[9px] font-black tracking-tight leading-none select-none text-orange-500 mr-1">AI</span>
-                                                    <span>Achievement Finder Chat</span>
+                                                    <MessageSquare size={12} className="text-[#F45B25]" />
+                                                    <span>Brainstorm Impact Bullets</span>
                                                 </button>
                                             </div>
                                         </motion.div>
@@ -1363,7 +1346,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             value={skillInput}
                                             onChange={(e) => setSkillInput(e.target.value)}
                                             className="flex-1 resume-input-field"
-                                            placeholder="Type skill (e.g. React) and press Enter"
+                                            placeholder="Type skill (e.g. React, SQL, Maestro) and press Enter"
                                         />
                                         <button
                                             type="submit"
@@ -1377,10 +1360,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 {/* Skills Tags List */}
                                 <div className="flex flex-wrap gap-2">
                                     {skills.map(skill => (
-                                        <div 
-                                            key={skill}
-                                            className="resume-skill-tag"
-                                        >
+                                        <div key={skill} className="resume-skill-tag">
                                             <span>{skill}</span>
                                             <button 
                                                 onClick={() => removeSkill(skill)}
@@ -1391,14 +1371,14 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                         </div>
                                     ))}
                                     {skills.length === 0 && (
-                                        <p className="text-xs text-zinc-500 italic">No skills added yet.</p>
+                                        <p className="text-xs text-zinc-550 italic">No skills added yet.</p>
                                     )}
                                 </div>
 
                                 {/* AI Skills Suggestion Section */}
-                                <div className="border-t border-zinc-800 pt-6 space-y-4">
+                                <div className="border-t border-neutral-100 pt-6 space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest">AI Recommended Skills</h3>
+                                        <h3 className="text-xs font-bold text-[#171717] uppercase tracking-wider font-mono">AI Recommended Skills</h3>
                                         <button
                                             onClick={handleSuggestSkills}
                                             disabled={loadingSkills}
@@ -1410,7 +1390,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                     </div>
 
                                     {suggestedSkills.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 p-4 rounded-xl bg-zinc-900/10 border border-zinc-900">
+                                        <div className="flex flex-wrap gap-2 p-4 rounded-2xl bg-[#F7F5F2] border border-neutral-200/60">
                                             {suggestedSkills.map(skill => {
                                                 const isAdded = skills.includes(skill);
                                                 return (
@@ -1583,15 +1563,25 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 </button>
                             ))}
                         </div>
-                        <button
-                            onClick={() => setShowATSPanel(!showATSPanel)}
-                            className={`ats-checker-btn ${showATSPanel ? 'active' : 'inactive'}`}
-                        >
-                            <span className="ats-icon-wrapper">
-                                <Gauge size={14} className="stroke-[2.5]" />
-                            </span>
-                            <span>ATS Checker</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowATSPanel(!showATSPanel)}
+                                className={`ats-checker-btn ${showATSPanel ? 'active' : 'inactive'}`}
+                            >
+                                <span className="ats-icon-wrapper">
+                                    <FileCheck size={14} className="stroke-[2.5]" />
+                                </span>
+                                <span>ATS Checker</span>
+                            </button>
+                            <button 
+                                onClick={handleDownloadPDF}
+                                className="h-8 px-3.5 rounded-md bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all border border-[#171717] flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                style={{ boxShadow: 'none' }}
+                            >
+                                <Download size={13} />
+                                <span>Download PDF</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* ATS Score & Keyword Matcher Section */}
@@ -1604,17 +1594,17 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 transition={{ duration: 0.2, ease: "easeOut" }}
                                 className="w-full max-w-[760px] ats-panel-container p-5 relative z-10 mb-6 shrink-0"
                             >
-                                <div className="flex justify-between items-start mb-4 relative z-10">
-                                    <div>
-                                        <h3 className="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-1.5">
-                                            <Gauge size={14} className="text-orange-500" />
-                                            <span>ATS Optimization Score</span>
+                                <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-100 relative z-10">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-[#F45B25] shrink-0" />
+                                        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#171717] m-0">
+                                            ATS OPTIMIZATION & KEYWORD SCANNER
                                         </h3>
-                                        <p className="text-[11px] text-zinc-400 mt-1">Check how well your resume matches target industry parsers</p>
                                     </div>
                                     <button 
                                         onClick={() => setShowATSPanel(false)}
-                                        className="ats-panel-close-btn border-none cursor-pointer"
+                                        className="ats-panel-close-btn cursor-pointer"
+                                        title="Close ATS Diagnostics"
                                     >
                                         <X size={12} />
                                     </button>
@@ -1623,7 +1613,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 relative z-10">
                                     <div className="space-y-3">
                                         <div>
-                                            <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1.5">Target Job Title</label>
+                                            <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Target Job Title</label>
                                             <input
                                                 type="text"
                                                 value={atsTargetTitle}
@@ -1633,7 +1623,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-1.5">Target Job Description (for keyword check)</label>
+                                            <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Target Job Description</label>
                                             <textarea
                                                 value={atsTargetJD}
                                                 onChange={(e) => setAtsTargetJD(e.target.value)}
@@ -1645,7 +1635,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                         <button
                                             onClick={handleATSCheck}
                                             disabled={loadingATS}
-                                            className="ats-panel-calc-btn border-none"
+                                            className="ats-panel-calc-btn cursor-pointer"
                                         >
                                             {loadingATS ? (
                                                 <>
@@ -1654,7 +1644,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Activity size={13} />
+                                                    <FileCheck size={13} />
                                                     <span>Calculate ATS Score</span>
                                                 </>
                                             )}
@@ -1665,13 +1655,13 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                     <div className="ats-panel-results-box">
                                         {atsResult ? (
                                             <div className="space-y-3">
-                                                <div className="flex items-center justify-between border-b border-zinc-800/40 pb-3">
+                                                <div className="flex items-center justify-between border-b border-[#D8D4CC] pb-3">
                                                     <div className="flex items-center gap-3">
                                                         <div className="ats-result-score-ring">
                                                             <span>{atsResult.atsScore}</span>
                                                         </div>
                                                         <div>
-                                                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Score Verdict</div>
+                                                            <div className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider">Score Verdict</div>
                                                             <div className={`ats-verdict-badge ${
                                                                 atsResult.atsScore >= 80 
                                                                     ? 'ats-verdict-high' 
@@ -1685,20 +1675,20 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                     </div>
                                                 </div>
                                                 
-                                                <p className="text-[11px] text-zinc-400 leading-relaxed italic">"{atsResult.verdict}"</p>
+                                                <p className="text-xs text-neutral-700 leading-relaxed italic m-0">"{atsResult.verdict}"</p>
 
                                                 {/* Keyword tags found/missing */}
                                                 <div className="space-y-2 pt-1">
                                                     <div>
-                                                        <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Found Keywords ({atsResult.keywords?.found?.length || 0})</div>
+                                                        <div className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-1">Found Keywords ({atsResult.keywords?.found?.length || 0})</div>
                                                         <div className="flex flex-wrap gap-1">
                                                             {atsResult.keywords?.found?.slice(0, 5).map(k => (
-                                                                <span key={k} className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-semibold">{k}</span>
+                                                                <span key={k} className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">{k}</span>
                                                             ))}
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[9px] font-bold text-orange-500/80 uppercase tracking-wider mb-1">Missing Keywords ({atsResult.keywords?.missing?.length || 0})</div>
+                                                        <div className="text-[10px] font-mono font-bold text-[#F45B25] uppercase tracking-wider mb-1">Missing Keywords ({atsResult.keywords?.missing?.length || 0})</div>
                                                         <div className="flex flex-wrap gap-1">
                                                             {atsResult.keywords?.missing?.slice(0, 8).map(k => {
                                                                 const isAdded = skills.includes(k);
@@ -1712,10 +1702,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                                         }}
                                                                         disabled={isAdded}
                                                                         title={isAdded ? "Added to skills" : "Click to add to skills"}
-                                                                        className={`text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1 font-semibold transition-all ${
+                                                                        className={`text-[10px] px-2 py-0.5 rounded-md flex items-center gap-1 font-semibold transition-all ${
                                                                             isAdded 
-                                                                                ? 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 opacity-75' 
-                                                                                : 'bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 cursor-pointer'
+                                                                                ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 opacity-75' 
+                                                                                : 'bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 hover:border-rose-300 cursor-pointer'
                                                                         }`}
                                                                     >
                                                                         {isAdded ? <Check size={8} /> : <Plus size={8} />}
@@ -1729,35 +1719,28 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             </div>
                                         ) : (
                                             <div className="ats-scanner-placeholder">
-                                                <div className="ats-radar-container">
-                                                    <div className="ats-radar-circle"></div>
-                                                    <div className="ats-radar-circle-inner"></div>
-                                                    <div className="ats-radar-center">
-                                                        <Activity size={18} className="stroke-[2.5]" />
-                                                    </div>
+                                                <div className="w-12 h-12 rounded-md bg-[#FFF0E8] border border-[#F45B25]/20 flex items-center justify-center text-[#F45B25] mb-3">
+                                                    <FileCheck size={24} className="stroke-[2]" />
                                                 </div>
-                                                <span className="text-xs font-semibold text-zinc-300">No score computed yet</span>
-                                                <span className="text-[10px] text-zinc-500 max-w-[220px] mt-1 leading-relaxed">Enter job details and hit calculate to run optimization diagnostics</span>
+                                                <span className="text-xs font-bold text-[#171717]">No score computed yet</span>
+                                                <span className="text-[11px] text-neutral-600 max-w-[220px] mt-1 leading-relaxed">Enter job details and hit calculate to run optimization diagnostics</span>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
                                 {atsResult?.improvements && atsResult.improvements.length > 0 && (
-                                    <div className="border-t border-zinc-900 pt-3 mt-3 relative z-10">
-                                        <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Recommended Fixes</div>
+                                    <div className="border-t border-neutral-100 pt-3 mt-3 relative z-10">
+                                        <div className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Recommended Fixes</div>
                                         <div className="space-y-1.5 pr-2 ats-fixes-list">
                                             {atsResult.improvements.map((imp, idx) => (
-                                                <div key={idx} className="flex gap-2 items-start text-[10px] bg-zinc-900/30 p-2 rounded border border-zinc-900">
+                                                <div key={idx} className="flex gap-2 items-start text-xs bg-white p-2.5 rounded-md border border-[#D8D4CC]">
                                                     {imp.priority === 'high' ? (
-                                                        <AlertCircle size={12} className="text-red-400 shrink-0 mt-0.5" />
+                                                        <AlertCircle size={13} className="text-rose-500 shrink-0 mt-0.5" />
                                                     ) : (
-                                                        <CheckCircle2 size={12} className="text-orange-400 shrink-0 mt-0.5" />
+                                                        <CheckCircle2 size={13} className="text-[#F45B25] shrink-0 mt-0.5" />
                                                     )}
-                                                    <div>
-                                                        <span className="font-bold text-zinc-300">{imp.issue}: </span>
-                                                        <span className="text-zinc-400">{imp.fix}</span>
-                                                    </div>
+                                                    <span className="text-neutral-800 leading-relaxed font-medium">{imp.tip || imp}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -2061,19 +2044,23 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             {showEnhancer && (
                 <div className="resume-modal-overlay">
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                        initial={{ opacity: 0, scale: 0.96, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         className="resume-modal-content max-w-[560px]"
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between border-b border-zinc-800/80 px-6 py-4">
-                            <div className="flex items-center gap-2 text-orange-500">
-                                <span className="text-[11px] font-black tracking-tight leading-none select-none text-orange-500 mr-0.5">AI</span>
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-white">AI Bullet Point Enhancer</h3>
+                        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
+                            <div>
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                    [ Bullet Point Enhancer ]
+                                </span>
+                                <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
+                                    Action & Metrics Optimization
+                                </h3>
                             </div>
                             <button 
                                 onClick={() => setShowEnhancer(false)}
-                                className="resume-modal-close-btn border-none cursor-pointer"
+                                className="resume-modal-close-btn"
                             >
                                 <X size={14} />
                             </button>
@@ -2082,33 +2069,34 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         {/* Content */}
                         <div className="resume-modal-body p-6 space-y-4">
                             <div>
-                                <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Original Text</label>
+                                <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Original Bullet Point</label>
                                 <textarea
                                     value={enhancerData.originalText}
                                     onChange={(e) => setEnhancerData({ ...enhancerData, originalText: e.target.value })}
                                     rows={3}
                                     className="resume-modal-textarea"
+                                    placeholder="Enter your rough bullet point or project milestone..."
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Target Role Context</label>
+                                    <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Target Role Context</label>
                                     <input
                                         type="text"
                                         value={enhancerData.roleContext}
                                         onChange={(e) => setEnhancerData({ ...enhancerData, roleContext: e.target.value })}
-                                        className="ats-panel-input"
+                                        className="resume-input-field"
                                         placeholder="e.g. Senior Frontend Dev"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">Action Verb To Lead With</label>
+                                    <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Action Verb To Lead With</label>
                                     <input
                                         type="text"
                                         value={enhancerData.actionVerb}
                                         onChange={(e) => setEnhancerData({ ...enhancerData, actionVerb: e.target.value })}
-                                        className="ats-panel-input"
+                                        className="resume-input-field"
                                         placeholder="e.g. Spearheaded"
                                     />
                                 </div>
@@ -2118,17 +2106,16 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 <button
                                     onClick={handleEnhanceBullet}
                                     disabled={enhancerData.loading || !enhancerData.originalText.trim()}
-                                    className="resume-modal-action-btn border-none"
+                                    className="resume-modal-action-btn"
                                 >
                                     {enhancerData.loading ? (
                                         <>
                                             <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-[2px] border-white border-t-transparent" />
-                                            <span>Rewriting...</span>
+                                            <span>Generating Variations...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span className="text-[10px] font-black tracking-tight leading-none select-none text-white mr-1.5">AI</span>
-                                            <span>Rewrite with AI</span>
+                                            <span>Generate Enhanced Variations</span>
                                         </>
                                     )}
                                 </button>
@@ -2136,17 +2123,17 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
                             {/* Variations list */}
                             {enhancerData.variations.length > 0 && (
-                                <div className="space-y-3 pt-4 border-t border-zinc-800/40">
-                                    <label className="block text-[10px] font-semibold text-orange-500 uppercase tracking-wider">Select enhanced variation</label>
+                                <div className="space-y-3 pt-4 border-t border-neutral-100">
+                                    <label className="block text-[10px] font-mono font-bold text-[#F45B25] uppercase tracking-wider">Select Enhanced Variation</label>
                                     <div className="space-y-2">
                                         {enhancerData.variations.map((variant, i) => (
                                             <button
                                                 key={i}
                                                 onClick={() => applyVariation(variant)}
-                                                className="resume-modal-variation-btn border-none"
+                                                className="resume-modal-variation-btn group"
                                             >
-                                                <span className="flex-1 pr-4 leading-relaxed">{variant}</span>
-                                                <ArrowRight size={13} className="shrink-0 text-zinc-600 group-hover:text-orange-500 transition-colors" />
+                                                <span className="flex-1 pr-4 leading-relaxed font-medium">{variant}</span>
+                                                <ArrowRight size={13} className="shrink-0 text-neutral-400 group-hover:text-[#F45B25] transition-colors" />
                                             </button>
                                         ))}
                                     </div>
@@ -2161,18 +2148,22 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             {showUploadModal && (
                 <div className="resume-modal-overlay">
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="resume-modal-content max-w-[460px]"
                     >
-                        <div className="flex items-center justify-between border-b border-zinc-900 px-6 py-4">
-                            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                                <Upload size={14} className="text-orange-500" />
-                                <span>Scan Existing Resume</span>
-                            </h3>
+                        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
+                            <div>
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                    [ Resume Parser ]
+                                </span>
+                                <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
+                                    Scan Existing Resume
+                                </h3>
+                            </div>
                             <button 
                                 onClick={() => setShowUploadModal(false)}
-                                className="resume-modal-close-btn border-none cursor-pointer"
+                                className="resume-modal-close-btn"
                                 disabled={uploading}
                             >
                                 <X size={14} />
@@ -2180,7 +2171,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         </div>
 
                         <div className="resume-modal-body p-6 space-y-4">
-                            <p className="text-xs text-zinc-400 leading-relaxed">
+                            <p className="text-xs text-neutral-600 leading-relaxed m-0">
                                 Upload your existing PDF or TXT resume. We will scan its text contents and leverage AI to break down and map details directly into the workspace layout.
                             </p>
                             
@@ -2193,19 +2184,19 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 />
                                 <FileText size={32} className="dropzone-icon" />
-                                <span className="text-xs font-semibold text-zinc-300">Click to browse or drop file here</span>
-                                <span className="text-[10px] text-zinc-600 mt-1.5">PDF or TXT (Max 5MB)</span>
+                                <span className="text-xs font-semibold text-[#171717]">Click to browse or drop file here</span>
+                                <span className="text-[10px] text-neutral-500 mt-1.5">PDF or TXT (Max 5MB)</span>
                             </div>
 
                             {uploadStatus && (
-                                <div className="flex items-center gap-2 text-xs text-orange-400 animate-pulse bg-orange-500/5 p-3 rounded-lg border border-orange-500/10">
-                                    <RefreshCw className="animate-spin" />
+                                <div className="flex items-center gap-2 text-xs text-[#F45B25] font-medium bg-[#FFF0E8] p-3 rounded-md border border-[#F45B25]/20">
+                                    <RefreshCw className="animate-spin" size={14} />
                                     <span>{uploadStatus}</span>
                                 </div>
                             )}
 
                             {uploadError && (
-                                <div className="text-xs text-red-400 bg-red-500/5 p-3 rounded-lg border border-red-500/10 text-center font-medium">
+                                <div className="text-xs text-rose-700 bg-rose-50 p-3 rounded-md border border-rose-200 text-center font-medium">
                                     {uploadError}
                                 </div>
                             )}
@@ -2218,18 +2209,22 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             {showTailorModal && (
                 <div className="resume-modal-overlay">
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="resume-modal-content max-w-[480px]"
                     >
-                        <div className="flex items-center justify-between border-b border-zinc-900 px-6 py-4">
-                            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                                <Wand2 size={14} className="text-orange-500" />
-                                <span>Tailor Resume to Job Posting</span>
-                            </h3>
+                        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
+                            <div>
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                    [ Target Alignment ]
+                                </span>
+                                <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
+                                    Tailor Resume to Job Posting
+                                </h3>
+                            </div>
                             <button 
                                 onClick={() => setShowTailorModal(false)}
-                                className="resume-modal-close-btn border-none cursor-pointer"
+                                className="resume-modal-close-btn"
                                 disabled={tailoring}
                             >
                                 <X size={14} />
@@ -2237,12 +2232,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         </div>
 
                         <div className="resume-modal-body p-6 space-y-4">
-                            <p className="text-xs text-zinc-400 leading-relaxed">
+                            <p className="text-xs text-neutral-600 leading-relaxed m-0">
                                 Paste the target job description. Our AI will automatically rewrite your professional summary, tailor your experience achievements using job-specific keywords, and suggest highly relevant skills.
                             </p>
                             
                             <div>
-                                <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2">Job Description</label>
+                                <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Job Description</label>
                                 <textarea
                                     value={tailorJD}
                                     onChange={(e) => setTailorJD(e.target.value)}
@@ -2254,17 +2249,17 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             </div>
 
                             {tailoring ? (
-                                <div className="flex items-center gap-2.5 text-xs text-orange-400 animate-pulse bg-orange-500/5 p-3.5 rounded-xl border border-orange-500/10">
-                                    <RefreshCw className="animate-spin" />
+                                <div className="flex items-center gap-2.5 text-xs text-[#F45B25] font-medium bg-[#FFF0E8] p-3.5 rounded-md border border-[#F45B25]/20">
+                                    <RefreshCw className="animate-spin" size={14} />
                                     <span>Orchestrating AI resume tailoring... mapping coordinates and metrics...</span>
                                 </div>
                             ) : (
                                 <button
                                     onClick={handleTailorResume}
                                     disabled={!tailorJD.trim()}
-                                    className="resume-modal-action-btn border-none"
+                                    className="resume-modal-action-btn"
                                 >
-                                    <Wand2 size={13} />
+                                    <Sliders size={13} />
                                     <span>Analyze & Tailor Resume</span>
                                 </button>
                             )}
@@ -2284,28 +2279,28 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         className="resume-drawer-content"
                     >
                         {/* Chat Header */}
-                        <div className="flex items-center justify-between border-b border-zinc-900 px-5 py-4 bg-zinc-950/80 relative z-10">
-                            <div className="flex items-center gap-2">
-                                <MessageSquare size={16} className="text-orange-500 animate-pulse" />
-                                <div>
-                                    <h3 className="text-xs font-bold text-white uppercase tracking-widest">AI Achievement Finder</h3>
-                                    <p className="text-[9px] text-zinc-500 mt-0.5">
-                                        {selectedExpIndexForChat !== null && experience[selectedExpIndexForChat]
-                                            ? `${experience[selectedExpIndexForChat].role} at ${experience[selectedExpIndexForChat].company}`
-                                            : 'Experience Coach'}
-                                    </p>
-                                </div>
+                        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4 bg-[#FAF8F5] relative z-10">
+                            <div>
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                    [ Bullet Architect ]
+                                </span>
+                                <h3 className="text-xs font-mono font-bold text-[#171717] uppercase tracking-wider m-0">
+                                    {selectedExpIndexForChat !== null && experience[selectedExpIndexForChat]
+                                        ? `${experience[selectedExpIndexForChat].role} · ${experience[selectedExpIndexForChat].company || 'Experience'}`
+                                        : 'Experience Accomplishment Copilot'}
+                                </h3>
                             </div>
                             <button 
                                 onClick={() => setShowChatbot(false)}
-                                className="resume-modal-close-btn border-none cursor-pointer"
+                                className="resume-modal-close-btn"
+                                title="Close Drawer"
                             >
                                 <X size={14} />
                             </button>
                         </div>
 
                         {/* Chat Messages */}
-                        <div className="flex-1 overflow-y-auto p-5 space-y-4 relative z-10 chatbot-chat-scroll">
+                        <div className="flex-1 overflow-y-auto p-5 space-y-4 relative z-10 chatbot-chat-scroll bg-white">
                             {chatbotHistory.map((msg, idx) => (
                                 <div 
                                     key={idx} 
@@ -2322,10 +2317,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             ))}
                             {chatbotLoading && (
                                 <div className="flex justify-start">
-                                    <div className="chat-bubble-ai px-4 py-3 flex items-center gap-1.5 shrink-0">
-                                        <span className="h-1.5 w-1.5 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <span className="h-1.5 w-1.5 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <span className="h-1.5 w-1.5 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                    <div className="chat-bubble-ai px-4 py-3 flex items-center gap-1.5 shrink-0 bg-[#FAF8F5] border border-[#D8D4CC]">
+                                        <span className="h-1.5 w-1.5 bg-[#F45B25] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                        <span className="h-1.5 w-1.5 bg-[#F45B25] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                        <span className="h-1.5 w-1.5 bg-[#F45B25] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                                     </div>
                                 </div>
                             )}
@@ -2335,16 +2330,16 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         {/* Suggested Bullet Display Card */}
                         {chatbotSuggestedBullet && (
                             <div className="chat-drawer-suggestion-card space-y-2.5 relative z-10">
-                                <div className="flex items-center gap-1 text-[10px] font-bold text-orange-400 uppercase tracking-wider">
+                                <div className="flex items-center gap-1 text-[10px] font-mono font-bold text-[#F45B25] uppercase tracking-wider">
                                     <Sparkle size={11} />
                                     <span>Formulated XYZ Bullet Point</span>
                                 </div>
-                                <div className="text-[11px] text-zinc-200 bg-zinc-950/70 border border-zinc-900 p-3 rounded-lg leading-relaxed italic">
+                                <div className="text-xs text-[#171717] bg-white border border-[#F45B25]/25 p-3 rounded-md leading-relaxed italic font-medium">
                                     "{chatbotSuggestedBullet}"
                                 </div>
                                 <button
                                     onClick={handleApplyChatbotBullet}
-                                    className="chat-drawer-apply-btn border-none"
+                                    className="chat-drawer-apply-btn cursor-pointer"
                                 >
                                     <Check size={13} />
                                     <span>Apply to Experience</span>
@@ -2353,7 +2348,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         )}
 
                         {/* Chat Input */}
-                        <form onSubmit={handleSendChatbotMessage} className="p-4 border-t border-zinc-900 flex gap-2 relative z-10 bg-zinc-950/50">
+                        <form onSubmit={handleSendChatbotMessage} className="p-4 border-t border-neutral-100 flex gap-2 relative z-10 bg-[#FAF8F5]">
                             <input
                                 type="text"
                                 value={chatbotInput}
@@ -2364,7 +2359,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             />
                             <button
                                 type="submit"
-                                className="chat-drawer-send-btn border-none"
+                                className="chat-drawer-send-btn cursor-pointer"
                                 disabled={!chatbotInput.trim() || chatbotLoading}
                             >
                                 <Send size={14} />

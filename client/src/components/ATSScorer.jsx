@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiCheck, FiAlertCircle, FiTrendingUp, FiCrosshair, FiTarget, FiRefreshCw } from 'react-icons/fi';
+import { FiX, FiCheck, FiAlertCircle, FiRefreshCw, FiFileText } from 'react-icons/fi';
+import { FileCheck } from 'lucide-react';
 import { getATSScore } from '../services/api';
 
 function ATSScorer({ job, resumeData, onClose }) {
@@ -37,58 +38,45 @@ function ATSScorer({ job, resumeData, onClose }) {
         }
     };
 
-    const getScoreColor = (score) => {
-        if (score >= 80) return 'var(--accent-green)'; // #34d399
-        if (score >= 60) return 'var(--accent-orange)'; // #fbbf24
-        return 'var(--accent-red)'; // #ef4444
-    };
-
-    const CircularScore = ({ score, label, color }) => {
-        const radius = 35;
-        const circumference = 2 * Math.PI * radius;
-        const strokeDashoffset = circumference - (score / 100) * circumference;
-        
-        return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-                <div style={{ position: 'relative', width: 90, height: 90 }}>
-                    <svg width="90" height="90" viewBox="0 0 90 90" style={{ transform: 'rotate(-90deg)' }}>
-                        <circle cx="45" cy="45" r={radius} fill="none" stroke="var(--glass-border)" strokeWidth="6" />
-                        <circle cx="45" cy="45" r={radius} fill="none" stroke={color} strokeWidth="6"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={strokeDashoffset}
-                            style={{ strokeLinecap: 'round', transition: 'stroke-dashoffset 1s ease-out' }}
-                        />
-                    </svg>
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700, color }}>
-                        {score}
-                    </div>
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>{label}</div>
-            </div>
-        );
+    const getScoreTier = (score) => {
+        if (score >= 75) return { label: 'High Alignment', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' };
+        if (score >= 50) return { label: 'Moderate Match', color: 'text-[#F45B25]', bg: 'bg-[#FFF0E8] border-[#F45B25]/30' };
+        return { label: 'Low Match', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' };
     };
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 800 }}>
-                <button className="modal-close" onClick={onClose}><FiX /></button>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 780 }}>
+                <button className="modal-close" onClick={onClose} aria-label="Close modal">
+                    <FiX size={15} />
+                </button>
 
                 {/* Header */}
-                <div className="modal-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                        <div style={{ background: 'rgba(52, 211, 153, 0.15)', borderRadius: 10, padding: 10, display: 'flex' }}>
-                            <FiTarget size={20} color="#34d399" />
+                <div className="modal-header pb-4 border-b border-neutral-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-md bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center flex-shrink-0 border border-[#F45B25]/20">
+                            <FileCheck size={20} />
                         </div>
-                        <div>
-                            <h2 style={{ fontSize: 20, margin: 0 }}>ATS Resume Scanner</h2>
-                            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2 }}>
-                                Scoring your resume for {job.title} at {job.company}
-                            </div>
+                        <div className="min-w-0 flex-1">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                [ ATS Compatibility Diagnostic ]
+                            </span>
+                            <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight leading-tight m-0">
+                                Resume ATS Audit & Keyword Match
+                            </h2>
+                            <p className="text-xs text-neutral-500 font-medium mt-1 truncate">
+                                {job.title} <span className="text-neutral-300">·</span> {job.company}
+                            </p>
                         </div>
                     </div>
+
                     {atsData && !loading && (
-                        <div style={{ marginTop: 12 }}>
-                            <button className="btn btn-secondary btn-sm" onClick={handleAnalyze} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px' }}>
+                        <div className="mt-3.5 flex items-center gap-2">
+                            <button 
+                                onClick={handleAnalyze}
+                                className="h-8 px-3.5 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-[#171717] text-xs font-bold border border-[#D8D4CC] flex items-center gap-1.5 cursor-pointer transition-all"
+                                style={{ boxShadow: 'none' }}
+                            >
                                 <FiRefreshCw size={12} /> Re-scan Resume
                             </button>
                         </div>
@@ -97,126 +85,186 @@ function ATSScorer({ job, resumeData, onClose }) {
 
                 {/* Error State */}
                 {error && (
-                    <div style={{ padding: 20, textAlign: 'center' }}>
-                        <div style={{ color: 'var(--accent-red)', background: 'rgba(239, 68, 68, 0.1)', padding: '16px 24px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                            <FiAlertCircle size={18} /> {error}
+                    <div className="py-6 text-center">
+                        <div className="bg-rose-50 text-rose-700 border border-rose-200 px-4 py-3 rounded-md inline-flex items-center gap-2 text-xs font-medium">
+                            <FiAlertCircle size={16} className="shrink-0" /> {error}
                         </div>
                     </div>
                 )}
 
                 {/* Loading State */}
                 {loading && (
-                    <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                        <div className="spinner" style={{ margin: '0 auto 16px', width: 36, height: 36, borderTopColor: '#34d399' }} />
-                        <p style={{ color: 'var(--text-primary)', fontSize: 16, fontWeight: 500 }}>Scanning resume like an ATS...</p>
-                        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 8 }}>Checking keyword density, formatting, and action verbs.</p>
+                    <div className="text-center py-16 px-4">
+                        <div className="w-10 h-10 border-3 border-neutral-200 border-t-[#F45B25] rounded-full animate-spin mx-auto mb-4" />
+                        <h3 className="text-base font-bold text-[#171717]">Scanning resume through ATS parser...</h3>
+                        <p className="text-xs text-neutral-500 mt-1">Simulating keyword extraction, semantic density, and quantifiable impact metrics.</p>
                     </div>
                 )}
 
                 {/* Results View */}
                 {atsData && !loading && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 10 }}>
+                    <div className="space-y-5 pt-4">
                         
                         {/* Top Overview: Overall Score + Sub Scores */}
-                        <div className="ui-card" style={{ padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(145deg, var(--bg-primary), rgba(255,255,255,0.02))' }}>
-                            <div style={{ flex: 1 }}>
-                                <h3 style={{ fontSize: 18, marginBottom: 8 }}>Overall ATS Match</h3>
-                                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5, maxWidth: 350 }}>
-                                    {atsData.verdict}
-                                </p>
-                            </div>
-                            <div style={{ display: 'flex', gap: 32 }}>
-                                <CircularScore score={atsData.atsScore || 0} label="Match Score" color={getScoreColor(atsData.atsScore || 0)} />
-                                <CircularScore score={atsData.actionVerbs?.score || 0} label="Action Verbs" color={getScoreColor(atsData.actionVerbs?.score || 0)} />
-                                <CircularScore score={atsData.metrics?.score || 0} label="Measurable Impact" color={getScoreColor(atsData.metrics?.score || 0)} />
+                        <div className="bg-[#FAF8F5] rounded-lg p-5 sm:p-6 border border-[#D8D4CC]">
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                                {/* Verdict Memo */}
+                                <div className="md:col-span-6 space-y-2">
+                                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-neutral-500 block">
+                                        Executive Assessment
+                                    </span>
+                                    <p className="text-xs sm:text-[13px] text-neutral-800 leading-relaxed font-normal m-0">
+                                        {atsData.verdict}
+                                    </p>
+                                </div>
+
+                                {/* 3 Metric Columns */}
+                                <div className="md:col-span-6 grid grid-cols-3 gap-2.5">
+                                    {/* Overall Score */}
+                                    <div className="bg-white rounded-md p-3 border border-[#D8D4CC] flex flex-col justify-between">
+                                        <span className="text-[10px] font-mono uppercase text-neutral-400 block mb-1">
+                                            Overall Fit
+                                        </span>
+                                        <div>
+                                            <span className="text-xl sm:text-2xl font-mono font-black text-[#171717] block leading-none">
+                                                {atsData.atsScore || 0}%
+                                            </span>
+                                            <span className={`inline-block text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded mt-1.5 border ${getScoreTier(atsData.atsScore || 0).bg} ${getScoreTier(atsData.atsScore || 0).color}`}>
+                                                {getScoreTier(atsData.atsScore || 0).label}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Verbs */}
+                                    <div className="bg-white rounded-md p-3 border border-[#D8D4CC] flex flex-col justify-between">
+                                        <span className="text-[10px] font-mono uppercase text-neutral-400 block mb-1">
+                                            Action Verbs
+                                        </span>
+                                        <div>
+                                            <span className="text-xl sm:text-2xl font-mono font-black text-[#171717] block leading-none">
+                                                {atsData.actionVerbs?.score || 0}%
+                                            </span>
+                                            <span className={`inline-block text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded mt-1.5 border ${getScoreTier(atsData.actionVerbs?.score || 0).bg} ${getScoreTier(atsData.actionVerbs?.score || 0).color}`}>
+                                                {atsData.actionVerbs?.score >= 65 ? 'Strong' : 'Review'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Metrics & Impact */}
+                                    <div className="bg-white rounded-md p-3 border border-[#D8D4CC] flex flex-col justify-between">
+                                        <span className="text-[10px] font-mono uppercase text-neutral-400 block mb-1">
+                                            Measurable
+                                        </span>
+                                        <div>
+                                            <span className="text-xl sm:text-2xl font-mono font-black text-[#171717] block leading-none">
+                                                {atsData.metrics?.score || 0}%
+                                            </span>
+                                            <span className={`inline-block text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded mt-1.5 border ${getScoreTier(atsData.metrics?.score || 0).bg} ${getScoreTier(atsData.metrics?.score || 0).color}`}>
+                                                {atsData.metrics?.score >= 65 ? 'High' : 'Needs Work'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Keyword Analysis */}
-                        <div className="ui-card" style={{ padding: 20 }}>
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 15 }}>
-                                <FiCrosshair size={16} color="#60a5fa" /> Keyword Analysis
-                            </h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {/* Keyword Density & Parsing Breakdown */}
+                        <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-1 h-3.5 bg-[#F45B25] rounded-full" />
+                                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#171717] m-0">
+                                    Keyword Extraction & Density Analysis
+                                </h3>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Found in Resume */}
                                 <div>
-                                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+                                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700 block mb-2">
                                         Found in Resume ({atsData.keywords?.found?.length || 0})
-                                    </div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                    </span>
+                                    <div className="flex flex-wrap gap-1.5">
                                         {(atsData.keywords?.found || []).map((kw, i) => (
-                                            <span key={`f-${i}`} style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#34d399', padding: '4px 10px', borderRadius: 6, fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                <FiCheck size={10} /> {kw}
+                                            <span key={`f-${i}`} className="font-mono text-[11px] font-semibold bg-[#FAF8F5] text-neutral-800 border border-[#D8D4CC] rounded px-2 py-0.5 inline-flex items-center gap-1.5">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                                                {kw}
                                             </span>
                                         ))}
                                         {(!atsData.keywords?.found || atsData.keywords.found.length === 0) && (
-                                            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>No exact keyword matches found.</span>
+                                            <span className="text-xs text-neutral-400 font-mono">No direct keyword matches detected.</span>
                                         )}
                                     </div>
                                 </div>
-                                <div style={{ height: 1, background: 'var(--glass-border)' }} />
+
+                                <div className="border-t border-neutral-100" />
+
+                                {/* Missing Keywords */}
                                 <div>
-                                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                                        Missing Keywords ({atsData.keywords?.missing?.length || 0})
-                                    </div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#F45B25] block mb-2">
+                                        Missing High-Priority Terms ({atsData.keywords?.missing?.length || 0})
+                                    </span>
+                                    <div className="flex flex-wrap gap-1.5">
                                         {(atsData.keywords?.missing || []).map((kw, i) => (
-                                            <span key={`m-${i}`} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#f87171', padding: '4px 10px', borderRadius: 6, fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
-                                                <FiX size={10} /> {kw}
+                                            <span key={`m-${i}`} className="font-mono text-[11px] font-semibold bg-[#FFF0E8] text-[#F45B25] border border-[#F45B25]/25 rounded px-2 py-0.5 inline-flex items-center gap-1">
+                                                + {kw}
                                             </span>
                                         ))}
                                         {(!atsData.keywords?.missing || atsData.keywords.missing.length === 0) && (
-                                            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>You hit all the key terms!</span>
+                                            <span className="text-xs text-neutral-500 font-mono">All required keyword terms identified in resume.</span>
                                         )}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Action Verbs & Metrics Feedback */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                            <div className="ui-card" style={{ padding: 20 }}>
-                                <h3 style={{ fontSize: 14, marginBottom: 8, color: 'var(--text-primary)' }}>Action Verbs Check</h3>
-                                <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                    {atsData.actionVerbs?.feedback || "No feedback available."}
+                        {/* Action Verbs & Metrics Feedback (2 Columns) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="bg-white rounded-lg p-4 border border-[#D8D4CC]">
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#171717] block mb-1.5">
+                                    Action Verbs & Impact
+                                </span>
+                                <p className="text-xs text-neutral-700 leading-relaxed m-0 font-normal">
+                                    {atsData.actionVerbs?.feedback || "Sufficient action verbs utilized across experience bullets."}
                                 </p>
                             </div>
-                            <div className="ui-card" style={{ padding: 20 }}>
-                                <h3 style={{ fontSize: 14, marginBottom: 8, color: 'var(--text-primary)' }}>Metrics & Impact Check</h3>
-                                <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                    {atsData.metrics?.feedback || "No feedback available."}
+
+                            <div className="bg-white rounded-lg p-4 border border-[#D8D4CC]">
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#171717] block mb-1.5">
+                                    Metrics & Quantifiable Data
+                                </span>
+                                <p className="text-xs text-neutral-700 leading-relaxed m-0 font-normal">
+                                    {atsData.metrics?.feedback || "Quantifiable metrics and results detected in your bullet points."}
                                 </p>
                             </div>
                         </div>
 
                         {/* Actionable Improvements */}
                         {atsData.improvements?.length > 0 && (
-                            <div className="ui-card" style={{ padding: 20 }}>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontSize: 15 }}>
-                                    <FiTrendingUp size={16} color="#f97316" /> Actionable Fixes
-                                </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
+                                <div className="flex items-center gap-2 mb-3.5">
+                                    <div className="w-1 h-3.5 bg-[#F45B25] rounded-full" />
+                                    <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#171717] m-0">
+                                        Targeted Resume Optimization Steps
+                                    </h3>
+                                </div>
+
+                                <div className="space-y-3">
                                     {atsData.improvements.map((imp, i) => (
-                                        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 16, background: 'rgba(255, 255, 255, 0.01)', borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                <span style={{
-                                                    fontSize: 10, 
-                                                    textTransform: 'uppercase', 
-                                                    letterSpacing: '0.03em',
-                                                    padding: '3px 8px', 
-                                                    borderRadius: 6, 
-                                                    fontWeight: 700,
-                                                    background: imp.priority === 'high' ? 'rgba(234, 88, 12, 0.12)' : 'rgba(253, 186, 116, 0.08)',
-                                                    border: `1px solid ${imp.priority === 'high' ? 'rgba(234, 88, 12, 0.3)' : 'rgba(253, 186, 116, 0.2)'}`,
-                                                    color: imp.priority === 'high' ? '#ff7c33' : '#fdba74'
-                                                }}>
+                                        <div key={i} className="bg-[#FAF8F5] rounded-md p-3.5 border border-[#D8D4CC] space-y-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`font-mono text-[9px] font-bold uppercase px-1.5 py-0.2 rounded ${
+                                                    imp.priority === 'high' 
+                                                        ? 'bg-[#171717] text-white' 
+                                                        : 'bg-neutral-200 text-neutral-700'
+                                                }`}>
                                                     {imp.priority} Priority
                                                 </span>
-                                                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                <h4 className="text-xs sm:text-[13px] font-bold text-[#171717] m-0">
                                                     {imp.issue}
-                                                </span>
+                                                </h4>
                                             </div>
-                                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, paddingLeft: 4, lineHeight: 1.45 }}>
-                                                ↳ <strong>Fix:</strong> {imp.fix}
+                                            <p className="text-xs text-neutral-700 pl-2.5 border-l-2 border-[#F45B25] leading-relaxed m-0 font-normal">
+                                                <strong>Suggested Fix:</strong> {imp.fix}
                                             </p>
                                         </div>
                                     ))}

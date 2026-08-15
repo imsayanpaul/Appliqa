@@ -1,10 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Send, Sparkles, FileText, PlusCircle, Compass, Cpu, HelpCircle, User } from 'lucide-react';
+import { 
+    FiFileText, 
+    FiSend, 
+    FiPlus, 
+    FiUser, 
+    FiArrowRight, 
+    FiZap,
+    FiMessageSquare,
+    FiCheck,
+    FiTrendingUp,
+    FiTarget,
+    FiAward,
+    FiShield,
+    FiCpu
+} from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAdvisorChat } from '../services/api';
 
-// Simple Markdown-to-HTML parser helper for rich AI responses
+// Markdown-to-HTML parser helper for structured advisor responses
 const renderMarkdown = (text) => {
     if (!text) return '';
     
@@ -13,99 +27,102 @@ const renderMarkdown = (text) => {
     let listItems = [];
     const elements = [];
 
+    const flushList = (key) => {
+        if (inList && listItems.length > 0) {
+            elements.push(
+                <ul key={key} className="space-y-1.5 my-2.5 pl-4 list-disc text-neutral-700">
+                    {listItems}
+                </ul>
+            );
+            inList = false;
+            listItems = [];
+        }
+    };
+
     lines.forEach((line, index) => {
         const trimmed = line.trim();
         
-        // Match headers (e.g. ### Header)
         if (trimmed.startsWith('###')) {
-            if (inList) {
-                elements.push(<ul key={`list-${index}`} className="list-disc pl-5 mb-4 space-y-1.5">{listItems}</ul>);
-                inList = false;
-                listItems = [];
-            }
-            elements.push(<h4 key={index} className="text-sm font-bold text-white mt-4 mb-2 tracking-tight flex items-center gap-1.5">{parseInline(trimmed.replace('###', '').trim())}</h4>);
+            flushList(`list-before-h3-${index}`);
+            elements.push(
+                <h4 key={index} className="text-sm font-bold text-[#171717] mt-3.5 mb-1.5 tracking-tight">
+                    {parseInline(trimmed.replace(/^###\s*/, ''))}
+                </h4>
+            );
             return;
         }
         if (trimmed.startsWith('##')) {
-            if (inList) {
-                elements.push(<ul key={`list-${index}`} className="list-disc pl-5 mb-4 space-y-1.5">{listItems}</ul>);
-                inList = false;
-                listItems = [];
-            }
-            elements.push(<h3 key={index} className="text-base font-extrabold text-white mt-5 mb-2.5 border-b border-white/5 pb-1">{parseInline(trimmed.replace('##', '').trim())}</h3>);
+            flushList(`list-before-h2-${index}`);
+            elements.push(
+                <h3 key={index} className="text-sm font-black text-[#171717] mt-4 mb-2 pb-1 border-b border-neutral-100">
+                    {parseInline(trimmed.replace(/^##\s*/, ''))}
+                </h3>
+            );
             return;
         }
         if (trimmed.startsWith('#')) {
-            if (inList) {
-                elements.push(<ul key={`list-${index}`} className="list-disc pl-5 mb-4 space-y-1.5">{listItems}</ul>);
-                inList = false;
-                listItems = [];
-            }
-            elements.push(<h2 key={index} className="text-lg font-black text-white mt-6 mb-3 bg-gradient-to-r from-white via-slate-100 to-zinc-400 bg-clip-text text-transparent">{parseInline(trimmed.replace('#', '').trim())}</h2>);
+            flushList(`list-before-h1-${index}`);
+            elements.push(
+                <h2 key={index} className="text-base font-black text-[#171717] mt-4 mb-2">
+                    {parseInline(trimmed.replace(/^#\s*/, ''))}
+                </h2>
+            );
             return;
         }
 
-        // Match list items starting with '-' or '*'
         if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
             inList = true;
             listItems.push(
-                <li key={`li-${index}`} className="text-[12px] text-zinc-200 leading-relaxed mb-1.5">
+                <li key={`li-${index}`} className="text-xs sm:text-[13px] text-neutral-700 leading-relaxed">
                     {parseInline(trimmed.substring(2))}
                 </li>
             );
             return;
         }
 
-        // Match numbered list items
         const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
         if (numMatch) {
             inList = true;
             listItems.push(
-                <li key={`li-${index}`} className="text-[12px] text-zinc-200 list-decimal leading-relaxed mb-1.5 ml-4">
+                <li key={`li-${index}`} className="text-xs sm:text-[13px] text-neutral-700 leading-relaxed list-decimal ml-2">
                     {parseInline(numMatch[2])}
                 </li>
             );
             return;
         }
 
-        // Standard paragraph
         if (trimmed.length > 0) {
-            if (inList) {
-                elements.push(<ul key={`list-${index}`} className="list-disc pl-5 mb-4 space-y-1.5">{listItems}</ul>);
-                inList = false;
-                listItems = [];
-            }
-            elements.push(<p key={index} className="text-[12px] leading-relaxed mb-4 text-zinc-200">{parseInline(trimmed)}</p>);
+            flushList(`list-before-p-${index}`);
+            elements.push(
+                <p key={index} className="text-xs sm:text-[13px] leading-relaxed mb-2.5 text-neutral-700 font-normal">
+                    {parseInline(trimmed)}
+                </p>
+            );
         } else {
-            if (inList) {
-                elements.push(<ul key={`list-${index}`} className="list-disc pl-5 mb-4 space-y-1.5">{listItems}</ul>);
-                inList = false;
-                listItems = [];
-            }
+            flushList(`list-gap-${index}`);
         }
     });
 
-    if (inList) {
-        elements.push(<ul key={`list-end`} className="list-disc pl-5 mb-4 space-y-1.5">{listItems}</ul>);
-    }
-
+    flushList('list-end');
     return elements;
 };
 
-// Parse inline styles: bold (**text**) and highlights
 const parseInline = (text) => {
+    if (!text) return '';
     const boldRegex = /\*\*(.*?)\*\*/g;
     const parts = [];
     let lastIndex = 0;
     let match;
 
     while ((match = boldRegex.exec(text)) !== null) {
-        // Add text before match
         if (match.index > lastIndex) {
             parts.push(text.substring(lastIndex, match.index));
         }
-        // Add bolded text
-        parts.push(<strong key={match.index} className="font-semibold text-white bg-white/10 px-1 py-0.5 rounded text-[11px]">{match[1]}</strong>);
+        parts.push(
+            <strong key={match.index} className="font-bold text-[#171717]">
+                {match[1]}
+            </strong>
+        );
         lastIndex = boldRegex.lastIndex;
     }
 
@@ -119,8 +136,7 @@ const parseInline = (text) => {
 function Advisor({ user, resumeData }) {
     const navigate = useNavigate();
     const chatContainerRef = useRef(null);
-    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const inputRef = useRef(null);
     const [messages, setMessages] = useState(() => {
         const saved = window.localStorage.getItem('appliqa_advisor_chat');
         if (saved) {
@@ -135,8 +151,8 @@ function Advisor({ user, resumeData }) {
                 id: 'greeting',
                 role: 'assistant',
                 text: resumeData 
-                    ? `Hi! I'm your Appliqa Career Advisor. I have analyzed your resume (${resumeData.fileName || 'uploaded resume'}) and synchronized your skills. How can I help you level up your career goals today?`
-                    : "Hi! I'm your Appliqa Career Advisor. Upload your resume on the Home page to get customized, tailored feedback! How can I help you with your career search today?"
+                    ? `I've analyzed your profile and active resume (${resumeData.fileName || 'synced resume'}). Ask me about targeted role positioning, interview strategy, ATS keyword optimization, or skill development roadmaps.`
+                    : "Welcome to your Career Intelligence workspace. Upload your resume on Profile to get hyper-tailored advice, ATS scoring, and interview prep."
             }
         ];
     });
@@ -144,29 +160,48 @@ function Advisor({ user, resumeData }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Interactive button hover states
-    const [hoveredPromptIndex, setHoveredPromptIndex] = useState(null);
-    const [hoveredSkillIndex, setHoveredSkillIndex] = useState(null);
-    const [isInputFocused, setIsInputFocused] = useState(false);
-    const [newSessionHovered, setNewSessionHovered] = useState(false);
-    const [isSendHovered, setIsSendHovered] = useState(false);
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    // Starter prompts
-    const suggestedPrompts = [
-        "How can I stand out for a Tech Lead role?",
-        "What skills are missing from my resume?",
-        "How should I structure my answer for 'Tell me about yourself'?",
-        "Analyze my resume for senior software engineering roles.",
-        "Give me a study checklist for a system design interview."
+    const bentoModules = [
+        {
+            title: "ATS Keyword Alignment",
+            desc: "Audit resume keywords against senior benchmarks",
+            query: "Analyze my resume for ATS keyword alignment and identify missing technical competencies for senior roles."
+        },
+        {
+            title: "Leadership Promotion Gap",
+            desc: "Roadmap milestones from Mid-Level to Staff/Lead",
+            query: "What specific leadership and architectural milestones do I need to reach a Lead/Staff level from my current baseline?"
+        },
+        {
+            title: "Behavioral Interview Prep",
+            desc: "Structure high-impact STAR responses for leadership rounds",
+            query: "Give me 3 challenging behavioral interview questions for my profile and coach me through the best STAR framework answers."
+        },
+        {
+            title: "Resume Bullet Polish",
+            desc: "Transform tasks into quantified executive wins",
+            query: "Take my resume's core responsibilities and rewrite them into high-impact, quantified achievement bullet points."
+        }
     ];
 
-    // Scroll to bottom of chat messages container when messages update
+    const strategyPlaybooks = [
+        {
+            label: "Target Role Gap Analysis",
+            prompt: "What skills are missing on my resume to qualify for top-tier senior roles?"
+        },
+        {
+            label: "Executive Resume Polish",
+            prompt: "How can I rewrite my experience bullets to show measurable business impact?"
+        },
+        {
+            label: "Mock 'Tell Me About Yourself'",
+            prompt: "How should I structure a powerful 90-second elevator pitch based on my profile?"
+        },
+        {
+            label: "Salary & Compensation Leverage",
+            prompt: "What is the expected compensation band for my experience level and how should I negotiate?"
+        }
+    ];
+
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTo({
@@ -180,7 +215,6 @@ function Advisor({ user, resumeData }) {
         const text = textToSend?.trim() || inputValue.trim();
         if (!text) return;
 
-        // Add user message
         const userMessage = {
             id: Date.now().toString(),
             role: 'user',
@@ -193,7 +227,6 @@ function Advisor({ user, resumeData }) {
         setError(null);
 
         try {
-            // Build history only from complete turns (user message followed by assistant message)
             const apiHistory = [];
             for (let i = 0; i < messages.length; i++) {
                 const msg = messages[i];
@@ -202,7 +235,7 @@ function Advisor({ user, resumeData }) {
                     if (nextMsg && (nextMsg.role === 'assistant' || nextMsg.role === 'model')) {
                         apiHistory.push({ role: 'user', text: msg.text });
                         apiHistory.push({ role: 'assistant', text: nextMsg.text });
-                        i++; // skip assistant message
+                        i++;
                     }
                 } else {
                     apiHistory.push({ role: 'assistant', text: msg.text });
@@ -216,22 +249,26 @@ function Advisor({ user, resumeData }) {
             });
 
             if (response.data && response.data.success) {
-                setMessages(prev => [
-                    ...prev,
+                const updatedMessages = [
+                    ...messages,
+                    userMessage,
                     {
                         id: (Date.now() + 1).toString(),
                         role: 'assistant',
                         text: response.data.response
                     }
-                ]);
+                ];
+                setMessages(updatedMessages);
+                window.localStorage.setItem('appliqa_advisor_chat', JSON.stringify(updatedMessages));
             } else {
                 throw new Error("Invalid API response format");
             }
         } catch (err) {
             console.error("Advisor chat error:", err);
-            setError("Oops! I couldn't reach the AI model. Please verify your connection or backend server status.");
+            setError("Could not reach career intelligence advisor. Please check your network connection and try again.");
         } finally {
             setLoading(false);
+            inputRef.current?.focus();
         }
     };
 
@@ -241,8 +278,8 @@ function Advisor({ user, resumeData }) {
                 id: 'greeting',
                 role: 'assistant',
                 text: resumeData 
-                    ? `Chat reset. I'm ready to assist with your career. Ask me anything about your resume or job search.`
-                    : "Chat reset. How can I help you with your career search today?"
+                    ? `Workspace reset. I have your synced resume context ready (${resumeData.fileName || 'synced resume'}). What would you like to focus on today?`
+                    : "Workspace reset. Upload your resume or ask me any question regarding your job search and interview prep."
             }
         ];
         setMessages(initialGreeting);
@@ -250,636 +287,302 @@ function Advisor({ user, resumeData }) {
         setError(null);
     };
 
+    const isOnlyGreeting = messages.length === 1;
+
     return (
-        <div style={{
-            height: 'calc(100vh - 106px)',
-            maxWidth: '1280px',
-            margin: '0 auto',
-            width: '100%',
-            background: 'transparent',
-            color: '#FFFFFF',
-            padding: isMobile ? '16px 12px 16px 12px' : '24px 32px 32px 32px',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            position: 'relative',
-            boxSizing: 'border-box'
-        }} className="fade-in advisor-page">
+        <div className="w-full h-[calc(100vh-64px)] flex bg-[#FAF8F5] overflow-hidden">
             
-            {/* Glowing Accent Orbs */}
-            <div style={{
-                position: 'absolute',
-                top: '15%',
-                right: '25%',
-                width: '350px',
-                height: '350px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(249, 115, 22, 0.035) 0%, transparent 70%)',
-                filter: 'blur(60px)',
-                pointerEvents: 'none',
-                zIndex: 0
-            }} />
-            <div style={{
-                position: 'absolute',
-                bottom: '10%',
-                left: '20%',
-                width: '300px',
-                height: '300px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(253, 186, 116, 0.02) 0%, transparent 70%)',
-                filter: 'blur(50px)',
-                pointerEvents: 'none',
-                zIndex: 0
-            }} />
-
-            {/* Header Toolbar */}
-            <div className="advisor-header" style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingBottom: '20px',
-                marginBottom: '24px',
-                position: 'relative',
-                zIndex: 10,
-                gap: '12px',
-                flexWrap: 'wrap'
-            }}>
-                <div className="advisor-brand-header" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', minWidth: 0, flex: 1 }}>
-                    <span style={{
-                        width: '7px',
-                        height: '7px',
-                        borderRadius: '50%',
-                        backgroundColor: 'var(--accent-primary)',
-                        boxShadow: '0 0 12px rgba(249, 115, 22, 0.8)',
-                        flexShrink: 0,
-                        marginTop: '7px'
-                    }} />
-                    <div style={{ minWidth: 0 }}>
-                        <h1 className="advisor-title" style={{ 
-                            fontSize: '20px', 
-                            fontWeight: '800', 
-                            letterSpacing: '-0.03em',
-                            background: 'linear-gradient(to right, #ffffff 30%, #f4f4f5 70%, #a1a1aa 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            margin: 0,
-                            lineHeight: '1.2'
-                        }}>
-                            AI Resume & Career Advisor
-                        </h1>
-                        <p className="advisor-subtitle" style={{ 
-                            fontSize: '11.5px', 
-                            color: 'var(--text-muted)', 
-                            fontWeight: '500',
-                            margin: 0,
-                            marginTop: '2px'
-                        }}>
-                            Unlock expert recruiter insights and mock coaching powered by Gemini-3.5
-                        </p>
-                    </div>
-                </div>
-
-                <div className="advisor-actions-header" style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                    <button 
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className={`advisor-context-toggle ${sidebarOpen ? 'open' : ''}`}
-                        style={{
-                            background: sidebarOpen ? 'rgba(249, 115, 22, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-                            border: sidebarOpen ? '1px solid rgba(249, 115, 22, 0.3)' : '1px solid rgba(255, 255, 255, 0.06)',
-                            color: '#FFFFFF',
-                            padding: '8px 12px',
-                            borderRadius: '9999px',
-                            fontSize: '11px',
-                            fontWeight: '650',
-                            cursor: 'pointer',
-                            display: 'none',
-                            alignItems: 'center',
-                            gap: '5px',
-                            transition: 'all 0.25s ease'
-                        }}
-                    >
-                        <Compass size={13} />
-                        {sidebarOpen ? 'Hide' : 'Context'}
-                    </button>
-                    <button 
-                        onClick={handleClearChat}
-                        onMouseEnter={() => setNewSessionHovered(true)}
-                        onMouseLeave={() => setNewSessionHovered(false)}
-                        className="advisor-new-session-btn"
-                        style={{
-                            background: newSessionHovered ? 'rgba(255, 255, 255, 0.07)' : 'rgba(255, 255, 255, 0.03)',
-                            border: newSessionHovered ? '1px solid rgba(249, 115, 22, 0.35)' : '1px solid rgba(255, 255, 255, 0.06)',
-                            color: '#FFFFFF',
-                            padding: '9px 18px',
-                            borderRadius: '9999px',
-                            fontSize: '12px',
-                            fontWeight: '650',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '7px',
-                            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                            boxShadow: newSessionHovered 
-                                ? '0 0 20px rgba(249, 115, 22, 0.08), inset 0 1px 0 rgba(255,255,255,0.05)' 
-                                : 'inset 0 1px 0 rgba(255,255,255,0.03)'
-                        }}
-                    >
-                        <PlusCircle className="advisor-new-session-icon" size={15} style={{ color: newSessionHovered ? 'var(--accent-primary)' : '#FFFFFF', transition: 'color 0.25s' }} />
-                        New Session
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Content Layout */}
-            <div className="advisor-layout" style={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: '24px',
-                flex: 1,
-                alignItems: 'stretch',
-                minHeight: 0,
-                position: 'relative',
-                zIndex: 10,
-                overflow: 'hidden'
-            }}>
-                
-                {/* Left Sidebar: Resume Context & Quick Actions */}
-                <div className={`advisor-sidebar${sidebarOpen ? ' advisor-sidebar-open' : ''}`} style={{
-                    width: '100%',
-                    maxWidth: '300px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '18px',
-                    overflowY: 'auto',
-                    flexShrink: 0
-                }}>
+            {/* Left Sidebar: Candidate Profile & Strategy Rail */}
+            <div className="w-80 bg-white border-r border-neutral-200/90 hidden md:flex flex-col shrink-0 overflow-y-auto justify-between">
+                <div className="p-5 space-y-6">
                     
-                    {/* Resume Context Card */}
-                    <div style={{
-                        background: 'rgba(10, 10, 12, 0.35)',
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.002) 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        borderRadius: '16px',
-                        padding: '18px',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                            <FileText size={16} className="text-orange-500" />
-                            <span style={{ fontSize: '12.5px', fontWeight: '750', color: '#FFFFFF', letterSpacing: '-0.01em' }}>Resume Context</span>
+                    {/* Active Profile Section */}
+                    <div>
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                Active Profile
+                            </span>
+                            <span className="flex items-center gap-1 text-[10px] font-semibold text-[#F45B25]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-pulse" />
+                                <span>Synced</span>
+                            </span>
                         </div>
 
                         {resumeData ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                <div style={{
-                                    fontSize: '11px',
-                                    fontWeight: '550',
-                                    color: 'var(--text-secondary)',
-                                    wordBreak: 'break-all',
-                                    background: 'rgba(255, 255, 255, 0.02)',
-                                    padding: '8px 12px',
-                                    borderRadius: '10px',
-                                    border: '1px solid rgba(255, 255, 255, 0.04)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px'
-                                }}>
-                                    <span style={{ display: 'inline-block', width: '6px', height: '6px', backgroundColor: 'var(--accent-primary)', borderRadius: '50%', boxShadow: '0 0 8px var(--accent-primary)', flexShrink: 0 }} />
-                                    <span className="truncate">{resumeData.fileName || 'Uploaded Resume'}</span>
-                                </div>
-                                
-                                {resumeData.experienceLevel && (
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '8px', 
-                                        fontSize: '11.5px', 
-                                        borderBottom: '1px solid rgba(255,255,255,0.04)', 
-                                        paddingBottom: '8px' 
-                                    }}>
-                                        <span style={{ color: 'var(--text-muted)' }}>Experience Level:</span>
-                                        <span style={{ 
-                                            color: 'var(--accent-primary)', 
-                                            fontWeight: '700', 
-                                            textTransform: 'capitalize',
-                                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                                            padding: '2px 8px',
-                                            borderRadius: '6px',
-                                            fontSize: '10.5px',
-                                            border: '1px solid rgba(249, 115, 22, 0.2)',
-                                            display: 'inline-block'
-                                        }}>
-                                            {resumeData.experienceLevel}
-                                        </span>
+                            <div className="p-3 rounded-xl bg-[#FAF8F5] border border-neutral-200/80 space-y-2">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-lg bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center shrink-0">
+                                        <FiFileText size={14} />
                                     </div>
-                                )}
-
-                                {resumeData.skills && resumeData.skills.length > 0 && (
-                                    <div>
-                                        <span style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '500' }}>Skills Synced:</span>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                                            {resumeData.skills.slice(0, 10).map((skill, index) => (
-                                                <span 
-                                                    key={skill}
-                                                    onMouseEnter={() => setHoveredSkillIndex(index)}
-                                                    onMouseLeave={() => setHoveredSkillIndex(null)}
-                                                    style={{
-                                                        fontSize: '9.5px',
-                                                        fontWeight: '600',
-                                                        background: hoveredSkillIndex === index 
-                                                            ? 'rgba(249, 115, 22, 0.12)' 
-                                                            : 'rgba(249, 115, 22, 0.05)',
-                                                        border: hoveredSkillIndex === index 
-                                                            ? '1px solid rgba(249, 115, 22, 0.35)' 
-                                                            : '1px solid rgba(249, 115, 22, 0.15)',
-                                                        color: 'var(--accent-pink)',
-                                                        padding: '3px 8px',
-                                                        borderRadius: '6px',
-                                                        transition: 'all 0.2s ease',
-                                                        cursor: 'default'
-                                                    }}
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                            {resumeData.skills.length > 10 && (
-                                                <span style={{ fontSize: '10px', color: 'var(--text-muted)', alignSelf: 'center', marginLeft: '2px', fontWeight: '500' }}>
-                                                    +{resumeData.skills.length - 10} more
-                                                </span>
-                                            )}
-                                        </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-xs font-bold text-[#171717] truncate m-0">
+                                            {resumeData.fileName || 'sayan cv.pdf'}
+                                        </p>
+                                    </div>
+                                </div>
+                                {resumeData.experienceLevel && (
+                                    <div className="flex items-center justify-between pt-1 border-t border-neutral-200/50 text-[11px]">
+                                        <span className="text-neutral-500">Seniority</span>
+                                        <span className="font-bold text-[#171717] uppercase text-[10px] px-1.5 py-0.5 rounded bg-white border border-neutral-200">
+                                            {resumeData.experienceLevel} Level
+                                        </span>
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                                <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '14px', lineHeight: '1.5', fontWeight: '500' }}>
-                                    No resume analyzed yet. Upload one on the home screen to optimize matching.
-                                </p>
+                            <div className="p-3 rounded-xl bg-[#FAF8F5] border border-neutral-200/80 text-center">
+                                <p className="text-xs text-neutral-500 mb-2 font-medium">No resume attached.</p>
                                 <button
-                                    onClick={() => navigate('/')}
-                                    style={{
-                                        background: 'rgba(249, 115, 22, 0.08)',
-                                        border: '1px solid rgba(249, 115, 22, 0.25)',
-                                        color: 'var(--accent-primary)',
-                                        fontSize: '11.5px',
-                                        fontWeight: '700',
-                                        padding: '7px 14px',
-                                        borderRadius: '10px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s',
-                                        boxShadow: '0 4px 12px rgba(249, 115, 22, 0.05)'
-                                    }}
-                                    onMouseOver={(e) => {
-                                        e.currentTarget.style.background = 'rgba(249, 115, 22, 0.15)';
-                                        e.currentTarget.style.borderColor = 'rgba(249, 115, 22, 0.4)';
-                                    }}
-                                    onMouseOut={(e) => {
-                                        e.currentTarget.style.background = 'rgba(249, 115, 22, 0.08)';
-                                        e.currentTarget.style.borderColor = 'rgba(249, 115, 22, 0.25)';
-                                    }}
+                                    onClick={() => navigate('/profile')}
+                                    className="w-full py-1.5 px-3 rounded-lg bg-[#FFF0E8] text-[#F45B25] text-xs font-bold transition-all border border-[#F45B25]/20 cursor-pointer flex items-center justify-center gap-1"
                                 >
-                                    Upload Resume
+                                    <span>Upload Resume</span>
+                                    <FiArrowRight size={12} />
                                 </button>
                             </div>
                         )}
                     </div>
 
-                    {/* Quick Starter Prompts */}
-                    <div style={{
-                        background: 'rgba(10, 10, 12, 0.35)',
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.002) 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        borderRadius: '16px',
-                        padding: '18px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '10px',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                            <Compass size={16} className="text-orange-500" />
-                            <span style={{ fontSize: '12.5px', fontWeight: '750', color: '#FFFFFF', letterSpacing: '-0.01em' }}>Suggested Prompts</span>
+                    {/* Synced Skills Cloud */}
+                    {resumeData?.skills && resumeData.skills.length > 0 && (
+                        <div>
+                            <div className="flex items-center justify-between mb-2.5">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                    Profile Skills ({resumeData.skills.length})
+                                </span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
+                                {resumeData.skills.slice(0, 10).map((skill, index) => (
+                                    <button 
+                                        key={index}
+                                        type="button"
+                                        onClick={() => handleSendMessage(`How can I best demonstrate my expertise in ${skill} for target roles?`)}
+                                        className="px-2 py-1 rounded-lg bg-[#FAF8F5] hover:bg-[#FFF0E8] hover:text-[#F45B25] hover:border-[#F45B25] text-neutral-800 text-[11px] font-medium border border-[#D8D4CC] transition-all cursor-pointer"
+                                        title={`Ask advisor about ${skill}`}
+                                    >
+                                        {skill}
+                                    </button>
+                                ))}
+                                {resumeData.skills.length > 10 && (
+                                    <span className="text-[10px] text-neutral-400 font-medium self-center pl-1">
+                                        +{resumeData.skills.length - 10} more
+                                    </span>
+                                )}
+                            </div>
                         </div>
+                    )}
 
-                        {suggestedPrompts.map((prompt, i) => (
-                            <button
-                                key={i}
-                                onClick={() => handleSendMessage(prompt)}
-                                disabled={loading}
-                                onMouseEnter={() => setHoveredPromptIndex(i)}
-                                onMouseLeave={() => setHoveredPromptIndex(null)}
-                                style={{
-                                    textAlign: 'left',
-                                    fontSize: '11px',
-                                    fontWeight: '550',
-                                    color: hoveredPromptIndex === i ? '#FFFFFF' : 'var(--text-secondary)',
-                                    background: hoveredPromptIndex === i ? 'rgba(249, 115, 22, 0.03)' : 'rgba(255, 255, 255, 0.015)',
-                                    border: hoveredPromptIndex === i ? '1px solid rgba(249, 115, 22, 0.25)' : '1px solid rgba(255, 255, 255, 0.04)',
-                                    padding: '10px 12px',
-                                    borderRadius: '10px',
-                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                    transform: hoveredPromptIndex === i ? 'translateX(4px)' : 'none',
-                                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px'
-                                }}
-                            >
-                                <HelpCircle size={13} style={{ color: hoveredPromptIndex === i ? 'var(--accent-primary)' : 'rgba(255,255,255,0.2)', transition: 'color 0.2s', flexShrink: 0 }} />
-                                <span className="line-clamp-2 leading-snug">{prompt}</span>
-                            </button>
-                        ))}
+                    {/* Quick Strategy Playbooks */}
+                    <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2.5">
+                            Strategy Presets
+                        </div>
+                        <div className="space-y-1.5">
+                            {strategyPlaybooks.map((play, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => handleSendMessage(play.prompt)}
+                                    disabled={loading}
+                                    className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#FFF8F5] text-neutral-800 hover:text-[#171717] text-xs font-medium border border-[#D8D4CC] hover:border-[#F45B25] transition-all cursor-pointer flex items-center justify-between gap-1.5 group disabled:opacity-50"
+                                    style={{ boxShadow: 'none' }}
+                                >
+                                    <span className="truncate">{play.label}</span>
+                                    <FiArrowRight size={11} className="text-neutral-400 group-hover:text-[#F45B25] shrink-0" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                </div>
+
+                {/* Footer disclaimer */}
+                <div className="p-4 border-t border-neutral-100 text-center">
+                    <p className="text-[10px] text-neutral-400 m-0 font-medium">
+                        Appliqa Career Intelligence
+                    </p>
+                </div>
+            </div>
+
+            {/* Right Chat Workspace Area */}
+            <div className="flex-1 flex flex-col bg-[#FAF8F5] overflow-hidden">
+                
+                {/* Top Workspace Header Bar */}
+                <div className="h-14 px-6 bg-white border-b border-neutral-200 flex items-center justify-between shrink-0 z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center font-bold">
+                            <FiTrendingUp size={16} />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-sm text-[#171717] tracking-tight">
+                                    Career Advisor & Intelligence
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={handleClearChat}
+                            className="px-3 py-1.5 rounded-xl bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-bold border border-[#D8D4CC] transition-all cursor-pointer flex items-center gap-1.5"
+                            style={{ boxShadow: 'none' }}
+                        >
+                            <FiPlus size={13} className="text-[#F45B25]" />
+                            <span>New Chat</span>
+                        </button>
                     </div>
                 </div>
 
-                {/* Right Chat Panel */}
-                <div className="advisor-chat-panel" style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    background: 'rgba(10, 10, 12, 0.3)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.001) 100%)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                    borderRadius: isMobile ? '16px' : '24px',
-                    overflow: 'hidden',
-                    minHeight: 0,
-                    boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03)'
-                }}>
-                    
-                    {/* Chat Messages Log */}
-                    <div 
-                        ref={chatContainerRef}
-                        className="advisor-chat-messages"
-                        style={{
-                            flex: 1,
-                            overflowY: 'auto',
-                            padding: '28px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '24px'
-                        }}
-                    >
-                        <AnimatePresence initial={false}>
-                            {messages.map((msg) => (
-                                <motion.div
-                                    key={msg.id}
-                                    initial={{ opacity: 0, y: 12 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                                    style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                                        maxWidth: '100%'
-                                    }}
-                                >
-                                    {/* Sender Badge */}
-                                    <div style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        marginBottom: '6px',
-                                        fontSize: '9.5px',
-                                        color: 'var(--text-muted)',
-                                        fontWeight: '700',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.08em'
-                                    }}>
-                                        {msg.role === 'user' ? (
-                                            <>
-                                                <span>You</span>
-                                                <div style={{
-                                                    width: '18px',
-                                                    height: '18px',
-                                                    borderRadius: '50%',
-                                                    background: 'rgba(255, 255, 255, 0.06)',
-                                                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '9px',
-                                                    color: '#FFFFFF'
-                                                }}>
-                                                    <User size={10} />
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div style={{
-                                                    width: '18px',
-                                                    height: '18px',
-                                                    borderRadius: '50%',
-                                                    background: 'rgba(249, 115, 22, 0.15)',
-                                                    border: '1px solid rgba(249, 115, 22, 0.35)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '9px',
-                                                    color: 'var(--accent-primary)',
-                                                    boxShadow: '0 0 8px rgba(249,115,22,0.2)'
-                                                }}>
-                                                    <Cpu size={10} />
-                                                </div>
-                                                <span>Advisor</span>
-                                            </>
-                                        )}
-                                    </div>
+                {/* Messages Feed */}
+                <div 
+                    ref={chatContainerRef}
+                    className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
+                >
+                    {isOnlyGreeting ? (
+                        <div className="max-w-3xl mx-auto py-8 text-center space-y-6">
+                            
+                            {/* Header Intro */}
+                            <div>
+                                <h2 className="text-2xl font-black text-[#171717] tracking-tight">
+                                    How can I assist your career progression today?
+                                </h2>
+                                <p className="text-xs sm:text-sm text-neutral-500 mt-1 max-w-lg mx-auto">
+                                    {resumeData 
+                                        ? `Context synchronized for ${resumeData.fileName || 'your profile'}. Ready to evaluate promotion paths, target skills, and interview strategy.`
+                                        : "Upload your resume to receive custom gap analysis, ATS score feedback, and tailored interview answers."}
+                                </p>
+                            </div>
 
-                                    {/* Message Text Bubble */}
-                                    <div 
-                                        className="advisor-msg-bubble"
-                                        style={{
-                                            wordBreak: 'break-word',
-                                            borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                                            boxShadow: msg.role === 'user' 
-                                                ? '0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)' 
-                                                : '0 10px 40px rgba(234, 88, 12, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
-                                            background: msg.role === 'user'
-                                                ? 'rgba(20, 20, 25, 0.95)'
-                                                : 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
-                                            border: msg.role === 'user'
-                                                ? '1px solid rgba(255, 255, 255, 0.08)'
-                                                : '1px solid rgba(255, 255, 255, 0.12)',
-                                            color: '#FFFFFF',
-                                            padding: '16px 20px',
-                                            fontSize: '12.5px',
-                                            lineHeight: '1.6',
-                                            maxWidth: '80%'
-                                        }}
+                            {/* Bento Grid Action Cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-2xl mx-auto text-left pt-2">
+                                {bentoModules.map((item, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => handleSendMessage(item.query)}
+                                        className="p-4 rounded-2xl bg-white hover:bg-[#FFFDFB] border border-[#D8D4CC] hover:border-[#F45B25] text-neutral-800 transition-all text-left group cursor-pointer flex flex-col justify-between"
+                                        style={{ boxShadow: 'none' }}
                                     >
-                                        {msg.role === 'user' ? (
-                                            <p style={{ margin: 0, color: '#F4F4F5' }}>{msg.text}</p>
-                                        ) : (
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                {renderMarkdown(msg.text)}
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <h4 className="text-xs font-bold text-[#171717] group-hover:text-[#F45B25] transition-colors">
+                                                    {item.title}
+                                                </h4>
+                                                <FiArrowRight size={13} className="text-neutral-400 group-hover:text-[#F45B25] group-hover:translate-x-0.5 transition-all" />
                                             </div>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-
-                        {/* Typing / Loading Indicator */}
-                        {loading && (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    marginBottom: '6px',
-                                    fontSize: '9.5px',
-                                    color: 'var(--text-muted)',
-                                    fontWeight: '700',
-                                    textTransform: 'uppercase'
-                                }}>
-                                    <div style={{
-                                        width: '18px',
-                                        height: '18px',
-                                        borderRadius: '50%',
-                                        background: 'rgba(249, 115, 22, 0.15)',
-                                        border: '1px solid rgba(249, 115, 22, 0.35)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '9px',
-                                        color: 'var(--accent-primary)'
-                                    }}>
-                                        <Cpu size={10} />
-                                    </div>
-                                    <span>Advisor is analyzing...</span>
-                                </div>
-                                <div style={{
-                                    background: 'rgba(249, 115, 22, 0.04)',
-                                    border: '1px solid rgba(249, 115, 22, 0.25)',
-                                    padding: '14px 22px',
-                                    borderRadius: '4px 16px 16px 16px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
-                                }}>
-                                    <span className="dot-pulse" style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent-primary)', borderRadius: '50%', display: 'inline-block', animation: 'bounce 1.4s infinite ease-in-out both' }} />
-                                    <span className="dot-pulse" style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent-primary)', borderRadius: '50%', display: 'inline-block', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '0.2s' }} />
-                                    <span className="dot-pulse" style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent-primary)', borderRadius: '50%', display: 'inline-block', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '0.4s' }} />
-                                </div>
+                                            <p className="text-[11px] text-neutral-500 leading-relaxed m-0">
+                                                {item.desc}
+                                            </p>
+                                        </div>
+                                    </button>
+                                ))}
                             </div>
-                        )}
+                        </div>
+                    ) : (
+                        <div className="max-w-3xl mx-auto space-y-5">
+                            <AnimatePresence initial={false}>
+                                {messages.map((msg) => (
+                                    <motion.div
+                                        key={msg.id}
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-full`}
+                                    >
+                                        <div className="flex items-center gap-1.5 mb-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                            {msg.role === 'user' ? (
+                                                <>
+                                                    <span>You</span>
+                                                    <FiUser size={10} className="text-neutral-500" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25]" />
+                                                    <span className="text-[#F45B25]">Advisor</span>
+                                                </>
+                                            )}
+                                        </div>
 
-                        {error && (
-                            <div style={{
-                                background: 'rgba(239, 68, 68, 0.08)',
-                                border: '1px solid rgba(239, 68, 68, 0.25)',
-                                color: '#fca5a5',
-                                padding: '12px 16px',
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px'
-                            }}>
-                                <Cpu size={16} className="text-red-400" />
-                                <span>{error}</span>
-                            </div>
-                        )}
-                    </div>
+                                        <div 
+                                            className={`p-4 text-xs sm:text-[13px] leading-relaxed max-w-[90%] sm:max-w-[85%] ${
+                                                msg.role === 'user'
+                                                    ? 'bg-[#171717] text-white rounded-2xl rounded-tr-xs font-normal'
+                                                    : 'bg-white border border-[#D8D4CC] text-[#171717] rounded-2xl rounded-tl-xs'
+                                            }`}
+                                            style={{ boxShadow: 'none' }}
+                                        >
+                                            {msg.role === 'user' ? (
+                                                <p className="m-0 leading-relaxed text-white whitespace-pre-wrap">{msg.text}</p>
+                                            ) : (
+                                                <div className="space-y-0.5 text-neutral-800 font-normal">
+                                                    {renderMarkdown(msg.text)}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
 
-                    {/* Chat Input Field Container */}
-                    <div className="advisor-input-area" style={{
-                        padding: '12px 28px 16px 28px',
-                        background: 'transparent',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                    }}>
+                            {/* Loading State */}
+                            {loading && (
+                                <div className="flex flex-col items-start">
+                                    <div className="flex items-center gap-1.5 mb-1 text-[10px] font-bold uppercase tracking-wider text-[#F45B25]">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-pulse" />
+                                        <span>Analyzing Profile Context...</span>
+                                    </div>
+                                    <div className="p-4 rounded-2xl rounded-tl-xs bg-white border border-[#D8D4CC] flex items-center gap-1.5" style={{ boxShadow: 'none' }}>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-bounce" style={{ animationDelay: '0ms' }} />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-bounce" style={{ animationDelay: '150ms' }} />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-bounce" style={{ animationDelay: '300ms' }} />
+                                    </div>
+                                </div>
+                            )}
+
+                            {error && (
+                                <div className="p-4 rounded-xl bg-[#FFF0E8] border border-[#F45B25]/30 text-xs font-semibold text-[#F45B25] flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-[#F45B25]" />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Fixed Bottom Input Composer */}
+                <div className="p-4 bg-white border-t border-neutral-200 shrink-0">
+                    <div className="max-w-3xl mx-auto">
                         <form 
                             onSubmit={(e) => {
                                 e.preventDefault();
                                 handleSendMessage();
                             }}
-                            className="advisor-input-wrapper"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                background: '#222226',
-                                borderRadius: '28px',
-                                padding: '6px 6px 6px 18px',
-                                transition: 'all 0.25s ease',
-                                border: isInputFocused ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid rgba(255, 255, 255, 0.05)',
-                                boxShadow: isInputFocused ? '0 8px 32px rgba(0, 0, 0, 0.3)' : 'none'
-                            }}
+                            className="flex items-center gap-2 bg-[#FAF8F5] rounded-xl p-2 border border-[#D8D4CC] focus-within:border-[#F45B25] focus-within:ring-2 focus-within:ring-[#F45B25]/15 transition-all"
                         >
-                             <input 
-                                className="advisor-input"
+                            <input 
+                                ref={inputRef}
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
-                                onFocus={() => setIsInputFocused(true)}
-                                onBlur={() => setIsInputFocused(false)}
                                 disabled={loading}
-                                placeholder={isMobile ? "Ask me anything..." : "Ask me anything about your resume, skills, or target jobs"}
-                                style={{
-                                    flex: 1,
-                                    minWidth: 0,
-                                    marginRight: '8px',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    outline: 'none',
-                                    color: '#FFFFFF',
-                                    fontSize: '14px',
-                                    padding: '8px 0',
-                                    fontWeight: '450'
-                                }}
+                                placeholder="Ask anything about role transitions, resume tailoring, or interview questions..."
+                                className="flex-1 bg-transparent border-none outline-none text-xs sm:text-sm text-[#171717] placeholder-neutral-400 font-medium px-3 py-1"
                             />
-                            
                             <button
                                 type="submit"
                                 disabled={loading || !inputValue.trim()}
-                                onMouseEnter={() => setIsSendHovered(true)}
-                                onMouseLeave={() => setIsSendHovered(false)}
-                                style={{
-                                    background: inputValue.trim() && !loading 
-                                        ? (isSendHovered ? '#f97316' : '#ea580c')
-                                        : '#ea580c',
-                                    border: 'none',
-                                    color: '#FFFFFF',
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: inputValue.trim() && !loading ? 'pointer' : 'default',
-                                    transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-                                    transform: isSendHovered && inputValue.trim() && !loading ? 'scale(1.06)' : 'scale(1)',
-                                    marginRight: '2px',
-                                    flexShrink: 0
-                                }}
+                                className="px-4 py-2 rounded-lg bg-[#F45B25] hover:bg-[#E04D1B] text-white text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                             >
-                                <Send size={13} style={{ transform: 'translateX(0.5px)' }} />
+                                <span>Send</span>
+                                <FiSend size={11} />
                             </button>
                         </form>
-                        
-                        <p style={{
-                            fontSize: '9px',
-                            color: 'var(--text-muted)',
-                            textAlign: 'center',
-                            margin: 0,
-                            letterSpacing: '0.01em',
-                            fontWeight: '500',
-                            opacity: 0.6
-                        }}>
-                            AI-generated responses can sometimes be inaccurate. Please cross-verify critical information.
+                        <p className="text-[10px] text-neutral-400 text-center mt-2 mb-0 font-medium">
+                            Press Enter to send. Responses are synthesized from your verified resume profile and target career preferences.
                         </p>
                     </div>
                 </div>
 
             </div>
+
         </div>
     );
 }

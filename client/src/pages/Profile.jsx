@@ -89,34 +89,18 @@ function PremiumToggle({ checked, onChange, label }) {
     );
 }
 
-function PremiumCard({ children, style = {}, ...props }) {
+function PremiumCard({ children, className = '', style = {}, ...props }) {
     return (
-        <Card 
+        <div 
+            className={`p-5 sm:p-6 rounded-lg bg-white border border-[#D8D4CC] ${className}`}
             style={{ 
-                position: 'relative',
-                background: 'transparent',
-                border: 'none',
                 boxShadow: 'none',
-                borderRadius: '16px',
                 ...style
             }}
             {...props}
         >
-            {/* Background with backdrop filter to prevent clipping absolute dropdowns */}
-            <div style={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: -1,
-                background: 'rgba(10, 10, 10, 0.4)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid var(--ghost-border)',
-                borderRadius: '16px',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
-                pointerEvents: 'none'
-            }} />
             {children}
-        </Card>
+        </div>
     );
 }
 
@@ -209,7 +193,7 @@ function PremiumTagInput({
     );
 }
 
-function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) {
+function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResumeAnalyzed }) {
     const navigate = useNavigate();
     // Auth State
     const [email, setEmail] = useState('');
@@ -430,263 +414,211 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
         }
     };
 
+    const isOAuthCallback = typeof window !== 'undefined' && (window.location.hash?.includes('access_token') || window.location.hash?.includes('refresh_token'));
+
+    if ((!authResolved && !session) || (!session && isOAuthCallback)) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-muted)' }}>
+                <div className="spinner primary-spinner"></div>
+            </div>
+        );
+    }
+
     if (!session || authMode === 'reset') {
         return (
-            <div className="auth-page-wrapper" style={{ position: 'relative', minHeight: '100vh' }}>
-                {/* Brand Logo in Top-Left Corner */}
-                <div 
-                    className="absolute top-6 left-6 z-50 cursor-pointer"
-                    onClick={() => navigate('/')}
-                >
-                    <img src="/logotext.svg" alt="Appliqa" height="22" style={{ display: 'block', height: '22px' }} />
-                </div>
+            <div className="auth-split-wrapper">
+                {/* Left Column: Form Centered Horizontally & Vertically */}
+                <div className="auth-split-left">
+                    <div className="auth-split-form-container">
+                        {/* Title Section */}
+                        <div style={{ marginBottom: '28px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748B', display: 'block', marginBottom: '4px' }}>
+                                {authMode === 'login' 
+                                    ? 'Welcome back' 
+                                    : authMode === 'register' 
+                                        ? 'Start your journey' 
+                                        : 'Account security'}
+                            </span>
+                            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', margin: 0 }}>
+                                {authMode === 'login' 
+                                    ? 'Sign In to Appliqa' 
+                                    : authMode === 'register' 
+                                        ? 'Sign Up to Appliqa' 
+                                        : authMode === 'forgot' 
+                                            ? 'Reset Password' 
+                                            : 'Set New Password'}
+                            </h1>
+                        </div>
 
-                <div className="auth-container" style={{ minHeight: '100vh' }}>
-                    {/* Left column: sign-in/sign-up form */}
-                    <section className="auth-form-section" style={{ paddingTop: '100px' }}>
-                    <div className="auth-form-wrapper">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                            <div>
-                                <h1 className="animate-fade-up animate-delay-100" style={{ fontSize: '42px', fontWeight: 500, letterSpacing: '-1.5px', marginBottom: '36px' }}>
-                                    {authMode === 'login' 
-                                        ? 'Welcome' 
-                                        : authMode === 'register' 
-                                            ? 'Create Account' 
-                                            : authMode === 'forgot' 
-                                                ? 'Reset Password' 
-                                                : 'Choose Password'}
-                                </h1>
-                                <p className="animate-fade-up animate-delay-200" style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.5 }}>
-                                    {authMode === 'login' 
-                                        ? "Access your account and continue your journey with us" 
-                                        : authMode === 'register'
-                                            ? "Create an account to track applications and get AI insights"
-                                            : authMode === 'forgot'
-                                                ? "Enter your email address to receive a password reset link"
-                                                : "Enter your new password below to update your account"}
-                                </p>
+                        {authError && (
+                            <div style={{ marginBottom: '20px', padding: '12px 14px', background: '#FEF2F2', color: '#DC2626', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: '1px solid #FECACA', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                <span>{authError}</span>
                             </div>
+                        )}
 
-                            <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                {authError && (
-                                    <div className="animate-fade-up" style={{ padding: '12px 16px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '12px', fontSize: '13px', border: '1px solid rgba(239, 68, 68, 0.2)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                                        {authError}
-                                    </div>
-                                )}
-
-                                {authMode !== 'reset' && (
-                                    <div className="animate-fade-up animate-delay-300">
-                                        <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Email Address</label>
-                                        <div className="premium-auth-input-wrapper">
-                                            <FiMail className="input-icon" />
-                                            <input 
-                                                type="email" 
-                                                required 
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="Enter your email address" 
-                                                className="premium-auth-input" 
-                                                disabled={authLoading}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {authMode !== 'forgot' && (
-                                    <div className="animate-fade-up animate-delay-400">
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                            <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                                                {authMode === 'reset' ? 'New Password' : 'Password'}
-                                            </label>
-                                        </div>
-                                        <div className="premium-auth-input-wrapper">
-                                            <FiLock className="input-icon" />
-                                            <input 
-                                                type={showPassword ? 'text' : 'password'} 
-                                                required 
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                placeholder={authMode === 'reset' ? 'Enter your new password' : 'Enter your password'} 
-                                                className="premium-auth-input" 
-                                                style={{ paddingRight: '48px' }}
-                                                disabled={authLoading}
-                                            />
-                                            <button 
-                                                type="button" 
-                                                onClick={() => setShowPassword(!showPassword)} 
-                                                className="password-toggle-btn"
-                                            >
-                                                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {authMode === 'login' && (
-                                    <div className="animate-fade-up animate-delay-500" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px' }}>
-                                        <label className="auth-checkbox-label">
-                                            <input type="checkbox" name="rememberMe" className="auth-checkbox" />
-                                            <span style={{ color: 'var(--text-secondary)' }}>Keep me signed in</span>
-                                        </label>
-                                        <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('forgot'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 500 }} className="hover:underline">
-                                            Reset password
-                                        </a>
-                                    </div>
-                                )}
-
-                                <button 
-                                    type="submit" 
-                                    disabled={authLoading}
-                                    className="auth-submit-btn animate-fade-up animate-delay-600"
-                                >
-                                    {authLoading ? (
-                                        <>
-                                            <span className="spinner-loader"></span> 
-                                            {authMode === 'login' 
-                                                ? 'Signing In...' 
-                                                : authMode === 'register' 
-                                                    ? 'Creating Account...' 
-                                                    : authMode === 'forgot'
-                                                        ? 'Sending Link...'
-                                                        : 'Updating Password...'}
-                                        </>
-                                    ) : (
-                                        authMode === 'login' 
-                                            ? 'Sign In' 
-                                            : authMode === 'register' 
-                                                ? 'Create Account'
-                                                : authMode === 'forgot'
-                                                    ? 'Send Reset Link'
-                                                    : 'Update Password'
-                                    )}
-                                </button>
-                            </form>
-
-                            {(authMode === 'login' || authMode === 'register') && (
-                                <>
-                                    <div className="animate-fade-up animate-delay-700" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '8px 0' }}>
-                                        <span style={{ width: '100%', borderTop: '1px solid var(--ghost-border)' }}></span>
-                                        <span style={{ padding: '0 16px', fontSize: '12px', color: 'var(--text-muted)', backgroundColor: '#000000', position: 'absolute' }}>Or continue with</span>
-                                    </div>
-
-                                    <div className="animate-fade-up animate-delay-800" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                        <button 
-                                            onClick={() => handleOAuthLogin('google')} 
+                        <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            {authMode !== 'reset' && (
+                                <div className="auth-field-wrapper">
+                                    <label className="auth-field-label">
+                                        E-mail
+                                    </label>
+                                    <div className="auth-field-box">
+                                        <input 
+                                            type="email" 
+                                            required 
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="example@email.com" 
+                                            className="auth-field-input"
                                             disabled={authLoading}
-                                            className="premium-oauth-btn"
-                                        >
-                                            <GoogleIcon />
-                                            Google
-                                        </button>
-                                        <button 
-                                            onClick={() => handleOAuthLogin('github')} 
-                                            disabled={authLoading}
-                                            className="premium-oauth-btn"
-                                        >
-                                            <FiGithub size={16} />
-                                            GitHub
-                                        </button>
+                                        />
+                                        <FiMail className="auth-field-icon" />
                                     </div>
-                                </>
+                                </div>
                             )}
 
-                            <p className="animate-fade-up animate-delay-900" style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
-                                {authMode === 'login' ? (
-                                    <>New to our platform? <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('register'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }} className="hover:underline">Create Account</a></>
-                                ) : authMode === 'register' ? (
-                                    <>Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('login'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }} className="hover:underline">Sign In</a></>
+                            {authMode !== 'forgot' && (
+                                <div className="auth-field-wrapper">
+                                    <div className="auth-field-label-row">
+                                        <label className="auth-field-label">
+                                            Password
+                                        </label>
+                                        {authMode === 'login' && (
+                                            <a 
+                                                href="#" 
+                                                onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('forgot'); }} 
+                                                className="auth-field-forgot"
+                                            >
+                                                Forgot?
+                                            </a>
+                                        )}
+                                    </div>
+                                    <div className="auth-field-box">
+                                        <input 
+                                            type={showPassword ? 'text' : 'password'} 
+                                            required 
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            placeholder="••••••••" 
+                                            className="auth-field-input"
+                                            disabled={authLoading}
+                                        />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowPassword(!showPassword)} 
+                                            className="auth-field-icon-btn"
+                                            tabIndex={-1}
+                                        >
+                                            {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {authMode === 'login' && (
+                                <div style={{ display: 'flex', alignItems: 'center', fontSize: '12px', paddingTop: '2px' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#64748B', userSelect: 'none' }}>
+                                        <input type="checkbox" name="rememberMe" style={{ accentColor: '#F45B25', cursor: 'pointer' }} />
+                                        <span>Keep me signed in</span>
+                                    </label>
+                                </div>
+                            )}
+
+                            {/* Solid Theme Button */}
+                            <button 
+                                type="submit" 
+                                disabled={authLoading}
+                                className="auth-submit-button"
+                            >
+                                {authLoading ? (
+                                    <>
+                                        <span className="spinner-loader" style={{ width: 16, height: 16, borderWidth: 2 }}></span> 
+                                        <span>
+                                            {authMode === 'login' 
+                                                ? 'Signing in...' 
+                                                : authMode === 'register' 
+                                                    ? 'Signing up...' 
+                                                    : authMode === 'forgot' 
+                                                        ? 'Sending link...' 
+                                                        : 'Updating...'}
+                                        </span>
+                                    </>
                                 ) : (
-                                    <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('login'); }} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }} className="hover:underline">
-                                        Back to Sign In
-                                    </a>
+                                    authMode === 'login' 
+                                        ? 'Sign In' 
+                                        : authMode === 'register' 
+                                            ? 'Sign Up' 
+                                            : authMode === 'forgot' 
+                                                ? 'Send Reset Link' 
+                                                : 'Update Password'
                                 )}
-                            </p>
+                            </button>
+                        </form>
+
+                        {(authMode === 'login' || authMode === 'register') && (
+                            <>
+                                <div className="auth-divider">
+                                    <div className="auth-divider-line"></div>
+                                    <span className="auth-divider-text">
+                                        {authMode === 'login' ? 'or sign in with' : 'or sign up with'}
+                                    </span>
+                                </div>
+
+                                <div className="auth-social-row">
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleOAuthLogin('google')} 
+                                        disabled={authLoading}
+                                        className="auth-social-btn"
+                                        title="Sign in with Google"
+                                    >
+                                        <GoogleIcon />
+                                        <span>Google</span>
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => handleOAuthLogin('github')} 
+                                        disabled={authLoading}
+                                        className="auth-social-btn"
+                                        title="Sign in with GitHub"
+                                    >
+                                        <FiGithub size={18} />
+                                        <span>GitHub</span>
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {/* Bottom Switcher */}
+                        <div className="auth-switcher-footer">
+                            {authMode === 'login' ? (
+                                <>Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('register'); }} className="auth-switcher-link">Sign up</a></>
+                            ) : authMode === 'register' ? (
+                                <>Have an account? <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('login'); }} className="auth-switcher-link">Sign in</a></>
+                            ) : (
+                                <a href="#" onClick={(e) => { e.preventDefault(); setAuthError(null); setAuthMode('login'); }} className="auth-switcher-link">
+                                    ← Back to Sign In
+                                </a>
+                            )}
                         </div>
                     </div>
-                </section>
+                </div>
 
-                {/* Right column: hero image + testimonials */}
-                <section className="auth-hero-section">
-                    <div className="auth-hero-image-container">
-                        <div className="auth-hero-ambient-glow"></div>
-                        <div className="auth-hero-content-wrapper">
-                            {/* Floating Mock Card 1: Match Score */}
-                            <div className="auth-mock-card match-score-card animate-fade-up">
-                                <div className="auth-mock-card-header">
-                                    <span className="auth-mock-pill">AI MATCH</span>
-                                    <span className="auth-mock-percentage">94%</span>
-                                </div>
-                                <div className="auth-mock-job-details">
-                                    <h4>Senior Frontend Engineer</h4>
-                                    <p>Vercel • San Francisco, CA</p>
-                                </div>
-                                <div className="auth-mock-skills-match">
-                                    <div className="skills-match-header">
-                                        <span>Skills Match</span>
-                                        <span>12/15 skills</span>
-                                    </div>
-                                    <div className="auth-mock-progress-bar">
-                                        <div className="auth-mock-progress-fill" style={{ width: '80%' }}></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Floating Mock Card 2: Career Roadmap */}
-                            <div className="auth-mock-card roadmap-card animate-fade-up animate-delay-200">
-                                <div className="auth-mock-card-header">
-                                    <span className="auth-mock-pill" style={{ background: 'rgba(168, 85, 247, 0.1)', color: '#c084fc', borderColor: 'rgba(168, 85, 247, 0.2)' }}>CAREER PATH</span>
-                                </div>
-                                <div className="auth-roadmap-steps">
-                                    <div className="auth-roadmap-step completed">
-                                        <div className="step-dot"></div>
-                                        <div className="step-info">
-                                            <h5>Frontend Developer</h5>
-                                            <p>Current Role</p>
-                                        </div>
-                                    </div>
-                                    <div className="auth-roadmap-step active">
-                                        <div className="step-dot"></div>
-                                        <div className="step-info">
-                                            <h5>Senior Engineer</h5>
-                                            <p>Next Step (94% ready)</p>
-                                        </div>
-                                    </div>
-                                    <div className="auth-roadmap-step future">
-                                        <div className="step-dot"></div>
-                                        <div className="step-info">
-                                            <h5>Staff Engineer / Architect</h5>
-                                            <p>Long term target</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Floating Mock Card 3: Resume ATS Optimizer */}
-                            <div className="auth-mock-card ats-card animate-fade-up animate-delay-300">
-                                <div className="auth-mock-card-header">
-                                    <span className="auth-mock-pill" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', borderColor: 'rgba(16, 185, 129, 0.2)' }}>ATS OPTIMIZER</span>
-                                    <span className="auth-mock-percentage" style={{ color: '#10b981', textShadow: '0 0 12px rgba(16, 185, 129, 0.3)' }}>88%</span>
-                                </div>
-                                <div className="auth-mock-ats-checklist" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <div className="ats-check-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12.5px', color: 'var(--text-primary)', textAlign: 'left' }}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <span>Formatting & Structure Passed</span>
-                                    </div>
-                                    <div className="ats-check-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12.5px', color: 'var(--text-primary)', textAlign: 'left' }}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                        <span>Quantifiable Achievement Found</span>
-                                    </div>
-                                    <div className="ats-check-item" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12.5px', color: 'var(--text-secondary)', textAlign: 'left' }}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                                        <span style={{ color: 'var(--text-muted)' }}>5 Missing Keywords Detected</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                {/* Right Side: Full-Bleed Editorial Fluid Artwork in Appliqa Palette */}
+                <div className="auth-split-right">
+                    <img 
+                        src="/auth-art.jpg" 
+                        alt="Appliqa Editorial Fluid Artwork" 
+                        className="w-full h-full object-cover object-center block select-none pointer-events-none"
+                    />
+                    
+                    {/* Subtle Overlay Badge / Carousel Indicators at bottom-right */}
+                    <div className="absolute bottom-8 right-8 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
+                        <div className="w-5 h-1 rounded-full bg-white"></div>
+                        <div className="w-1.5 h-1 rounded-full bg-white/40"></div>
+                        <div className="w-1.5 h-1 rounded-full bg-white/40"></div>
                     </div>
-
-                </section>
                 </div>
             </div>
         );
@@ -694,110 +626,82 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
 
     return (
         <motion.div 
-            className="main-content" 
-            style={{ maxWidth: 860, margin: '0 auto', padding: '40px 20px' }}
+            className="max-w-5xl mx-auto px-4 sm:px-6 py-8"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
         >
+            {/* ── Candidate Command Header ── */}
             <motion.div 
-                className="section-header" 
-                style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                className="bg-white rounded-lg border border-[#D8D4CC] p-5 sm:p-6 mb-6"
                 variants={cardVariants}
             >
-                <h2 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.5px' }}>
-                    Your Profile <span style={{ color: 'var(--accent-primary)', textShadow: '0 0 12px rgba(249, 115, 22, 0.2)' }}>Options</span>
-                </h2>
-                <Button 
-                    variant="ghost" 
-                    onClick={handleLogout} 
-                    style={{ 
-                        color: 'var(--text-secondary)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '8px 16px',
-                        borderRadius: '99px',
-                        border: '1px solid var(--ghost-border)',
-                        transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                        cursor: 'pointer'
-                    }}
-                    className="hover:text-red-500 hover:border-red-500/20 hover:bg-red-500/5"
-                >
-                    <FiLogOut size={16} /> Sign Out
-                </Button>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                    <div>
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <h1 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight m-0">
+                                {form.name || 'Candidate Profile'}
+                            </h1>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-[#FFF0E8] text-[#F45B25] text-[10px] font-mono font-bold uppercase tracking-wider border border-[#F45B25]/20">
+                                {form.desiredRole || 'Tech Candidate'}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-[#66615C] flex-wrap">
+                            <span>{form.email || session?.user?.email}</span>
+                            {form.location && (
+                                <>
+                                    <span className="text-[#D8D4CC]">·</span>
+                                    <span>{form.location}{form.country ? `, ${form.country}` : ''}</span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 flex-wrap">
+                        {/* On-Platform Stats Cluster */}
+                        <div className="flex items-center gap-2 bg-[#FAF8F5] p-1.5 rounded-md border border-[#D8D4CC]">
+                            <div className="px-3 py-1 text-center">
+                                <div className="text-[10px] font-mono uppercase text-[#8A8580] tracking-wider">Optimized</div>
+                                <div className="text-sm font-black text-[#171717] font-mono">{form.resumesOptimizedCount}</div>
+                            </div>
+                            <div className="w-[1px] h-6 bg-[#D8D4CC]" />
+                            <div className="px-3 py-1 text-center">
+                                <div className="text-[10px] font-mono uppercase text-[#8A8580] tracking-wider">Letters</div>
+                                <div className="text-sm font-black text-[#171717] font-mono">{form.coverLettersGeneratedCount}</div>
+                            </div>
+                            <div className="w-[1px] h-6 bg-[#D8D4CC]" />
+                            <div className="px-3 py-1 text-center">
+                                <div className="text-[10px] font-mono uppercase text-[#8A8580] tracking-wider">DMs</div>
+                                <div className="text-sm font-black text-[#171717] font-mono">{form.recruiterDmsSentCount}</div>
+                            </div>
+                        </div>
+
+                        <button 
+                            type="button"
+                            onClick={handleLogout} 
+                            className="h-9 px-3 rounded-md bg-white hover:bg-[#FAF8F5] text-[#171717] text-xs font-bold border border-[#D8D4CC] transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0"
+                            title="Sign out of your account"
+                        >
+                            <FiLogOut size={13} className="text-[#8A8580]" />
+                            <span>Sign Out</span>
+                        </button>
+                    </div>
+                </div>
             </motion.div>
 
-            <form onSubmit={handleSubmit}>
-                {/* On-Platform Stats */}
-                <motion.div variants={cardVariants} style={{ marginBottom: 24 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-                        <Card style={{ 
-                            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
-                            backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(249, 115, 22, 0.2)',
-                            borderRadius: '16px',
-                            padding: 20,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 16
-                        }}>
-                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(249, 115, 22, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
-                                <FiBriefcase size={20} />
-                            </div>
-                            <div>
-                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>Resumes Optimized</div>
-                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{form.resumesOptimizedCount}</div>
-                            </div>
-                        </Card>
-                        <Card style={{ 
-                            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
-                            backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(249, 115, 22, 0.2)',
-                            borderRadius: '16px',
-                            padding: 20,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 16
-                        }}>
-                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(249, 115, 22, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
-                                <FiBookOpen size={20} />
-                            </div>
-                            <div>
-                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>Cover Letters Generated</div>
-                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{form.coverLettersGeneratedCount}</div>
-                            </div>
-                        </Card>
-                        <Card style={{ 
-                            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(10, 10, 10, 0.4) 100%)',
-                            backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(249, 115, 22, 0.2)',
-                            borderRadius: '16px',
-                            padding: 20,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 16
-                        }}>
-                            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(249, 115, 22, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
-                                <FiMail size={20} />
-                            </div>
-                            <div>
-                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>Recruiter DMs Sent</div>
-                                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{form.recruiterDmsSentCount}</div>
-                            </div>
-                        </Card>
-                    </div>
-                </motion.div>
-
-                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+            <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* 01 // Personal Identity & Contact */}
+                <motion.div variants={cardVariants}>
                     <PremiumCard>
-                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
-                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
-                            Basic Info
-                        </h3>
+                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                                01 // PERSONAL IDENTITY & CONTACT
+                            </span>
+                        </div>
                         <div className="preferences-form">
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Full Name</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Full Name</label>
                                 <PremiumIconInput
                                     icon={FiUser}
                                     placeholder="John Doe"
@@ -806,7 +710,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Email (Read Only)</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Email Address (Read Only)</label>
                                 <PremiumIconInput
                                     icon={FiMail}
                                     type="email"
@@ -815,7 +719,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Date of Birth</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Date of Birth</label>
                                 <PremiumDatePicker
                                     value={form.dob}
                                     onChange={(val) => handleChange('dob', val)}
@@ -826,24 +730,27 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                     </PremiumCard>
                 </motion.div>
 
-                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                {/* 02 // Career Targeting & Location */}
+                <motion.div variants={cardVariants}>
                     <PremiumCard>
-                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
-                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
-                            Job Preferences
-                        </h3>
+                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                                02 // CAREER TARGETING & COMPENSATION
+                            </span>
+                        </div>
                         <div className="preferences-form">
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Desired Role</label>
+                            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Desired Target Role</label>
                                 <PremiumIconInput
                                     icon={FiBriefcase}
-                                    placeholder="e.g. Frontend Developer"
+                                    placeholder="e.g. Senior Fullstack Developer"
                                     value={form.desiredRole}
                                     onChange={(e) => handleChange('desiredRole', e.target.value)}
                                 />
                             </div>
+
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Country</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Country</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Select country" },
@@ -868,8 +775,9 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     variant="form"
                                 />
                             </div>
+
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>City / Location</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">City / Base Location</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: form.country ? 'Select city' : 'Select country first' },
@@ -883,8 +791,9 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     variant="form"
                                 />
                             </div>
+
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Experience Level</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Experience Level</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Select level" },
@@ -899,8 +808,9 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     variant="form"
                                 />
                             </div>
+
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Job Type</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Employment Type</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Any type" },
@@ -915,28 +825,62 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     variant="form"
                                 />
                             </div>
+
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Min Salary (₹)</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Min Salary</label>
                                 <PremiumIconInput
-                                    symbol="₹"
+                                    symbol={form.preferredCurrency === 'USD' ? '$' : form.preferredCurrency === 'EUR' ? '€' : form.preferredCurrency === 'GBP' ? '£' : form.preferredCurrency === 'CAD' ? 'C$' : '₹'}
                                     type="number"
-                                    placeholder="500000"
+                                    placeholder="e.g. 500000"
                                     value={form.salaryMin}
                                     onChange={(e) => handleChange('salaryMin', e.target.value)}
                                 />
                             </div>
+
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Max Salary (₹)</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Max Salary</label>
                                 <PremiumIconInput
-                                    symbol="₹"
+                                    symbol={form.preferredCurrency === 'USD' ? '$' : form.preferredCurrency === 'EUR' ? '€' : form.preferredCurrency === 'GBP' ? '£' : form.preferredCurrency === 'CAD' ? 'C$' : '₹'}
                                     type="number"
-                                    placeholder="1500000"
+                                    placeholder="e.g. 1500000"
                                     value={form.salaryMax}
                                     onChange={(e) => handleChange('salaryMax', e.target.value)}
                                 />
                             </div>
-                            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Skills</label>
+
+                            {/* Preference Toggles Row */}
+                            <div className="flex flex-wrap items-center gap-6 pt-3" style={{ gridColumn: '1 / -1' }}>
+                                <PremiumToggle
+                                    checked={form.remote}
+                                    onChange={(val) => handleChange('remote', val)}
+                                    label="Remote only"
+                                />
+                                <PremiumToggle
+                                    checked={form.willingToRelocate}
+                                    onChange={(val) => handleChange('willingToRelocate', val)}
+                                    label="Willing to relocate"
+                                />
+                                <PremiumToggle
+                                    checked={form.openToInternationalRemote}
+                                    onChange={(val) => handleChange('openToInternationalRemote', val)}
+                                    label="International Remote"
+                                />
+                            </div>
+                        </div>
+                    </PremiumCard>
+                </motion.div>
+
+                {/* 03 // Skills & Tech Ecosystem */}
+                <motion.div variants={cardVariants}>
+                    <PremiumCard>
+                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                                03 // SKILLS & TECH ECOSYSTEM
+                            </span>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="form-group">
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Core Verified Skills</label>
                                 <PremiumTagInput
                                     value={form.skills}
                                     onChange={(val) => handleChange('skills', val)}
@@ -944,75 +888,104 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     placeholder="Add skill..."
                                 />
                             </div>
-                            <div className="form-group" style={{ marginTop: 16 }}>
-                                <PremiumToggle
-                                    checked={form.remote}
-                                    onChange={(val) => handleChange('remote', val)}
-                                    label="Remote positions only"
-                                />
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="form-group">
+                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Preferred Tech Stack</label>
+                                    <PremiumTagInput
+                                        value={form.preferredTechStack}
+                                        onChange={(val) => handleChange('preferredTechStack', val)}
+                                        emptyPlaceholder="React, Node.js, etc."
+                                        placeholder="Add tech..."
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Preferred Tools & IDEs</label>
+                                    <PremiumTagInput
+                                        value={form.preferredTools}
+                                        onChange={(val) => handleChange('preferredTools', val)}
+                                        emptyPlaceholder="VS Code, Docker, etc."
+                                        placeholder="Add tool..."
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="form-group">
+                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Skills to Learn Next</label>
+                                    <PremiumTagInput
+                                        value={form.skillsToLearn}
+                                        onChange={(val) => handleChange('skillsToLearn', val)}
+                                        emptyPlaceholder="GraphQL, Rust, etc."
+                                        placeholder="Add skill..."
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Certifications Held</label>
+                                    <PremiumTagInput
+                                        value={form.certifications}
+                                        onChange={(val) => handleChange('certifications', val)}
+                                        emptyPlaceholder="AWS Solutions Architect, etc."
+                                        placeholder="Add cert..."
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                                <div className="form-group">
+                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Self-Assessed Proficiency</label>
+                                    <Dropdown
+                                        options={[
+                                            { value: "", label: "Select proficiency" },
+                                            { value: "Beginner", label: "Beginner" },
+                                            { value: "Intermediate", label: "Intermediate" },
+                                            { value: "Expert", label: "Expert" }
+                                        ]}
+                                        value={form.skillsProficiency}
+                                        onChange={(val) => handleChange('skillsProficiency', val)}
+                                        placeholder="Select proficiency"
+                                        variant="form"
+                                    />
+                                </div>
+                                <div className="form-group flex items-end pb-1">
+                                    <PremiumToggle
+                                        checked={form.openToBootcamps}
+                                        onChange={(val) => handleChange('openToBootcamps', val)}
+                                        label="Open to bootcamps & online degrees"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </PremiumCard>
                 </motion.div>
 
-                {/* Salary & Relocation Settings */}
-                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                {/* 04 // Career Status & Education */}
+                <motion.div variants={cardVariants}>
                     <PremiumCard>
-                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
-                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
-                            Salary & Relocation Settings
-                        </h3>
-                        <div className="preferences-form">
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Current Salary</label>
-                                <PremiumIconInput
-                                    symbol={form.preferredCurrency === 'USD' ? '$' : form.preferredCurrency === 'EUR' ? '€' : form.preferredCurrency === 'GBP' ? '£' : form.preferredCurrency === 'CAD' ? 'C$' : '₹'}
-                                    type="number"
-                                    placeholder="e.g. 80000"
-                                    value={form.currentSalary}
-                                    onChange={(e) => handleChange('currentSalary', e.target.value)}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Target Salary</label>
-                                <PremiumIconInput
-                                    symbol={form.preferredCurrency === 'USD' ? '$' : form.preferredCurrency === 'EUR' ? '€' : form.preferredCurrency === 'GBP' ? '£' : form.preferredCurrency === 'CAD' ? 'C$' : '₹'}
-                                    type="number"
-                                    placeholder="e.g. 120000"
-                                    value={form.targetSalary}
-                                    onChange={(e) => handleChange('targetSalary', e.target.value)}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Target Cities</label>
-                                <PremiumIconInput
-                                    icon={FiGlobe}
-                                    placeholder="e.g. Bangalore, Mumbai, Delhi, Kolkata"
-                                    value={form.targetCities}
-                                    onChange={(e) => handleChange('targetCities', e.target.value)}
-                                />
-                            </div>
-                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: 32 }}>
-                                <PremiumToggle
-                                    checked={form.willingToRelocate}
-                                    onChange={(val) => handleChange('willingToRelocate', val)}
-                                    label="Willing to relocate for work"
-                                />
-                            </div>
+                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                                04 // CAREER STATUS & EDUCATION
+                            </span>
                         </div>
-                    </PremiumCard>
-                </motion.div>
-
-                {/* Career Status & Urgency */}
-                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
-                    <PremiumCard>
-                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
-                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
-                            Career Status & Urgency
-                        </h3>
                         <div className="preferences-form">
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Education / Professional Status</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Job Search Urgency</label>
+                                <Dropdown
+                                    options={[
+                                        { value: "", label: "Select urgency" },
+                                        { value: "Actively looking (Ready to interview/start immediately)", label: "Actively looking (Ready to start)" },
+                                        { value: "Open to opportunities (Passive search)", label: "Open to opportunities" },
+                                        { value: "Just browsing (Not looking)", label: "Just browsing / Not looking" }
+                                    ]}
+                                    value={form.jobSearchUrgency}
+                                    onChange={(val) => handleChange('jobSearchUrgency', val)}
+                                    placeholder="Select urgency"
+                                    variant="form"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Professional / Academic Status</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Select status" },
@@ -1034,26 +1007,10 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Job Search Urgency</label>
-                                <Dropdown
-                                    options={[
-                                        { value: "", label: "Select urgency" },
-                                        { value: "Actively looking (Ready to interview/start immediately)", label: "Actively looking (Ready to start)" },
-                                        { value: "Open to opportunities (Passive search)", label: "Open to opportunities" },
-                                        { value: "Just browsing (Not looking)", label: "Just browsing / Not looking" }
-                                    ]}
-                                    value={form.jobSearchUrgency}
-                                    onChange={(val) => handleChange('jobSearchUrgency', val)}
-                                    placeholder="Select urgency"
-                                    variant="form"
-                                />
-                            </div>
-
                             {form.educationStatus === "College/University Student" && (
                                 <>
                                     <div className="form-group">
-                                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>College Course / Major</label>
+                                        <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">College Course / Major</label>
                                         <PremiumIconInput
                                             icon={FiBookOpen}
                                             placeholder="e.g. B.Tech Computer Science"
@@ -1062,7 +1019,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Expected Graduation Year</label>
+                                        <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Expected Graduation Year</label>
                                         <PremiumIconInput
                                             icon={FiCalendar}
                                             type="number"
@@ -1073,90 +1030,19 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     </div>
                                 </>
                             )}
-                        </div>
-                    </PremiumCard>
-                </motion.div>
 
-                {/* Upskilling & Tooling Preferences */}
-                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
-                    <PremiumCard>
-                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
-                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
-                            Upskilling & Tooling Preferences
-                        </h3>
-                        <div className="preferences-form">
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Certifications Held</label>
-                                <PremiumTagInput
-                                    value={form.certifications}
-                                    onChange={(val) => handleChange('certifications', val)}
-                                    emptyPlaceholder="Type certification and press Enter..."
-                                    placeholder="Add certification..."
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Target Cities</label>
+                                <PremiumIconInput
+                                    icon={FiGlobe}
+                                    placeholder="e.g. Bangalore, Mumbai, Remote"
+                                    value={form.targetCities}
+                                    onChange={(e) => handleChange('targetCities', e.target.value)}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Skills You Want to Learn Next</label>
-                                <PremiumTagInput
-                                    value={form.skillsToLearn}
-                                    onChange={(val) => handleChange('skillsToLearn', val)}
-                                    emptyPlaceholder="Type skill to learn and press Enter..."
-                                    placeholder="Add skill..."
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Self-Assessed Skill Level</label>
-                                <Dropdown
-                                    options={[
-                                        { value: "", label: "Select proficiency level" },
-                                        { value: "Beginner", label: "Beginner" },
-                                        { value: "Intermediate", label: "Intermediate" },
-                                        { value: "Expert", label: "Expert" }
-                                    ]}
-                                    value={form.skillsProficiency}
-                                    onChange={(val) => handleChange('skillsProficiency', val)}
-                                    placeholder="Select level"
-                                    variant="form"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Preferred Tech Stack</label>
-                                <PremiumTagInput
-                                    value={form.preferredTechStack}
-                                    onChange={(val) => handleChange('preferredTechStack', val)}
-                                    emptyPlaceholder="Type tech/framework and press Enter..."
-                                    placeholder="Add tech..."
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Preferred Tools & IDEs</label>
-                                <PremiumTagInput
-                                    value={form.preferredTools}
-                                    onChange={(val) => handleChange('preferredTools', val)}
-                                    emptyPlaceholder="Type tool/IDE and press Enter..."
-                                    placeholder="Add tool..."
-                                />
-                            </div>
-                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: 32 }}>
-                                <PremiumToggle
-                                    checked={form.openToBootcamps}
-                                    onChange={(val) => handleChange('openToBootcamps', val)}
-                                    label="Open to coding bootcamps / online degrees"
-                                />
-                            </div>
-                        </div>
-                    </PremiumCard>
-                </motion.div>
 
-                {/* Work & Currency Preferences */}
-                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
-                    <PremiumCard>
-                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
-                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
-                            Work & Pay Preferences
-                        </h3>
-                        <div className="preferences-form">
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Preferred Currency</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Preferred Currency</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Select currency" },
@@ -1172,28 +1058,21 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                     variant="form"
                                 />
                             </div>
-
-                            <div className="form-group" style={{ display: 'flex', alignItems: 'center', marginTop: 32 }}>
-                                <PremiumToggle
-                                    checked={form.openToInternationalRemote}
-                                    onChange={(val) => handleChange('openToInternationalRemote', val)}
-                                    label="Open to International Remote positions"
-                                />
-                            </div>
                         </div>
                     </PremiumCard>
                 </motion.div>
 
-                {/* Professional Links */}
-                <motion.div variants={cardVariants} className="profile-card-wrapper" style={{ marginBottom: 24 }}>
+                {/* 05 // Portfolio & Profiles */}
+                <motion.div variants={cardVariants}>
                     <PremiumCard>
-                        <h3 style={{ marginBottom: 24, fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
-                            <span style={{ width: '3px', height: '16px', background: 'var(--accent-primary)', borderRadius: '2px', display: 'inline-block' }}></span>
-                            Professional Links
-                        </h3>
+                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                                05 // PORTFOLIO & PROFILES
+                            </span>
+                        </div>
                         <div className="preferences-form">
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>LinkedIn Profile</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">LinkedIn URL</label>
                                 <PremiumIconInput
                                     icon={FiLinkedin}
                                     placeholder="https://linkedin.com/in/username"
@@ -1202,7 +1081,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>GitHub Profile</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">GitHub Profile</label>
                                 <PremiumIconInput
                                     icon={FiGithub}
                                     placeholder="https://github.com/username"
@@ -1211,7 +1090,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Behance Portfolio</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Behance Portfolio</label>
                                 <PremiumIconInput
                                     icon={FiGlobe}
                                     placeholder="https://behance.net/username"
@@ -1220,7 +1099,7 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                                 />
                             </div>
                             <div className="form-group">
-                                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 8, display: 'block' }}>Personal Website</label>
+                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Personal Website</label>
                                 <PremiumIconInput
                                     icon={FiGlobe}
                                     placeholder="https://yourwebsite.com"
@@ -1232,51 +1111,52 @@ function Profile({ user, session, onUpdateUser, resumeData, onResumeAnalyzed }) 
                     </PremiumCard>
                 </motion.div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 32, borderTop: '1px solid var(--ghost-border)', paddingTop: 24 }}>
-                    <motion.button
-                        type="submit"
-                        disabled={saving}
-                        whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(249, 115, 22, 0.2)" }}
-                        whileTap={{ scale: 0.98 }}
-                        className="btn btn-primary"
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            transition: 'background 0.3s ease, border-color 0.3s ease'
-                        }}
-                    >
+                {/* ── Save Bar ── */}
+                <div className="flex items-center justify-between gap-4 pt-4 pb-2">
+                    <div className="text-xs text-[#66615C]">
                         {saved ? (
-                            <motion.span initial={{ scale: 0.8 }} animate={{ scale: 1 }} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <FiCheck size={16} /> Saved!
-                            </motion.span>
-                        ) : saving ? (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <motion.span
-                                    animate={{ rotate: 360 }}
-                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                    style={{ display: 'inline-block' }}
-                                >
-                                    <FiSave size={16} />
-                                </motion.span>
-                                Saving...
+                            <span className="text-emerald-600 font-bold inline-flex items-center gap-1.5">
+                                <FiCheck size={14} /> Profile settings successfully synced!
                             </span>
                         ) : (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <FiSave size={16} /> Save Profile
+                            <span>All profile changes automatically update your match algorithms.</span>
+                        )}
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="h-10 px-6 rounded-md bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 border-none shrink-0"
+                    >
+                        {saving ? (
+                            <span className="inline-flex items-center gap-1.5">
+                                <FiSave size={14} className="animate-spin" /> Saving...
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1.5">
+                                <FiSave size={14} /> Save Profile Changes
                             </span>
                         )}
-                    </motion.button>
+                    </button>
                 </div>
             </form>
 
-            <motion.div variants={cardVariants} style={{ marginTop: 40 }}>
-                <div className="section-header" style={{ marginBottom: 24 }}>
-                    <h2 style={{ fontSize: 20, fontWeight: 600 }}>Your Resume</h2>
+            {/* ── Dedicated Full-Width Synchronized Resume Section ── */}
+            <motion.div variants={cardVariants} className="mt-14 pt-10 border-t border-[#D8D4CC]">
+                <div className="mb-6">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-1">
+                        AI RESUME PROFILE
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight m-0">
+                        Synchronized Resume Intelligence
+                    </h2>
+                    <p className="text-xs text-[#66615C] mt-1">
+                        Live extracted skills, experience record, and career trajectory synced with your candidate profile.
+                    </p>
                 </div>
                 <ResumeUpload
                     onResumeAnalyzed={onResumeAnalyzed}
                     existingData={resumeData}
+                    user={user}
                 />
             </motion.div>
         </motion.div>

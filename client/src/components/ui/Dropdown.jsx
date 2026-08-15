@@ -40,7 +40,7 @@ export function Dropdown({
             ref={containerRef} 
             className={`relative inline-block ${className} ${disabled ? 'opacity-50 pointer-events-none' : ''} ${
                 variant === 'form' ? 'w-full' : ''
-            }`}
+            } ${isOpen ? 'z-[999]' : 'z-auto'}`}
         >
             <button
                 type="button"
@@ -72,11 +72,11 @@ export function Dropdown({
                         boxSizing: 'border-box',
                         width: '100%'
                     } : {
-                        height: '38px',
-                        padding: '0 16px',
-                        borderRadius: '99px',
-                        fontSize: '13px',
-                        fontWeight: 500,
+                        height: '32px',
+                        padding: '0 10px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
                         fontFamily: 'inherit',
                         boxSizing: 'border-box'
                     }
@@ -88,7 +88,7 @@ export function Dropdown({
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center justify-center flex-shrink-0"
                 >
-                    <FiChevronDown size={14} className={hasValue ? 'text-orange-500' : 'text-zinc-400'} />
+                    <FiChevronDown size={13} className={hasValue ? 'text-[#F45B25]' : 'text-[#8A8580]'} />
                 </motion.div>
             </button>
 
@@ -99,13 +99,13 @@ export function Dropdown({
                         initial={{ opacity: 0, y: direction === 'up' ? 8 : -8, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: direction === 'up' ? 8 : -8, scale: 0.96 }}
-                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                        transition={{ duration: 0.15, ease: 'easeOut' }}
                         className={`dropdown-menu-custom absolute ${
                             direction === 'up' ? 'bottom-[calc(100%+0.5rem)]' : 'top-[calc(100%+0.5rem)]'
-                        } z-50 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/95 backdrop-filter backdrop-blur-xl shadow-2xl p-1 ${
-                            variant === 'form' ? 'w-full left-0 translate-x-0' : 'min-w-full left-1/2 -translate-x-1/2'
+                        } z-[999] overflow-hidden rounded-xl border border-neutral-200/90 bg-white shadow-2xl p-1.5 ${
+                            variant === 'form' ? 'w-full left-0 translate-x-0' : 'min-w-full left-0 translate-x-0 sm:left-1/2 sm:-translate-x-1/2'
                         }`}
-                        style={variant === 'form' ? {} : { width: 'max-content' }}
+                        style={variant === 'form' ? {} : { minWidth: '140px', width: 'max-content' }}
                     >
                         <div className="flex flex-col gap-0.5 max-h-60 overflow-y-auto">
                             {options.map((option, index) => {
@@ -117,10 +117,10 @@ export function Dropdown({
                                         role="option"
                                         aria-selected={isSelected}
                                         onClick={() => handleSelect(option.value)}
-                                        className={`w-full text-left px-4 py-2 text-xs rounded-lg transition-all duration-150 border-0 ${
+                                        className={`w-full text-left px-3.5 py-2 text-xs rounded-lg transition-all duration-150 border-0 cursor-pointer ${
                                             isSelected 
-                                                ? 'bg-orange-500/10 text-orange-500 font-semibold' 
-                                                : 'bg-transparent text-zinc-400 hover:bg-zinc-900/60 hover:text-white'
+                                                ? 'bg-[#FFF0E8] text-[#F45B25] font-bold' 
+                                                : 'bg-transparent text-[#171717] hover:bg-[#F7F5F2] font-medium'
                                         }`}
                                     >
                                         {option.label}

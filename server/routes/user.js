@@ -365,21 +365,25 @@ router.get('/history', requireAuth, async (req, res) => {
   }
 });
 
-// Delete search history entries for active user by query
+// Delete search history entries for active user (specific query or ALL)
 router.delete('/history', requireAuth, async (req, res) => {
   try {
     const query = req.query.query || req.body.query;
-    if (!query) {
-      return res.status(400).json({ error: 'Query parameter is required' });
-    }
-    const { error } = await supabase
+    const clearAll = req.query.all === 'true' || query === '__all__' || query === 'ALL' || !query;
+
+    let supabaseQuery = supabase
       .from('search_history')
       .delete()
-      .eq('query', query)
       .eq('user_id', req.user.id);
 
+    if (!clearAll && query) {
+      const cleanQuery = query.trim();
+      supabaseQuery = supabaseQuery.ilike('query', cleanQuery);
+    }
+
+    const { error } = await supabaseQuery;
     if (error) throw error;
-    res.json({ success: true });
+    res.json({ success: true, clearedAll: clearAll });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

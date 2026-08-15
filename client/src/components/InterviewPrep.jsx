@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiCopy, FiCheck, FiZap, FiBookOpen, FiTarget, FiMessageCircle } from 'react-icons/fi';
+import { FiX, FiCopy, FiCheck, FiVideo, FiBookOpen, FiTarget, FiMessageCircle, FiAward } from 'react-icons/fi';
 import { generateInterviewPrep, saveInterviewPrep } from '../services/api';
 
 function InterviewPrep({ job, user, resumeData, onClose }) {
@@ -92,34 +92,40 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const typeColors = {
-        behavioral: { bg: 'rgba(234, 88, 12, 0.08)', border: 'rgba(234, 88, 12, 0.25)', color: '#ff7c33' },
-        technical: { bg: 'rgba(249, 115, 22, 0.1)', border: 'rgba(249, 115, 22, 0.25)', color: '#f97316' },
-        situational: { bg: 'rgba(253, 186, 116, 0.08)', border: 'rgba(253, 186, 116, 0.25)', color: '#fdba74' }
-    };
-
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 720 }}>
-                <button className="modal-close" onClick={onClose}><FiX /></button>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }}>
+                <button className="modal-close" onClick={onClose} aria-label="Close modal">
+                    <FiX size={15} />
+                </button>
 
                 {/* Header */}
-                <div className="modal-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-                        <div style={{ background: 'rgba(249, 115, 22, 0.15)', borderRadius: 10, padding: 10, display: 'flex', flexShrink: 0 }}>
-                            <FiZap size={20} color="#f97316" />
+                <div className="modal-header pb-4 border-b border-neutral-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-md bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center flex-shrink-0 border border-[#F45B25]/20">
+                            <FiVideo size={20} />
                         </div>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                            <h2 style={{ fontSize: 20, margin: 0, whiteSpace: 'normal', wordBreak: 'break-word' }}>Interview Prep</h2>
-                            <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 2, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                                {job.title} at {job.company}
-                            </div>
+                        <div className="min-w-0 flex-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#F45B25] block mb-0.5 font-mono">
+                                [ AI Interview Copilot ]
+                            </span>
+                            <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight leading-tight m-0">
+                                Interview Prep & STAR Guide
+                            </h2>
+                            <p className="text-xs text-neutral-500 font-medium mt-1 truncate">
+                                {job.title} <span className="text-neutral-300">·</span> {job.company}
+                            </p>
                         </div>
                     </div>
+
                     {prepData && !loading && (
-                        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                            <button className="btn btn-secondary btn-sm" onClick={handleCopyAll} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px' }}>
-                                {copied ? <><FiCheck size={12} /> Copied!</> : <><FiCopy size={12} /> Copy All</>}
+                        <div className="mt-4 flex items-center gap-2">
+                            <button 
+                                onClick={handleCopyAll}
+                                className="h-8 px-3.5 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-[#171717] text-xs font-bold border border-[#D8D4CC] flex items-center gap-1.5 cursor-pointer transition-all"
+                                style={{ boxShadow: 'none' }}
+                            >
+                                {copied ? <><FiCheck size={13} className="text-emerald-600" /> Copied All</> : <><FiCopy size={13} /> Copy All</>}
                             </button>
                         </div>
                     )}
@@ -127,165 +133,144 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
 
                 {/* Loading */}
                 {loading && (
-                    <div style={{ textAlign: 'center', padding: '48px 20px' }}>
-                        <div className="spinner" style={{ margin: '0 auto 16px', width: 32, height: 32 }} />
-                        <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Generating your personalized interview prep...</p>
-                        <p style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>This may take a moment</p>
+                    <div className="text-center py-16 px-4">
+                        <div className="w-10 h-10 border-3 border-neutral-200 border-t-[#F45B25] rounded-full animate-spin mx-auto mb-4" />
+                        <h3 className="text-base font-bold text-[#171717]">Generating your tailored interview prep...</h3>
+                        <p className="text-xs text-neutral-500 mt-1">Analyzing candidate resume synergies, behavioral STAR questions, and technical topics.</p>
                     </div>
                 )}
 
                 {/* Content */}
                 {prepData && !loading && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 24 }}>
+                    <div className="space-y-6 pt-5">
 
                         {/* Questions */}
                         {prepData.questions?.length > 0 && (
-                            <div className="ui-card prep-section-card">
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: 16, fontWeight: 700 }}>
-                                    <FiMessageCircle size={18} color="#f97316" /> Likely Questions
-                                </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                                    {prepData.questions.map((q, i) => {
-                                        const colors = typeColors[q.type] || typeColors.behavioral;
-                                        return (
-                                            <div key={i} className="prep-question-card">
-                                                {/* Header with tag */}
-                                                <div className="prep-question-header">
-                                                    <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.45 }}>
-                                                        {i + 1}. {q.question}
-                                                    </span>
-                                                    <span style={{
-                                                        fontSize: 10, 
-                                                        fontWeight: 600,
-                                                        letterSpacing: '0.03em',
-                                                        textTransform: 'uppercase',
-                                                        padding: '4px 10px', 
-                                                        borderRadius: 8,
-                                                        background: colors.bg, 
-                                                        border: `1px solid ${colors.border}`,
-                                                        color: colors.color, 
-                                                        whiteSpace: 'nowrap', 
-                                                        flexShrink: 0
-                                                    }}>
-                                                        {q.type}
-                                                    </span>
-                                                </div>
- 
-                                                {/* Talking Points */}
-                                                {q.talkingPoints?.length > 0 && (
-                                                    <div style={{ marginTop: 4 }}>
-                                                        <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
-                                                            Key talking points
-                                                        </div>
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                                            {q.talkingPoints.map((tp, j) => (
-                                                                <div key={j} style={{ 
-                                                                    fontSize: 13, 
-                                                                    color: 'var(--text-secondary)', 
-                                                                    paddingLeft: 12, 
-                                                                    borderLeft: '2px solid rgba(249, 115, 22, 0.3)',
-                                                                    lineHeight: 1.4
-                                                                }}>
-                                                                    {tp}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
- 
-                                                {/* Sample Answer Box */}
-                                                {q.sampleAnswer && (
-                                                    <div style={{ 
-                                                        marginTop: 6, 
-                                                        background: 'rgba(249, 115, 22, 0.04)', 
-                                                        borderRadius: 10, 
-                                                        padding: '12px 16px',
-                                                        borderLeft: '3px solid #ea580c',
-                                                        borderTop: '1px solid rgba(249, 115, 22, 0.08)',
-                                                        borderRight: '1px solid rgba(249, 115, 22, 0.08)',
-                                                        borderBottom: '1px solid rgba(249, 115, 22, 0.08)',
-                                                    }}>
-                                                        <div style={{ 
-                                                            fontSize: 10, 
-                                                            fontWeight: 800, 
-                                                            color: '#ff7c33', 
-                                                            textTransform: 'uppercase', 
-                                                            letterSpacing: '0.06em',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: 5,
-                                                            marginBottom: 6
-                                                        }}>
-                                                            <span>💡</span> Suggested Answer Framework
-                                                        </div>
-                                                        <div style={{ 
-                                                            fontSize: 13.5, 
-                                                            color: 'var(--text-secondary)', 
-                                                            lineHeight: 1.5,
-                                                            fontStyle: 'italic'
-                                                        }}>
-                                                            "{q.sampleAnswer}"
-                                                        </div>
-                                                    </div>
-                                                )}
+                            <div>
+                                <div className="flex items-center gap-2 mb-3.5">
+                                    <div className="w-1 h-3.5 bg-[#F45B25] rounded-full" />
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
+                                        <FiMessageCircle size={14} className="text-[#F45B25]" /> Likely Questions & STAR Frameworks
+                                    </h3>
+                                </div>
+
+                                <div className="space-y-3.5">
+                                    {prepData.questions.map((q, i) => (
+                                        <div key={i} className="bg-white rounded-lg p-5 border border-[#D8D4CC] transition-all">
+                                            {/* Header with tag */}
+                                            <div className="flex items-start justify-between gap-3 mb-3">
+                                                <h4 className="text-sm sm:text-base font-bold text-[#171717] leading-snug m-0">
+                                                    {i + 1}. {q.question}
+                                                </h4>
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E8] text-[#F45B25] border border-[#F45B25]/20 shrink-0 font-mono">
+                                                    {q.type || 'Behavioral'}
+                                                </span>
                                             </div>
-                                        );
-                                    })}
+
+                                            {/* Talking Points */}
+                                            {q.talkingPoints?.length > 0 && (
+                                                <div className="mb-3">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono block mb-1.5">
+                                                        Key Talking Points
+                                                    </span>
+                                                    <div className="pl-3 border-l-2 border-[#D8D4CC] space-y-1">
+                                                        {q.talkingPoints.map((tp, j) => (
+                                                            <p key={j} className="text-xs sm:text-[13px] text-neutral-700 leading-relaxed m-0 font-normal">
+                                                                {tp}
+                                                            </p>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Sample Answer Box */}
+                                            {q.sampleAnswer && (
+                                                <div className="bg-[#FAF8F5] rounded-md p-3.5 border border-[#D8D4CC] border-l-3 border-l-[#F45B25] mt-2.5">
+                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#F45B25] font-mono mb-1 flex items-center gap-1.5">
+                                                        <span>💡</span> Suggested Answer Framework
+                                                    </div>
+                                                    <p className="text-xs sm:text-[13px] text-neutral-800 leading-relaxed font-normal italic m-0">
+                                                        "{q.sampleAnswer}"
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
- 
+
                         {/* Technical Topics */}
                         {prepData.technicalTopics?.length > 0 && (
-                            <div className="ui-card prep-section-card-sm">
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontSize: 15 }}>
-                                    <FiBookOpen size={16} color="#f97316" /> Technical Topics to Review
-                                </h3>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            <div>
+                                <div className="flex items-center gap-2 mb-3.5">
+                                    <div className="w-1 h-3.5 bg-[#F45B25] rounded-full" />
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
+                                        <FiBookOpen size={14} className="text-[#F45B25]" /> Technical Concepts to Review
+                                    </h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {prepData.technicalTopics.map((t, i) => (
-                                        <div key={i} className="prep-topic-item">
-                                            <span style={{
-                                                fontSize: 11, padding: '2px 8px', borderRadius: 6, flexShrink: 0, marginTop: 2,
-                                                background: t.importance === 'high' ? 'rgba(234, 88, 12, 0.12)' : 'rgba(253, 186, 116, 0.08)',
-                                                color: t.importance === 'high' ? '#ff7c33' : '#fdba74',
-                                                border: `1px solid ${t.importance === 'high' ? 'rgba(234, 88, 12, 0.3)' : 'rgba(253, 186, 116, 0.2)'}`
-                                            }}>
-                                                {t.importance}
-                                            </span>
+                                        <div key={i} className="bg-white rounded-lg p-4 border border-[#D8D4CC] flex flex-col justify-between">
                                             <div>
-                                                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{t.topic}</div>
-                                                <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 2 }}>{t.reviewTips}</div>
+                                                <div className="flex items-center justify-between gap-2 mb-1.5">
+                                                    <h4 className="text-xs sm:text-sm font-bold text-[#171717] m-0 truncate">
+                                                        {t.topic}
+                                                    </h4>
+                                                    <span className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold uppercase tracking-wider shrink-0 ${
+                                                        t.importance === 'high' 
+                                                            ? 'bg-[#171717] text-white' 
+                                                            : 'bg-neutral-100 text-neutral-600 border border-neutral-200'
+                                                    }`}>
+                                                        {t.importance}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-neutral-600 leading-relaxed m-0 font-normal">
+                                                    {t.reviewTips}
+                                                </p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
- 
-                        {/* Company Insights + Tips in a two-column layout */}
-                        <div className="prep-insights-grid">
+
+                        {/* Company Insights + Tips */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {prepData.companyInsights?.length > 0 && (
-                                <div className="ui-card prep-section-card-sm">
-                                    <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 15 }}>
-                                        <FiTarget size={16} color="#f97316" /> Company Insights
-                                    </h3>
-                                    {prepData.companyInsights.map((c, i) => (
-                                        <div key={i} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, paddingLeft: 12, borderLeft: '2px solid rgba(249, 115, 22, 0.3)' }}>
-                                            {c}
-                                        </div>
-                                    ))}
+                                <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="w-1 h-3 bg-[#F45B25] rounded-full" />
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
+                                            <FiTarget size={14} className="text-[#F45B25]" /> Company Insights
+                                        </h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {prepData.companyInsights.map((c, i) => (
+                                            <div key={i} className="text-xs text-neutral-700 pl-2.5 border-l-2 border-[#D8D4CC] leading-relaxed">
+                                                {c}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
+
                             {prepData.tips?.length > 0 && (
-                                <div className="ui-card prep-section-card-sm">
-                                    <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 15 }}>
-                                        <FiZap size={16} color="#f97316" /> Pro Tips
-                                    </h3>
-                                    {prepData.tips.map((t, i) => (
-                                        <div key={i} style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, paddingLeft: 12, borderLeft: '2px solid rgba(249, 115, 22, 0.3)' }}>
-                                            {t}
-                                        </div>
-                                    ))}
+                                <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="w-1 h-3 bg-[#F45B25] rounded-full" />
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
+                                            <FiAward size={14} className="text-[#F45B25]" /> Interview Pro Tips
+                                        </h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {prepData.tips.map((t, i) => (
+                                            <div key={i} className="text-xs text-neutral-700 pl-2.5 border-l-2 border-[#F45B25]/40 leading-relaxed">
+                                                {t}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>

@@ -1,26 +1,22 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiArrowRight, FiZap } from 'react-icons/fi';
 import { searchJobs, getSavedJobs } from '../services/api';
 import JobCard from './JobCard';
 import JobDetail from './JobDetail';
 
 function RecommendedJobs({ user, resumeData }) {
+    const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [savedJobs, setSavedJobs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
-    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false);
 
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 1024);
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
     const profileRole = user?.preferences?.desiredRole;
     const resumeRole = resumeData?.suggestedRoles?.[0];
-    const targetRole = profileRole || resumeRole;
+    const targetRole = profileRole || resumeRole || 'React Developer';
     const userLocation = user?.preferences?.location;
+    const isPersonalized = Boolean(profileRole || resumeRole);
 
     useEffect(() => {
         if (user) {
@@ -33,8 +29,6 @@ function RecommendedJobs({ user, resumeData }) {
     }, [user]);
 
     useEffect(() => {
-        if (!targetRole) return;
-
         // If the user has a location preference, append it to the search
         const searchQuery = userLocation ? `${targetRole} in ${userLocation}` : targetRole;
         const cacheKey = `appliqa_recs_${searchQuery.replace(/\s+/g, '_')}`;
@@ -42,8 +36,12 @@ function RecommendedJobs({ user, resumeData }) {
         const fetchRecs = async () => {
             const cached = sessionStorage.getItem(cacheKey);
             if (cached) {
-                setJobs(JSON.parse(cached));
-                return;
+                try {
+                    setJobs(JSON.parse(cached));
+                    return;
+                } catch {
+                    // ignore parse error
+                }
             }
 
             setLoading(true);
@@ -51,7 +49,9 @@ function RecommendedJobs({ user, resumeData }) {
                 const res = await searchJobs({ query: searchQuery, page: 1 });
                 const fetchedJobs = (res.data.jobs || []).slice(0, 3);
                 setJobs(fetchedJobs);
-                sessionStorage.setItem(cacheKey, JSON.stringify(fetchedJobs));
+                if (fetchedJobs.length > 0) {
+                    sessionStorage.setItem(cacheKey, JSON.stringify(fetchedJobs));
+                }
             } catch (err) {
                 console.error("Failed to fetch recommended jobs", err);
             } finally {
@@ -60,34 +60,59 @@ function RecommendedJobs({ user, resumeData }) {
         };
 
         fetchRecs();
-    }, [targetRole]);
-
-    if (!targetRole) {
-        return null;
-    }
+    }, [targetRole, userLocation]);
 
     return (
-        <div className="page-section" style={{ marginTop: 60 }}>
-            <div 
-                className="section-header"
-                style={{
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    alignItems: isMobile ? 'flex-start' : 'baseline',
-                    gap: isMobile ? 8 : 12,
-                    marginBottom: 24
-                }}
-            >
-                <h2>Recommended For You</h2>
-                <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-                    Based on your {profileRole ? 'profile preference' : 'resume role'}: <span style={{ color: 'var(--accent-primary)' }}>{targetRole} {userLocation && ` in ${userLocation}`}</span>
-                </p>
+        <section className="w-full mb-24">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+                <div>
+                    <p className="text-xs tracking-widest uppercase mb-1 font-bold text-[#F45B25]">
+                        [ Live Opportunities ]
+                    </p>
+                    <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#171717]">
+                        High-Match Career Openings
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#66615C] mt-1 font-medium">
+                        {isPersonalized ? (
+                            <>
+                                Tailored for your profile: <span className="text-[#F45B25] font-bold">{targetRole} {userLocation && `· ${userLocation}`}</span>
+                            </>
+                        ) : (
+                            <>Live verified tech openings synced in real-time</>
+                        )}
+                    </p>
+                </div>
+                <button
+                    onClick={() => navigate(`/search?query=${encodeURIComponent(targetRole)}`)}
+                    className="text-xs font-bold text-[#F45B25] hover:underline bg-transparent border-none cursor-pointer inline-flex items-center gap-1.5"
+                >
+                    View All Opportunities <FiArrowRight size={14} />
+                </button>
             </div>
 
+            {/* Content */}
             {loading ? (
-                <div className="loading-spinner"><div className="spinner" /></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-white rounded-2xl p-6 border border-neutral-200/80 animate-pulse h-56 flex flex-col justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-xl bg-neutral-200" />
+                                <div className="space-y-2 flex-1">
+                                    <div className="h-4 bg-neutral-200 rounded w-3/4" />
+                                    <div className="h-3 bg-neutral-100 rounded w-1/2" />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="h-3 bg-neutral-100 rounded w-full" />
+                                <div className="h-3 bg-neutral-100 rounded w-2/3" />
+                            </div>
+                            <div className="h-9 bg-neutral-200 rounded-xl w-full" />
+                        </div>
+                    ))}
+                </div>
             ) : jobs.length > 0 ? (
-                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {jobs.map((job, i) => {
                         const isSaved = savedJobs.some(sj => sj.jobId === job.id);
                         const savedId = savedJobs.find(sj => sj.jobId === job.id)?._id;
@@ -111,9 +136,19 @@ function RecommendedJobs({ user, resumeData }) {
                     })}
                 </div>
             ) : (
-                <p style={{ color: 'var(--text-muted)' }}>No recommendations found right now. Try searching manually!</p>
+                <div className="p-8 rounded-2xl bg-white border border-neutral-200/80 text-center text-sm text-[#66615C]">
+                    <FiZap className="mx-auto text-[#F45B25] mb-2" size={24} />
+                    <p className="font-semibold text-[#171717]">No live recommendations cached at this moment.</p>
+                    <button
+                        onClick={() => navigate('/search?query=Software')}
+                        className="mt-3 px-5 py-2 rounded-xl bg-[#171717] text-white text-xs font-bold border-none cursor-pointer"
+                    >
+                        Search All Opportunities
+                    </button>
+                </div>
             )}
 
+            {/* Job Detail Modal */}
             {selectedJob && (
                 <JobDetail
                     job={selectedJob}
@@ -122,7 +157,7 @@ function RecommendedJobs({ user, resumeData }) {
                     onClose={() => setSelectedJob(null)}
                 />
             )}
-        </div>
+        </section>
     );
 }
 

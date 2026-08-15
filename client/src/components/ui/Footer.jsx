@@ -20,46 +20,36 @@ function Footer() {
       title: 'Product',
       links: [
         { name: 'ATS Resume Scanner', onClick: () => handleNav('/profile') },
-        { name: 'AI Career Navigator', onClick: () => handleNav('/career') },
-        { name: 'Smart Job Search', onClick: () => handleNav('/') },
-        { name: 'Saved Opportunities', onClick: () => handleNav('/saved') },
+        { name: 'AI Resume Creator', onClick: () => handleNav('/resume-creator') },
+        { name: 'AI Career Advisor', onClick: () => handleNav('/advisor') },
+        { name: 'Smart Role Matcher', onClick: () => handleNav('/') },
       ],
     },
     {
-      title: 'Resources',
+      title: 'Features',
       links: [
-        { name: 'Documentation', onClick: () => {} },
-        { name: 'API Reference', onClick: () => {} },
-        { name: 'System Status', onClick: () => {} },
-        { name: 'Changelog', onClick: () => {} },
+        { name: 'Keyword Gap Engine', onClick: () => handleNav('/resume-creator') },
+        { name: 'Recruiter Outreach DMs', onClick: () => handleNav('/resume-creator') },
+        { name: 'Career Path Visualizer', onClick: () => handleNav('/career') },
+        { name: 'Application Tracker', onClick: () => handleNav('/saved') },
       ],
     },
     {
       title: 'Company',
       links: [
-        { name: 'About Us', onClick: () => {} },
-        { name: 'Careers', onClick: () => {} },
-        { name: 'Press Kit', onClick: () => {} },
-        { name: 'Contact Us', onClick: () => {} },
+        { name: 'GitHub Repository', onClick: () => window.open('https://github.com/imsayanpaul/Appliqa', '_blank') },
+        { name: 'About Appliqa', onClick: () => handleNav('/') },
+        { name: 'Privacy Policy', onClick: () => {} },
+        { name: 'Terms of Service', onClick: () => {} },
       ],
     },
   ];
 
-  const socialLinks = [
-    { icon: <FiGithub size={18} />, href: 'https://github.com/imsayanpaul/Appliqa', label: 'GitHub Repository' },
-    { icon: <FiTwitter size={18} />, href: 'https://twitter', label: 'Twitter Profile' },
-    { icon: <FiLinkedin size={18} />, href: 'https://www.linkedin.com/in/imsayanpaul/', label: 'LinkedIn Profile' },
-    { icon: <FiMail size={18} />, href: 'mailto:contact@appliqa.ai', label: 'Email Support' },
-  ];
-
   return (
-    <footer className="w-full bg-black border-t border-zinc-900 pt-20 pb-12 px-6 sm:px-10 md:px-16 overflow-hidden relative select-none">
-      {/* Subtle top ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[1px] bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
-      
+    <footer className="w-full bg-[#F45B25] text-[#171717] pt-16 pb-8 px-6 sm:px-10 md:px-16 overflow-hidden relative select-none">
       <div className="max-w-7xl mx-auto">
         {/* Top Section: Tagline & Links */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 pb-10">
           {/* Tagline */}
           <div className="lg:col-span-5 flex flex-col justify-between">
             <div>
@@ -68,47 +58,36 @@ function Footer() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5 }}
-                className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4"
+                className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-[#171717] leading-tight mb-4"
               >
-                Experience liftoff
+                Outsmart the Algorithm.<br />
+                Land Dream Roles.<br />
+                All in One Place.
               </motion.h2>
-              <p className="text-zinc-500 text-sm max-w-sm leading-relaxed">
-                Appliqa is built to help ambitious professionals bypass standard application queues, perfect their resume alignment, and lock in career progression using bespoke AI agents.
+              <p className="text-[#171717]/85 text-sm sm:text-base max-w-md leading-relaxed font-medium">
+                Appliqa equips ambitious job seekers with deep AI career intelligence — scanning ATS keywords, auto-generating tailored cover letters, and unlocking high-paying opportunities.
               </p>
             </div>
 
-            {/* Social Links */}
-            <div className="flex gap-3 mt-8 lg:mt-0">
-              {socialLinks.map((social, i) => (
-                <motion.a
-                  key={i}
-                  href={social.href}
-                  aria-label={social.label}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  className="w-10 h-10 rounded-full border border-zinc-800/80 bg-zinc-950/40 flex items-center justify-center text-zinc-400 hover:text-orange-500 hover:border-orange-500/30 transition-all duration-200"
-                >
-                  {social.icon}
-                </motion.a>
-              ))}
+            <div className="mt-6 text-xs sm:text-sm font-semibold text-[#171717]/70">
+              © {new Date().getFullYear()} Appliqa Inc. All rights reserved
             </div>
           </div>
 
-          {/* Links Columns (using divs to completely bypass default ul/li list styles) */}
+          {/* Links Columns */}
           <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8 sm:gap-6">
             {columns.map((col, idx) => (
-              <div key={idx} className="flex flex-col gap-4">
-                <span className="text-xs uppercase tracking-wider font-semibold text-zinc-500">
+              <div key={idx} className="flex flex-col gap-3.5">
+                <span className="text-xs sm:text-sm uppercase tracking-wider font-bold text-[#171717]">
                   {col.title}
                 </span>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2.5">
                   {col.links.map((link, lIdx) => (
                     <motion.span
                       key={lIdx}
                       onClick={link.onClick}
                       whileHover={{ x: 4 }}
-                      className="text-zinc-400 hover:text-orange-500 text-[14px] text-left transition-colors duration-200 cursor-pointer w-fit inline-block border-0 bg-transparent p-0 m-0 outline-none shadow-none"
+                      className="text-[#171717]/80 hover:text-[#171717] hover:font-bold text-[14px] sm:text-[15px] text-left transition-all duration-200 cursor-pointer w-fit inline-block border-0 bg-transparent p-0 m-0 outline-none shadow-none"
                       style={{ background: 'transparent', border: 'none', boxShadow: 'none' }}
                     >
                       {link.name}
@@ -120,35 +99,25 @@ function Footer() {
           </div>
         </div>
 
-        {/* Big Brand Watermark: logotext.svg (full opacity, wide layout, shifted up) */}
-        <div className="relative w-full -mt-10 sm:-mt-20 pt-4 pb-16 flex justify-center items-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="w-full max-w-[1000px] px-6 flex justify-center select-none pointer-events-none"
-          >
-            <img src="/logotext.svg" alt="Appliqa Watermark" className="w-full h-auto" />
-          </motion.div>
-        </div>
-
-        {/* Bottom Bar: Logo, Copyright & Legal */}
-        <div className="border-t border-zinc-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          {/* Logo / Brand */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 cursor-pointer" onClick={() => handleNav('/')}>
-            <img src="/logotext.svg" alt="Appliqa" height="20" style={{ display: 'block', height: '20px' }} />
-            <span className="text-[11px] text-zinc-600 font-medium">
-              © {new Date().getFullYear()} Appliqa Inc. All rights reserved.
+        {/* Big Brand Watermark: Appliqa */}
+        <div className="relative w-full pt-8 pb-4 flex justify-center items-center overflow-hidden">
+          <div className="text-center w-full select-none pointer-events-none">
+            <span className="text-[64px] sm:text-[104px] md:text-[144px] lg:text-[180px] font-black text-[#171717] tracking-tighter leading-none block uppercase">
+              APPLIQA
             </span>
           </div>
+        </div>
 
-          {/* Legal Links (using span with reset to bypass button styling issues) */}
-          <div className="flex flex-wrap gap-x-8 gap-y-2 justify-center text-xs text-zinc-500">
-            <span onClick={() => {}} className="hover:text-orange-500 transition-colors duration-200 cursor-pointer">About Appliqa</span>
-            <span onClick={() => {}} className="hover:text-orange-500 transition-colors duration-200 cursor-pointer">Privacy Policy</span>
-            <span onClick={() => {}} className="hover:text-orange-500 transition-colors duration-200 cursor-pointer">Terms of Service</span>
-            <span onClick={() => {}} className="hover:text-orange-500 transition-colors duration-200 cursor-pointer">Cookie Settings</span>
+        {/* Bottom Bar */}
+        <div className="border-t border-[#171717]/20 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs sm:text-sm font-medium text-[#171717]/70">
+          <div className="flex items-center gap-2">
+            <span>Powered by Next-Gen AI Matching & ATS Scoring Engine</span>
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 justify-center">
+            <span onClick={() => handleNav('/')} className="hover:text-[#171717] transition-colors cursor-pointer">About Appliqa</span>
+            <span onClick={() => {}} className="hover:text-[#171717] transition-colors cursor-pointer">Privacy Policy</span>
+            <span onClick={() => {}} className="hover:text-[#171717] transition-colors cursor-pointer">Terms of Service</span>
+            <span onClick={() => {}} className="hover:text-[#171717] transition-colors cursor-pointer">Security</span>
           </div>
         </div>
       </div>

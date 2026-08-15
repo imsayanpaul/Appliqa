@@ -69,66 +69,66 @@ function FeedbackWidget({ user }) {
     const categories = ['General', 'Bug Report', 'Feature Request', 'Other'];
 
     const renderEmojiIcon = (val, isSelected) => {
-        const strokeColor = isSelected ? '#f97316' : '#71717a';
-        const fillColor = isSelected ? 'rgba(249, 115, 22, 0.1)' : 'transparent';
-        const eyeColor = isSelected ? '#f97316' : '#71717a';
-        const starFillColor = isSelected ? '#f97316' : 'transparent';
+        const strokeColor = isSelected ? '#F45B25' : '#8A8580';
+        const fillColor = isSelected ? '#FFF0E8' : 'transparent';
+        const eyeColor = isSelected ? '#F45B25' : '#8A8580';
+        const starFillColor = isSelected ? '#F45B25' : 'transparent';
         
         switch (val) {
             case 1: // Crying / Very Sad
                 return (
-                    <svg viewBox="0 0 24 24" width="28" height="28" style={{ display: 'block', transition: 'stroke 0.2s' }}>
-                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="2" fill={fillColor} />
+                    <svg viewBox="0 0 24 24" width="26" height="26" style={{ display: 'block', transition: 'all 0.15s ease' }}>
+                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="1.75" fill={fillColor} />
                         {/* Crying eyes (downward curves) */}
-                        <path d="M7.5 12c.5-1 1.5-1 2 0" stroke={eyeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
-                        <path d="M14.5 12c.5-1 1.5-1 2 0" stroke={eyeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
-                        {/* Vertical Blue Tears */}
-                        <path d="M8.5 12.5v3.5" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
-                        <path d="M15.5 12.5v3.5" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+                        <path d="M7.5 12c.5-1 1.5-1 2 0" stroke={eyeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
+                        <path d="M14.5 12c.5-1 1.5-1 2 0" stroke={eyeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
+                        {/* Vertical Tears */}
+                        <path d="M8.5 12.5v3.5" stroke="#3b82f6" strokeWidth="1.75" strokeLinecap="round" />
+                        <path d="M15.5 12.5v3.5" stroke="#3b82f6" strokeWidth="1.75" strokeLinecap="round" />
                         {/* Frown Mouth */}
-                        <path d="M10.5 16.5c.5-.5 1.5-.5 2 0" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                        <path d="M10.5 16.5c.5-.5 1.5-.5 2 0" stroke={strokeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
                     </svg>
                 );
             case 2: // Sad / Frown
                 return (
-                    <svg viewBox="0 0 24 24" width="28" height="28" style={{ display: 'block', transition: 'stroke 0.2s' }}>
-                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="2" fill={fillColor} />
+                    <svg viewBox="0 0 24 24" width="26" height="26" style={{ display: 'block', transition: 'all 0.15s ease' }}>
+                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="1.75" fill={fillColor} />
                         <circle cx="9" cy="10" r="1.2" fill={eyeColor} />
                         <circle cx="15" cy="10" r="1.2" fill={eyeColor} />
-                        <path d="M9 16c1-1.5 5-1.5 6 0" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                        <path d="M9 16c1-1.5 5-1.5 6 0" stroke={strokeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
                     </svg>
                 );
             case 3: // Smile / Good
                 return (
-                    <svg viewBox="0 0 24 24" width="28" height="28" style={{ display: 'block', transition: 'stroke 0.2s' }}>
-                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="2" fill={fillColor} />
+                    <svg viewBox="0 0 24 24" width="26" height="26" style={{ display: 'block', transition: 'all 0.15s ease' }}>
+                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="1.75" fill={fillColor} />
                         <circle cx="9" cy="10" r="1.2" fill={eyeColor} />
                         <circle cx="15" cy="10" r="1.2" fill={eyeColor} />
-                        <path d="M9 14.5c1 1.8 5 1.8 6 0" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                        <path d="M9 14.5c1 1.8 5 1.8 6 0" stroke={strokeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
                     </svg>
                 );
             case 4: // Star-eyes / Awesome
                 return (
-                    <svg viewBox="0 0 24 24" width="28" height="28" style={{ display: 'block', transition: 'stroke 0.2s' }}>
-                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="2" fill={fillColor} />
+                    <svg viewBox="0 0 24 24" width="26" height="26" style={{ display: 'block', transition: 'all 0.15s ease' }}>
+                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="1.75" fill={fillColor} />
                         {/* Star left eye */}
                         <polygon 
                             points="9,7.5 9.8,9.2 11.6,9.2 10.2,10.3 10.7,12.1 9,11 7.3,12.1 7.8,10.3 6.4,9.2 8.2,9.2" 
                             fill={starFillColor} 
-                            stroke={isSelected ? '#f97316' : '#71717a'} 
-                            strokeWidth="1.2" 
+                            stroke={isSelected ? '#F45B25' : '#8A8580'} 
+                            strokeWidth="1" 
                             strokeLinejoin="round"
                         />
                         {/* Star right eye */}
                         <polygon 
                             points="15,7.5 15.8,9.2 17.6,9.2 16.2,10.3 16.7,12.1 15,11 13.3,12.1 13.8,10.3 12.4,9.2 14.2,9.2" 
                             fill={starFillColor} 
-                            stroke={isSelected ? '#f97316' : '#71717a'} 
-                            strokeWidth="1.2" 
+                            stroke={isSelected ? '#F45B25' : '#8A8580'} 
+                            strokeWidth="1" 
                             strokeLinejoin="round"
                         />
                         {/* Laughing Smile Mouth */}
-                        <path d="M8.5 14c1 2.5 6 2.5 7 0" stroke={strokeColor} strokeWidth="2" strokeLinecap="round" fill="none" />
+                        <path d="M8.5 14c1 2.5 6 2.5 7 0" stroke={strokeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
                     </svg>
                 );
             default:
@@ -152,7 +152,7 @@ function FeedbackWidget({ user }) {
                 <div className="feedback-panel">
                     {submitted ? (
                         <div className="feedback-success-card">
-                            <FiCheckCircle size={40} className="feedback-success-icon" style={{ color: '#f97316' }} />
+                            <FiCheckCircle size={40} className="feedback-success-icon" style={{ color: '#F45B25' }} />
                             <h4>Thank you!</h4>
                             <p>Your feedback helps us make Appliqa better for everyone.</p>
                         </div>
@@ -160,7 +160,7 @@ function FeedbackWidget({ user }) {
                         <form onSubmit={handleSubmit}>
                             <div className="feedback-header">
                                 <h3>
-                                    <FiMessageSquare size={18} color="#f97316" />
+                                    <FiMessageSquare size={18} color="#F45B25" />
                                     <span>Share Feedback</span>
                                 </h3>
                                 <button 
