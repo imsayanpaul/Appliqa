@@ -698,7 +698,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             disabled={saving}
                             className={`h-9 px-4 rounded-md text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0 border-none shadow-sm ${
                                 saved
-                                    ? 'bg-emerald-600 text-white'
+                                    ? 'bg-[#F45B25] text-white shadow-[#F45B25]/30'
                                     : isDirty
                                     ? 'bg-[#F45B25] hover:bg-[#d94815] text-white shadow-[#F45B25]/30 animate-pulse'
                                     : 'bg-[#171717] hover:bg-[#F45B25] text-white'
@@ -1162,7 +1162,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 <div className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-[#D8D4CC] shadow-sm flex-wrap">
                     <div className="text-xs text-[#66615C] flex items-center gap-2">
                         {saved ? (
-                            <span className="text-emerald-600 font-bold inline-flex items-center gap-1.5">
+                            <span className="text-[#F45B25] font-bold inline-flex items-center gap-1.5">
                                 <FiCheck size={16} /> Profile settings successfully synced!
                             </span>
                         ) : isDirty ? (

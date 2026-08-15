@@ -975,7 +975,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             disabled={syncing}
                             className={`h-8 px-3.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 whitespace-nowrap border-none shadow-sm ${
                                 saved
-                                    ? 'bg-emerald-600 text-white'
+                                    ? 'bg-[#F45B25] text-white shadow-[#F45B25]/30'
                                     : isDirty
                                     ? 'bg-[#F45B25] hover:bg-[#d94815] text-white shadow-[#F45B25]/25 animate-pulse'
                                     : 'bg-[#171717] hover:bg-[#F45B25] text-white'
