@@ -224,16 +224,6 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
         }
     };
 
-    // If auth state is still resolving on cold start without a cached user,
-    // OR if we have a session but the user profile hasn't loaded yet (e.g. OAuth callback)
-    if ((!authResolved && !user) || (session && !user)) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-muted)' }}>
-                <div className="spinner primary-spinner"></div>
-            </div>
-        );
-    }
-
     const currentStep = stepData[activeStep];
 
     const renderPipelineSection = () => (
