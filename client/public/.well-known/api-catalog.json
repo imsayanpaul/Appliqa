@@ -1,0 +1,64 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://www.appliqa.xyz/api",
+      "service-desc": [
+        {
+          "href": "https://www.appliqa.xyz/openapi.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://www.appliqa.xyz/llms.txt",
+          "type": "text/markdown"
+        },
+        {
+          "href": "https://www.appliqa.xyz/llms-full.txt",
+          "type": "text/markdown"
+        }
+      ],
+      "mcp-server": [
+        {
+          "href": "https://www.appliqa.xyz/.well-known/mcp/server-card.json",
+          "type": "application/json"
+        }
+      ],
+      "oauth-authorization-server": [
+        {
+          "href": "https://www.appliqa.xyz/.well-known/oauth-authorization-server",
+          "type": "application/json"
+        }
+      ],
+      "payment": [
+        {
+          "href": "https://www.appliqa.xyz/x402",
+          "type": "application/json"
+        }
+      ]
+    },
+    {
+      "anchor": "https://www.appliqa.xyz/search",
+      "service-desc": [
+        {
+          "href": "https://www.appliqa.xyz/openapi.json",
+          "type": "application/json"
+        }
+      ]
+    }
+  ],
+  "apis": [
+    {
+      "id": "appliqa-jobs-api",
+      "name": "Appliqa Job Search & ATS Intelligence API",
+      "description": "Public API for searching verified job listings, ATS resume keyword matching, and AI career guidance.",
+      "version": "1.0.0",
+      "status": "production",
+      "documentation": "https://www.appliqa.xyz/llms.txt",
+      "specification": "https://www.appliqa.xyz/openapi.json",
+      "mcp_server": "https://www.appliqa.xyz/.well-known/mcp/server-card.json",
+      "oauth_server": "https://www.appliqa.xyz/.well-known/oauth-authorization-server",
+      "payment_endpoint": "https://www.appliqa.xyz/x402"
+    }
+  ]
+}

@@ -15,6 +15,7 @@ const MARKDOWN_CONTENT = `# Appliqa — AI-Powered Job Finder & Career Optimizat
 - Homepage: https://www.appliqa.xyz/
 - Job Search: https://www.appliqa.xyz/search
 - Direct Role Query: https://www.appliqa.xyz/search?query=React+Developer
+- API Catalog (RFC 9727): https://www.appliqa.xyz/.well-known/api-catalog
 - OpenAPI Specification: https://www.appliqa.xyz/openapi.json
 - MCP Server Card: https://www.appliqa.xyz/.well-known/mcp/server-card.json
 - OAuth Discovery: https://www.appliqa.xyz/.well-known/oauth-authorization-server
@@ -36,7 +37,7 @@ export default function middleware(req) {
         'RateLimit-Remaining': '47',
         'RateLimit-Reset': '42',
         'RateLimit-Policy': '100;w=60',
-        'Link': '</llms.txt>; rel="describedby"; type="text/markdown", </openapi.json>; rel="service-desc"; type="application/json", </.well-known/mcp/server-card.json>; rel="mcp-server"; type="application/json", </.well-known/oauth-authorization-server>; rel="oauth-authorization-server"; type="application/json", </x402>; rel="payment"; type="application/json", </sitemap.xml>; rel="sitemap"; type="application/xml"'
+        'Link': '</llms.txt>; rel="describedby"; type="text/markdown", </openapi.json>; rel="service-desc"; type="application/json", </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json", </.well-known/mcp/server-card.json>; rel="mcp-server"; type="application/json", </.well-known/oauth-authorization-server>; rel="oauth-authorization-server"; type="application/json", </x402>; rel="payment"; type="application/json", </sitemap.xml>; rel="sitemap"; type="application/xml"'
       }
     });
   }
