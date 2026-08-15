@@ -506,7 +506,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
     return (
         <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717]">
             {/* ── Mobile & Tablet Layout: Clean Wrapped Pills (Centered, Zero Cutoff) ── */}
-            <div className="lg:hidden w-full pt-1.5 pb-1 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto flex flex-col items-center justify-center text-center">
+            <div className="lg:hidden w-full pt-1.5 pb-1 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto flex flex-col items-center justify-center text-center" style={{ minHeight: '68px', contain: 'layout style' }}>
                 <div className="flex items-center justify-center gap-1.5 mb-1.5 px-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-pulse shrink-0" />
                     <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#66615C]">Trending Searches</span>
@@ -541,7 +541,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
             </div>
 
             {/* ── Desktop Layout: Centered Floating Glass Pill Dock (1024px+) ── */}
-            <div className="hidden lg:flex w-full pt-4 pb-1 px-6 max-w-7xl mx-auto items-center justify-center">
+            <div className="hidden lg:flex w-full pt-4 pb-1 px-6 max-w-7xl mx-auto items-center justify-center" style={{ minHeight: '48px', contain: 'layout style' }}>
                 <div className="inline-flex items-center flex-wrap justify-center gap-2 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[#D8D4CC] shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-[#171717] mr-1 flex-shrink-0">
                         <span className="w-2 h-2 rounded-full bg-[#F45B25] animate-pulse" />
