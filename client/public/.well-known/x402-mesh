@@ -1,0 +1,23 @@
+{
+  "protocol": "x402-mesh/0.1",
+  "vendor_id": "appliqa",
+  "name": "Appliqa",
+  "description": "AI Job Discovery & ATS Resume Career Optimization",
+  "categories": [
+    "job-search",
+    "career-intelligence",
+    "resume-analysis",
+    "recruitment"
+  ],
+  "registry_url": "https://www.startuphub.ai/api/x402-mesh/registry",
+  "endpoints": {
+    "paywall": "https://www.appliqa.xyz/x402",
+    "catalog": "https://www.appliqa.xyz/.well-known/api-catalog",
+    "pricing": "https://www.appliqa.xyz/pricing"
+  },
+  "rails": [
+    "usdc-base",
+    "lightning",
+    "stripe_agentic"
+  ]
+}
