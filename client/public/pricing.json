@@ -1,0 +1,59 @@
+{
+  "provider": "Appliqa",
+  "url": "https://www.appliqa.xyz/pricing",
+  "checkout_url": "https://www.appliqa.xyz/checkout",
+  "currency": "USD",
+  "payment_rails": [
+    "stripe_agentic",
+    "usdc-base",
+    "lightning"
+  ],
+  "plans": [
+    {
+      "id": "starter",
+      "name": "Starter Pass",
+      "price": 0,
+      "interval": "month",
+      "description": "Core AI career discovery and ATS keyword matching for active job hunters.",
+      "features": [
+        "50,000+ Live Verified Job Listings",
+        "Basic ATS Resume Keyword Matching",
+        "Application Pipeline Tracker",
+        "Standard AI Query Searches"
+      ],
+      "checkout_url": "https://www.appliqa.xyz/pricing"
+    },
+    {
+      "id": "pro",
+      "name": "Pro Career Pass",
+      "price": 19,
+      "interval": "month",
+      "popular": true,
+      "description": "Full-throttle algorithmic resume tuning, cover letters, and mock interview prep.",
+      "features": [
+        "Everything in Starter",
+        "Unlimited 90%+ ATS Keyword Audits",
+        "AI Cover Letter & Recruiter DM Writer",
+        "Interactive AI Mock Interview Prep",
+        "Automated Skills Gap Remediation",
+        "Visual PDF Resume Builder & Tailor"
+      ],
+      "checkout_url": "https://www.appliqa.xyz/checkout?plan=pro"
+    },
+    {
+      "id": "agentic",
+      "name": "Agentic & API",
+      "price": 99,
+      "interval": "month",
+      "description": "Autonomous agent access, bulk candidate parsing, and programmatic MCP integration.",
+      "features": [
+        "Everything in Pro",
+        "Dedicated MCP Server & API Access",
+        "Autonomous Job Application Agent",
+        "Bulk Resume Parsing & Auditing",
+        "Dedicated Priority Support"
+      ],
+      "checkout_url": "https://www.appliqa.xyz/checkout?plan=agentic"
+    }
+  ]
+}

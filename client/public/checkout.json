@@ -1,0 +1,36 @@
+{
+  "provider": "Appliqa",
+  "url": "https://www.appliqa.xyz/checkout",
+  "pricing_url": "https://www.appliqa.xyz/pricing",
+  "currency": "USD",
+  "payment_rails": [
+    "stripe_agentic",
+    "usdc-base",
+    "lightning"
+  ],
+  "supported_plans": [
+    {
+      "id": "starter",
+      "name": "Starter Pass",
+      "price": 0,
+      "interval": "month"
+    },
+    {
+      "id": "pro",
+      "name": "Pro Career Pass",
+      "price": 19,
+      "interval": "month"
+    },
+    {
+      "id": "agentic",
+      "name": "Agentic & API",
+      "price": 99,
+      "interval": "month"
+    }
+  ],
+  "action": {
+    "type": "checkout",
+    "method": "POST",
+    "endpoint": "https://www.appliqa.xyz/api/checkout"
+  }
+}
