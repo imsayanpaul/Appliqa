@@ -264,6 +264,19 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
+
+    // Global keyboard shortcut (Ctrl+S / Cmd+S) to save profile from anywhere
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                handleSubmit(e);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [form, resumeData]);
 
     useEffect(() => {
         if (user) {
@@ -353,11 +366,12 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
     const handleChange = (field, value) => {
         setForm(prev => ({ ...prev, [field]: value }));
+        setIsDirty(true);
         setSaved(false);
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
         setSaving(true);
         try {
             const userData = {
@@ -405,8 +419,9 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
             const res = await createOrUpdateUser(userData);
             onUpdateUser(res.data.user);
+            setIsDirty(false);
             setSaved(true);
-            setTimeout(() => setSaved(false), 3000);
+            setTimeout(() => setSaved(false), 3500);
         } catch (err) {
             console.error('Save failed:', err);
         } finally {
@@ -675,6 +690,38 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 <div className="text-sm font-black text-[#171717] font-mono">{form.recruiterDmsSentCount}</div>
                             </div>
                         </div>
+
+                        {/* Top Save Profile Button */}
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            disabled={saving}
+                            className={`h-9 px-4 rounded-md text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0 border-none shadow-sm ${
+                                saved
+                                    ? 'bg-emerald-600 text-white'
+                                    : isDirty
+                                    ? 'bg-[#F45B25] hover:bg-[#d94815] text-white shadow-[#F45B25]/30 animate-pulse'
+                                    : 'bg-[#171717] hover:bg-[#F45B25] text-white'
+                            }`}
+                            title="Save profile changes (Ctrl+S)"
+                        >
+                            {saving ? (
+                                <>
+                                    <FiSave size={13} className="animate-spin" />
+                                    <span>Saving...</span>
+                                </>
+                            ) : saved ? (
+                                <>
+                                    <FiCheck size={13} />
+                                    <span>Saved!</span>
+                                </>
+                            ) : (
+                                <>
+                                    <FiSave size={13} />
+                                    <span>{isDirty ? 'Save Changes' : 'Save Profile'}</span>
+                                </>
+                            )}
+                        </button>
 
                         <button 
                             type="button"
@@ -1111,34 +1158,86 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                     </PremiumCard>
                 </motion.div>
 
-                {/* ── Save Bar ── */}
-                <div className="flex items-center justify-between gap-4 pt-4 pb-2">
-                    <div className="text-xs text-[#66615C]">
+                {/* ── Prominent Bottom Save Bar ── */}
+                <div className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-[#D8D4CC] shadow-sm flex-wrap">
+                    <div className="text-xs text-[#66615C] flex items-center gap-2">
                         {saved ? (
                             <span className="text-emerald-600 font-bold inline-flex items-center gap-1.5">
-                                <FiCheck size={14} /> Profile settings successfully synced!
+                                <FiCheck size={16} /> Profile settings successfully synced!
+                            </span>
+                        ) : isDirty ? (
+                            <span className="text-[#F45B25] font-semibold inline-flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-[#F45B25] animate-pulse" /> You have unsaved changes.
                             </span>
                         ) : (
-                            <span>All profile changes automatically update your match algorithms.</span>
+                            <span>All profile changes automatically update your ATS and job match algorithms.</span>
                         )}
                     </div>
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="h-10 px-6 rounded-md bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 border-none shrink-0"
-                    >
-                        {saving ? (
-                            <span className="inline-flex items-center gap-1.5">
-                                <FiSave size={14} className="animate-spin" /> Saving...
-                            </span>
-                        ) : (
-                            <span className="inline-flex items-center gap-1.5">
-                                <FiSave size={14} /> Save Profile Changes
-                            </span>
-                        )}
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <span className="hidden sm:inline-block text-[11px] text-[#8A8580] font-mono">
+                            Press Ctrl+S to save
+                        </span>
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className={`h-11 px-7 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 border-none shrink-0 shadow-lg ${
+                                isDirty 
+                                    ? 'bg-[#F45B25] hover:bg-[#d94815] text-white shadow-[#F45B25]/25' 
+                                    : 'bg-[#171717] hover:bg-[#F45B25] text-white shadow-neutral-900/10'
+                            }`}
+                        >
+                            {saving ? (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <FiSave size={15} className="animate-spin" /> Saving...
+                                </span>
+                            ) : saved ? (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <FiCheck size={15} /> Saved!
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1.5">
+                                    <FiSave size={15} /> Save Profile Changes
+                                </span>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </form>
+
+            {/* ── Floating Sticky Save Bar (Pops up when changes are made) ── */}
+            <AnimatePresence>
+                {isDirty && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                        exit={{ opacity: 0, y: 50, x: '-50%' }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        className="fixed bottom-6 left-1/2 z-50 flex items-center justify-between gap-4 px-5 py-3 rounded-2xl bg-[#171717] text-white shadow-2xl border border-white/15"
+                        style={{ width: 'min(92vw, 560px)' }}
+                    >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#F45B25] animate-ping shrink-0" />
+                            <span className="text-xs font-medium text-white/90 truncate">
+                                You have unsaved profile changes
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <span className="hidden sm:inline-block text-[10.5px] text-white/50 font-mono">
+                                Ctrl+S
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={saving}
+                                className="h-8 px-4 rounded-xl bg-[#F45B25] hover:bg-[#d94815] text-white text-xs font-bold border-none transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-md shadow-[#F45B25]/30"
+                            >
+                                {saving ? <FiSave size={13} className="animate-spin" /> : <FiSave size={13} />}
+                                <span>Save Changes</span>
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* ── Dedicated Full-Width Synchronized Resume Section ── */}
             <motion.div variants={cardVariants} className="mt-14 pt-10 border-t border-[#D8D4CC]">
