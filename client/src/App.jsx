@@ -568,64 +568,8 @@ function AppContent() {
                         </nav>
                     )}
 
-                    {/* Right Actions: GitHub Star + Profile CTA */}
+                    {/* Right Actions: Profile CTA & Mobile Toggle */}
                     <div className="navbar-right-actions">
-                        {/* GitHub Star Button */}
-                        <div className="relative hidden sm:flex items-center">
-                            <div className="github-star-cluster">
-                                <a 
-                                    href="https://github.com/imsayanpaul/Appliqa" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="github-star-main"
-                                >
-                                    <FiStar className="size-3.5 text-slate-500" />
-                                    <span>Star</span>
-                                    <span className="github-star-count">
-                                        {githubStats.stars}
-                                    </span>
-                                </a>
-                                <button 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setStarDropdownOpen(!starDropdownOpen);
-                                    }}
-                                    aria-label="Toggle GitHub statistics menu"
-                                    className="github-star-arrow"
-                                >
-                                    <FiChevronDown className="size-3" />
-                                </button>
-                            </div>
-                            <AnimatePresence>
-                                {starDropdownOpen && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                                        transition={{ duration: 0.15 }}
-                                        className="github-star-dropdown"
-                                    >
-                                        <a 
-                                            href="https://github.com/imsayanpaul/Appliqa/stargazers" 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            onClick={() => setStarDropdownOpen(false)}
-                                        >
-                                            View Stargazers
-                                        </a>
-                                        <a 
-                                            href="https://github.com/imsayanpaul/Appliqa" 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            onClick={() => setStarDropdownOpen(false)}
-                                        >
-                                            Repo Insights
-                                        </a>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-
                         {/* CTA Button */}
                         <div className="navbar-desktop-cta">
                             <button
