@@ -1,0 +1,24 @@
+# Appliqa — AI-Powered Job Finder & Career Optimization
+
+> Appliqa (https://www.appliqa.xyz) is a full-stack career platform engineered to bypass ATS filters, score resumes against live job descriptions, calculate skills gaps, and optimize the end-to-end job application pipeline.
+
+## Core Capabilities
+- **Job Discovery & Search**: Real-time verified job listings across 50k+ active roles with customizable filters (remote, country, location, employment type).
+- **AI Smart Search**: Natural-language query translation for complex job criteria (e.g., "Remote React engineer paying over $140k").
+- **ATS Resume Intelligence**: Automatic PDF resume analysis extracting skills, technical stack, experience, and education with instant keyword match scoring (0-100%).
+- **Skills Gap Analysis**: Algorithmic comparison between candidate credentials and target job requirements to highlight missing keywords and recommend actionable learning steps.
+- **AI Career Advisor**: Conversational AI mentor providing contextual career guidance, mock interview preparation, and compensation negotiation strategies.
+- **Visual Resume Creator & Optimizer**: Automated generation of ATS-optimized resumes, tailored cover letters, and personalized recruiter outreach messages.
+- **Career Roadmap Planner**: Visualized promotion ladders, milestone timelines, and salary progression benchmarks based on professional background.
+
+## Public Endpoints & Routes
+- [Homepage](https://www.appliqa.xyz/): Landing portal, live trending searches, and quick search.
+- [Job Search](https://www.appliqa.xyz/search): Interactive job search results with filtering and ATS match scoring.
+- [Direct Role Query](https://www.appliqa.xyz/search?query=React+Developer): Direct parameterized query URL for any role or skill.
+- [LLMs Full Documentation](https://www.appliqa.xyz/llms-full.txt): Complete platform architecture and feature specifications.
+
+## Technology Stack
+- Frontend: React 18, Vite, Framer Motion, Tailwind CSS
+- Backend & APIs: Node.js, Express, JSearch RapidAPI
+- Database & Auth: Supabase (PostgreSQL)
+- Artificial Intelligence: Google Gemini 2.0 Flash

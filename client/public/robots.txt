@@ -2,10 +2,51 @@
 User-agent: *
 Allow: /
 Allow: /search
+Allow: /llms.txt
+Allow: /llms-full.txt
 
-# Disallow crawling private user-specific and dashboard routes
+# AI Search & Crawler Agents (Explicit Permissions)
+User-agent: GPTBot
+Allow: /
+Allow: /search
+Allow: /llms.txt
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /search
+Allow: /llms.txt
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /search
+Allow: /llms.txt
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /search
+Allow: /llms.txt
+
+User-agent: Google-Extended
+Allow: /
+Allow: /search
+Allow: /llms.txt
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /search
+Allow: /llms.txt
+
+User-agent: cohere-ai
+Allow: /
+Allow: /search
+Allow: /llms.txt
+
+# Disallow crawling private authenticated user-specific routes
 Disallow: /saved
 Disallow: /career
 Disallow: /advisor
 Disallow: /resume-creator
 Disallow: /profile
+
+# Sitemap & LLMs Index
+Sitemap: https://www.appliqa.xyz/sitemap.xml

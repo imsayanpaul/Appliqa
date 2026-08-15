@@ -1,0 +1,46 @@
+# Appliqa — Comprehensive AI Platform Specification
+
+## 1. Overview
+Appliqa is an intelligent job intelligence and career acceleration application designed to streamline job searches, ATS resume optimization, interview preparation, and career pathing.
+
+Website: https://www.appliqa.xyz
+Repository: https://github.com/imsayanpaul/Appliqa
+
+## 2. Platform Architecture & Modules
+
+### 2.1 Job Search & Aggregation
+- **Endpoint**: `/search`
+- **Parameter**: `query` (e.g., `https://www.appliqa.xyz/search?query=Software+Engineer`)
+- **Filters**:
+  - `location`: City or region
+  - `country`: 2-letter ISO country code (e.g. `us`, `in`, `gb`, `ca`)
+  - `employmentType`: `FULLTIME`, `CONTRACTOR`, `PARTTIME`, `INTERN`
+  - `datePosted`: `all`, `today`, `3days`, `week`, `month`
+  - `remote`: Boolean flag for remote-only positions
+- **AI Mode Toggle**: Enables conversational natural-language parsing for multi-dimensional search intents.
+
+### 2.2 Resume Intelligence & ATS Scoring
+- **Module**: Resume Scanner & ATS Optimizer
+- **Capability**: Extracts candidate skills, work history, degree information, and matches them directly against job descriptions.
+- **Output**: 
+  - Percentage Match Score (0-100%)
+  - Matched Keywords List
+  - Missing Target Skills List
+  - Specific action items for resume revision.
+
+### 2.3 Career Path & Salary Roadmap
+- **Endpoint**: `/career`
+- **Capability**: Generates personalized step-by-step career progression ladders with market salary benchmarks, role seniority timelines, and required skill milestones.
+
+### 2.4 AI Career Advisor & Mock Interview Prep
+- **Endpoint**: `/advisor`
+- **Capability**: Tailored interview simulation, recruiter DM generation, custom cover letter drafting, and real-time chat guidance with Gemini 2.0 Flash.
+
+### 2.5 Visual Resume Creator
+- **Endpoint**: `/resume-creator`
+- **Capability**: Dynamic resume creation with live ATS score preview, formatted PDF downloads, and custom section formatting.
+
+## 3. SEO & Machine-Readable Declarations
+- Sitemap: https://www.appliqa.xyz/sitemap.xml
+- Robots: https://www.appliqa.xyz/robots.txt
+- LLMs Index: https://www.appliqa.xyz/llms.txt
