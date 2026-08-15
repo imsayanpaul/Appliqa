@@ -232,8 +232,35 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const [uploadStatus, setUploadStatus] = useState('');
     const [uploadError, setUploadError] = useState('');
 
-    // Sync state
+    // Sync / Save state & Dirty tracker
     const [syncing, setSyncing] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
+    const isFirstMountRef = useRef(true);
+
+    // Track user changes across all resume sections
+    useEffect(() => {
+        if (isFirstMountRef.current) {
+            if (hasInitializedRef.current) {
+                isFirstMountRef.current = false;
+            }
+            return;
+        }
+        setIsDirty(true);
+        setSaved(false);
+    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, template]);
+
+    // Global keyboard shortcut (Ctrl+S / Cmd+S) to save resume from anywhere
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                handleSync();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, template, user]);
 
     // Advanced Premium Features State
     // 1. ATS Score Checker
@@ -734,7 +761,9 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 if (onUpdateUser) {
                     onUpdateUser(res.data.user);
                 }
-                alert("Successfully saved resume settings to your Appliqa account profile!");
+                setIsDirty(false);
+                setSaved(true);
+                setTimeout(() => setSaved(false), 3500);
             }
         } catch (err) {
             console.error(err);
@@ -944,11 +973,32 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         <button 
                             onClick={handleSync}
                             disabled={syncing}
-                            className="h-8 px-3 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-[#171717] text-xs font-bold transition-all border border-[#D8D4CC] flex items-center gap-1.5 cursor-pointer disabled:opacity-40 whitespace-nowrap"
+                            className={`h-8 px-3.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 whitespace-nowrap border-none shadow-sm ${
+                                saved
+                                    ? 'bg-emerald-600 text-white'
+                                    : isDirty
+                                    ? 'bg-[#F45B25] hover:bg-[#d94815] text-white shadow-[#F45B25]/25 animate-pulse'
+                                    : 'bg-[#171717] hover:bg-[#F45B25] text-white'
+                            }`}
                             style={{ boxShadow: 'none' }}
+                            title="Save & sync resume changes to account profile (Ctrl+S)"
                         >
-                            <Save size={13} />
-                            <span>{syncing ? 'Syncing...' : 'Sync Profile'}</span>
+                            {syncing ? (
+                                <>
+                                    <RefreshCw size={13} className="animate-spin" />
+                                    <span>Syncing...</span>
+                                </>
+                            ) : saved ? (
+                                <>
+                                    <Check size={13} />
+                                    <span>Saved!</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Save size={13} />
+                                    <span>{isDirty ? 'Save Resume' : 'Sync Profile'}</span>
+                                </>
+                            )}
                         </button>
                     </div>
 
@@ -2368,6 +2418,41 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     </motion.div>
                 </div>
             )}
+
+            {/* ── Floating Sticky Save Bar (Pops up when changes are made) ── */}
+            <AnimatePresence>
+                {isDirty && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                        exit={{ opacity: 0, y: 50, x: '-50%' }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        className="fixed bottom-6 left-1/2 z-50 flex items-center justify-between gap-4 px-5 py-3 rounded-2xl bg-[#171717] text-white shadow-2xl border border-white/15"
+                        style={{ width: 'min(92vw, 560px)' }}
+                    >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#F45B25] animate-ping shrink-0" />
+                            <span className="text-xs font-medium text-white/90 truncate">
+                                You have unsaved resume changes
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <span className="hidden sm:inline-block text-[10.5px] text-white/50 font-mono">
+                                Ctrl+S
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleSync}
+                                disabled={syncing}
+                                className="h-8 px-4 rounded-xl bg-[#F45B25] hover:bg-[#d94815] text-white text-xs font-bold border-none transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-md shadow-[#F45B25]/30"
+                            >
+                                {syncing ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
+                                <span>Save Changes</span>
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
