@@ -581,51 +581,50 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
 
             <section className="w-full pt-3 pb-12 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 lg:min-h-[520px]">
-                    <div className="lg:col-span-7 bg-[#F45B25] p-5 sm:p-12 md:p-14 text-white flex flex-col justify-between relative h-full">
+                    <div className="lg:col-span-7 bg-[#F45B25] p-8 sm:p-12 md:p-14 text-white flex flex-col justify-between relative h-full">
                         <div>
-                            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.08] mb-4 sm:mb-6">
+                            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.08] mb-6">
                                 Outsmart the ATS.<br />
                                 Land Dream Roles.<br />
                                 All in One Place.
                             </h1>
-                            <p className="text-sm sm:text-lg text-white/90 font-normal leading-relaxed mb-6 sm:mb-8 max-w-xl">
+                            <p className="text-base sm:text-lg text-white/90 font-normal leading-relaxed mb-8 max-w-xl">
                                 Bypass automated application filters, lock in 90%+ keyword optimization, and auto-generate bespoke cover letters alongside tailored recruiter outreach notes.
                             </p>
                         </div>
 
                         <div className="w-full">
-                            <form onSubmit={handleSearch} className="w-full flex items-center bg-white rounded-2xl p-1.5 shadow-xl border border-white/20 transition-all focus-within:ring-2 focus-within:ring-white">
-                                <div className="flex items-center pl-2.5 sm:pl-3.5 pr-1.5 sm:pr-2 flex-1 min-w-0">
-                                    <FiSearch className="text-neutral-400 mr-2 shrink-0" size={16} />
+                            <form onSubmit={handleSearch} className="w-full flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-2xl p-2.5 sm:p-1.5 shadow-xl border border-white/20 transition-all focus-within:ring-2 focus-within:ring-white gap-2 sm:gap-0">
+                                <div className="flex items-center pl-2 sm:pl-3.5 pr-2 flex-1 min-w-0 pb-1 sm:pb-0 border-b border-neutral-100 sm:border-none">
+                                    <FiSearch className="text-neutral-400 mr-2.5 shrink-0" size={18} />
                                     <input
                                         type="text"
-                                        className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-neutral-800 placeholder-neutral-400 font-medium"
-                                        placeholder={aiMode ? 'e.g. Remote React $140k...' : 'Job title, skill, or company...'}
+                                        className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-neutral-800 placeholder-neutral-400 font-medium py-1 sm:py-0"
+                                        placeholder={aiMode ? 'Try: "Remote React engineer paying over $140k"' : 'Search job titles, required skills, or company...'}
                                         value={query}
                                         onChange={(e) => setQuery(e.target.value)}
                                     />
                                 </div>
-                                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                                <div className="flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
                                     <button
                                         type="button"
                                         onClick={() => setAiMode(!aiMode)}
-                                        className={`px-2 sm:px-3 py-2 rounded-xl text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1 sm:gap-1.5 whitespace-nowrap ${aiMode
+                                        className={`flex-1 sm:flex-initial justify-center px-3 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${aiMode
                                                 ? 'bg-[#FFF0E8] text-[#F45B25]'
                                                 : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                             }`}
                                         title="Toggle AI Smart Search"
                                     >
                                         <FiZap size={13} className={aiMode ? 'text-[#F45B25]' : 'text-neutral-500'} />
-                                        <span className="hidden sm:inline">AI Search</span>
-                                        <span className="sm:hidden text-[11px]">AI</span>
+                                        <span>AI Search</span>
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="px-3 sm:px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-neutral-900 text-white text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1 sm:gap-1.5 shadow-md disabled:opacity-50 whitespace-nowrap"
+                                        className="flex-1 sm:flex-initial justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-neutral-900 text-white text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 shadow-md disabled:opacity-50 whitespace-nowrap"
                                     >
                                         <span>{loading ? '...' : 'Search'}</span>
-                                        <FiArrowRight size={13} className="hidden sm:inline" />
+                                        <FiArrowRight size={13} />
                                     </button>
                                 </div>
                             </form>
