@@ -9,7 +9,7 @@ function RecommendedJobs({ user, resumeData }) {
     const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [savedJobs, setSavedJobs] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [selectedJob, setSelectedJob] = useState(null);
 
     const profileRole = user?.preferences?.desiredRole;
@@ -63,7 +63,7 @@ function RecommendedJobs({ user, resumeData }) {
     }, [targetRole, userLocation]);
 
     return (
-        <section className="w-full mb-24">
+        <section className="w-full mb-24" style={{ minHeight: '380px', contain: 'layout style' }}>
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
                 <div>
