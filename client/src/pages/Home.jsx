@@ -501,7 +501,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                     <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-pulse shrink-0" />
                     <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#66615C]">Trending Searches</span>
                 </div>
-                <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
                     {suggestedRoles.map((tag, idx) => {
                         const isTop3 = idx < 3;
                         const rank = idx + 1;
@@ -509,12 +509,12 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                             <button
                                 key={tag}
                                 type="button"
-                                className="inline-flex items-center px-2.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold bg-white border border-[#D8D4CC] text-[#171717] active:scale-95 shadow-[0_1px_2px_rgba(0,0,0,0.03)] cursor-pointer"
+                                className="inline-flex items-center px-2.5 py-1 sm:py-1.5 rounded-md text-[11px] sm:text-xs font-semibold bg-white border border-[#D8D4CC] text-[#171717] active:scale-95 shadow-[0_1px_2px_rgba(0,0,0,0.03)] cursor-pointer"
                                 onClick={() => navigate(`/search?query=${encodeURIComponent(tag)}`)}
                             >
                                 {isTop3 && (
                                     <span
-                                        className={`inline-flex items-center justify-center text-[8.5px] sm:text-[9px] font-black mr-1 sm:mr-1.5 px-1.5 py-0.5 rounded-full leading-none shrink-0 ${
+                                        className={`inline-flex items-center justify-center text-[8.5px] sm:text-[9px] font-black mr-1 sm:mr-1.5 px-1.5 py-0.5 rounded-[3px] leading-none shrink-0 ${
                                             rank === 1
                                                 ? 'bg-[#F45B25] text-white'
                                                 : 'bg-[#ECE8E1] text-[#171717]'
@@ -530,9 +530,9 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                 </div>
             </div>
 
-            {/* ── Desktop Layout: Centered Floating Glass Pill Dock (1024px+) ── */}
+            {/* ── Desktop Layout: Centered Squarish Glass Dock (1024px+) ── */}
             <div className="hidden lg:flex w-full pt-4 pb-1 px-6 max-w-7xl mx-auto items-center justify-center" style={{ minHeight: '48px', contain: 'layout style' }}>
-                <div className="inline-flex items-center flex-wrap justify-center gap-2 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[#D8D4CC] shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
+                <div className="inline-flex items-center flex-wrap justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-white/95 backdrop-blur-md border border-[#D8D4CC] shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-[#171717] mr-1 flex-shrink-0">
                         <span className="w-2 h-2 rounded-full bg-[#F45B25] animate-pulse" />
                         <span className="tracking-wide text-[11.5px] uppercase font-bold text-[#66615C]">Trending:</span>
@@ -544,7 +544,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                             <button
                                 key={tag}
                                 type="button"
-                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold active:scale-95 transition-all cursor-pointer shadow-none group ${
+                                className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold active:scale-95 transition-all cursor-pointer shadow-none group ${
                                     isTop3
                                         ? 'bg-white text-[#171717] border border-[#D8D4CC] hover:border-[#171717] hover:bg-[#171717] hover:text-white'
                                         : 'bg-[#FAF8F5] text-[#171717] border border-[#D8D4CC] hover:bg-[#171717] hover:text-white'
@@ -553,7 +553,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                             >
                                 {isTop3 && (
                                     <span
-                                        className={`inline-flex items-center justify-center text-[9.5px] font-black mr-1.5 px-1.5 py-0.5 rounded-full leading-none transition-colors ${
+                                        className={`inline-flex items-center justify-center text-[9.5px] font-black mr-1.5 px-1.5 py-0.5 rounded-[3px] leading-none transition-colors ${
                                             rank === 1
                                                 ? 'bg-[#F45B25] text-white group-hover:bg-white group-hover:text-[#F45B25]'
                                                 : 'bg-[#ECE8E1] text-[#171717] group-hover:bg-white/20 group-hover:text-white'
