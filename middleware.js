@@ -14,6 +14,8 @@ const MARKDOWN_CONTENT = `# Appliqa — AI-Powered Job Finder & Career Optimizat
 ## Public Endpoints & Routes
 - Homepage: https://www.appliqa.xyz/
 - Job Search: https://www.appliqa.xyz/search
+- Pricing & Commerce: https://www.appliqa.xyz/pricing
+- Checkout Surface: https://www.appliqa.xyz/checkout
 - Direct Role Query: https://www.appliqa.xyz/search?query=React+Developer
 - Agent Skills: https://www.appliqa.xyz/.well-known/agent-skills/index.json
 - API Catalog (RFC 9727): https://www.appliqa.xyz/.well-known/api-catalog

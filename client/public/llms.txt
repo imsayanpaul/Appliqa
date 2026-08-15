@@ -14,6 +14,8 @@
 ## Public Endpoints & Routes
 - [Homepage](https://www.appliqa.xyz/): Landing portal, live trending searches, and quick search.
 - [Job Search](https://www.appliqa.xyz/search): Interactive job search results with filtering and ATS match scoring.
+- [Pricing & Commerce](https://www.appliqa.xyz/pricing): Plans, subscription tiers, and transaction checkout surface.
+- [Direct Checkout](https://www.appliqa.xyz/checkout): Direct checkout surface for agents and users.
 - [Direct Role Query](https://www.appliqa.xyz/search?query=React+Developer): Direct parameterized query URL for any role or skill.
 - [LLMs Full Documentation](https://www.appliqa.xyz/llms-full.txt): Complete platform architecture and feature specifications.
 

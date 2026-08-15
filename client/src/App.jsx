@@ -12,6 +12,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const CareerPath = lazy(() => import('./pages/CareerPath'));
 const Advisor = lazy(() => import('./pages/Advisor'));
 const ResumeCreator = lazy(() => import('./pages/ResumeCreator'));
+const Pricing = lazy(() => import('./pages/Pricing'));
 
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
@@ -721,6 +722,12 @@ function AppContent() {
                         } />
                         <Route path="/search" element={
                             <SearchResults user={user} resumeData={resumeData} />
+                        } />
+                        <Route path="/pricing" element={
+                            <Pricing user={user} session={session} />
+                        } />
+                        <Route path="/checkout" element={
+                            <Pricing user={user} session={session} />
                         } />
                         
                         {/* Protected Routes */}
