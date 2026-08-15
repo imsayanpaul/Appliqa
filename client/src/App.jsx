@@ -570,41 +570,43 @@ function AppContent() {
 
                     {/* Right Actions: Profile CTA & Mobile Toggle */}
                     <div className="navbar-right-actions">
-                        {/* Desktop Profile / Sign In CTA */}
-                        <div className="navbar-desktop-cta">
-                            {session ? (
-                                <button
-                                    onClick={() => handleNavClick('/profile')}
-                                    className={`navbar-profile-badge ${isActive('/profile') ? 'active' : ''}`}
-                                    title="Open Profile & Settings"
-                                >
-                                    <div className="navbar-profile-avatar">
-                                        {(user?.name?.trim()?.charAt(0) || session?.user?.email?.charAt(0) || 'P').toUpperCase()}
-                                    </div>
-                                    <span className="navbar-profile-name">
-                                        {user?.name?.trim() ? user.name.trim().split(' ')[0] : 'Profile'}
-                                    </span>
-                                    <FiChevronRight size={13} className="navbar-profile-arrow" />
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => handleNavClick('/profile')}
-                                    className={`navbar-signin-btn ${isActive('/profile') ? 'active' : ''}`}
-                                >
-                                    <FiUser size={13} />
-                                    <span>Sign In</span>
-                                </button>
-                            )}
-                        </div>
+                        {session ? (
+                            <>
+                                {/* Desktop Profile Badge */}
+                                <div className="navbar-desktop-cta">
+                                    <button
+                                        onClick={() => handleNavClick('/profile')}
+                                        className={`navbar-profile-badge ${isActive('/profile') ? 'active' : ''}`}
+                                        title="Open Profile & Settings"
+                                    >
+                                        <div className="navbar-profile-avatar">
+                                            {(user?.name?.trim()?.charAt(0) || session?.user?.email?.charAt(0) || 'P').toUpperCase()}
+                                        </div>
+                                        <span className="navbar-profile-name">
+                                            {user?.name?.trim() ? user.name.trim().split(' ')[0] : 'Profile'}
+                                        </span>
+                                        <FiChevronRight size={13} className="navbar-profile-arrow" />
+                                    </button>
+                                </div>
 
-                        {/* Mobile Menu Button */}
-                        <button 
-                            className="navbar-mobile-toggle" 
-                            onClick={toggleMenu}
-                            aria-label="Toggle navigation menu"
-                        >
-                            <Menu size={22} />
-                        </button>
+                                {/* Mobile Menu Button (Only when logged in) */}
+                                <button 
+                                    className="navbar-mobile-toggle" 
+                                    onClick={toggleMenu}
+                                    aria-label="Toggle navigation menu"
+                                >
+                                    <Menu size={22} />
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={() => handleNavClick('/profile')}
+                                className={`navbar-signin-btn ${isActive('/profile') ? 'active' : ''}`}
+                            >
+                                <FiUser size={13} />
+                                <span>Sign In</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </header>
