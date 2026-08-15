@@ -114,6 +114,7 @@ function SearchResults({ user, resumeData }) {
     return (
         <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717] pb-24">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8">
+                <h1 className="sr-only">Job Search Results — Appliqa</h1>
                 {/* Search Bar - Omnibar */}
                 <div className="w-full max-w-3xl mx-auto mb-6">
                     <form onSubmit={handleSearch} className="w-full bg-white rounded-2xl p-2.5 flex items-center gap-2 shadow-lg border border-neutral-200/80">
