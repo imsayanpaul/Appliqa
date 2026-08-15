@@ -1,0 +1,126 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Appliqa API",
+    "description": "AI-powered job finder and ATS career optimization platform API.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Appliqa Support",
+      "url": "https://www.appliqa.xyz"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://www.appliqa.xyz",
+      "description": "Production Web App"
+    }
+  ],
+  "paths": {
+    "/search": {
+      "get": {
+        "summary": "Search Jobs",
+        "description": "Search verified job listings with keywords, locations, and filters.",
+        "operationId": "searchJobs",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "description": "Job title, keywords, or natural language query",
+            "schema": {
+              "type": "string",
+              "example": "React Developer"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "City or state location",
+            "schema": {
+              "type": "string",
+              "example": "New York"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "description": "2-letter ISO country code",
+            "schema": {
+              "type": "string",
+              "example": "us"
+            }
+          },
+          {
+            "name": "remote",
+            "in": "query",
+            "required": false,
+            "description": "Filter for remote positions only",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "employmentType",
+            "in": "query",
+            "required": false,
+            "description": "Employment type",
+            "schema": {
+              "type": "string",
+              "enum": ["FULLTIME", "CONTRACTOR", "PARTTIME", "INTERN"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of matching job listings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "title": { "type": "string" },
+                          "company": { "type": "string" },
+                          "location": { "type": "string" },
+                          "salary": { "type": "string" },
+                          "applyLink": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/llms.txt": {
+      "get": {
+        "summary": "LLMs.txt Manifest",
+        "description": "Machine-readable context and routing instructions for AI agents.",
+        "operationId": "getLlmsTxt",
+        "responses": {
+          "200": {
+            "description": "Markdown text for LLMs",
+            "content": {
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
