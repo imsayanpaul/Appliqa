@@ -1,5 +1,4 @@
 {
-  "cleanUrls": true,
   "headers": [
     {
       "source": "/llms.txt",
@@ -127,7 +126,7 @@
         },
         {
           "key": "Link",
-          "value": "</llms.txt>; rel=\"describedby\"; type=\"text/markdown\", </openapi.json>; rel=\"service-desc\"; type=\"application/json\", </.well-known/api-catalog>; rel=\"api-catalog\"; type=\"application/linkset+json\", </.well-known/agent-skills/index.json>; rel=\"agent-skills\"; type=\"application/json\", </.well-known/payment>; rel=\"payment\"; type=\"application/json\", </.well-known/ap2>; rel=\"payment-protocol\"; type=\"application/json\", </.well-known/acp>; rel=\"commerce-protocol\"; type=\"application/json\", </.well-known/mcp/server-card.json>; rel=\"mcp-server\"; type=\"application/json\", </.well-known/oauth-authorization-server>; rel=\"oauth-authorization-server\"; type=\"application/json\", </.well-known/x402-mesh.json>; rel=\"x402-mesh\"; type=\"application/json\", </x402>; rel=\"payment-endpoint\"; type=\"application/json\", </sitemap.xml>; rel=\"sitemap\"; type=\"application/xml\""
+          "value": "</llms.txt>; rel=\"describedby\"; type=\"text/markdown\", </openapi.json>; rel=\"service-desc\"; type=\"application/json\", </.well-known/api-catalog>; rel=\"api-catalog\"; type=\"application/linkset+json\", </.well-known/agent-skills/index.json>; rel=\"agent-skills\"; type=\"application/json\", </.well-known/payment>; rel=\"payment\"; type=\"application/json\", </.well-known/ap2>; rel=\"payment-protocol\"; type=\"application/json\", </.well-known/acp>; rel=\"commerce-protocol\"; type=\"application/json\", </.well-known/mcp/server-card.json>; rel=\"mcp-server\"; type=\"application/json\", </.well-known/oauth-authorization-server>; rel=\"oauth-authorization-server\"; type=\"application/json\", </.well-known/x402-mesh.json>; rel=\"x402-mesh\"; type=\"application/json\", </pricing>; rel=\"pricing\"; type=\"text/html\", </checkout>; rel=\"checkout\"; type=\"text/html\", </x402>; rel=\"payment-endpoint\"; type=\"application/json\", </sitemap.xml>; rel=\"sitemap\"; type=\"application/xml\""
         },
         {
           "key": "Vary",
@@ -142,37 +141,8 @@
       "destination": "/api/x402"
     },
     {
-      "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept",
-          "value": ".*text\\/markdown.*|.*text\\/x-markdown.*"
-        }
-      ],
-      "destination": "/llms.txt"
-    },
-    {
-      "source": "/search",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept",
-          "value": ".*text\\/markdown.*|.*text\\/x-markdown.*"
-        }
-      ],
-      "destination": "/llms.txt"
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept",
-          "value": ".*text\\/markdown.*|.*text\\/x-markdown.*"
-        }
-      ],
-      "destination": "/llms.txt"
+      "source": "/((?!api/|assets/|favicon|robots\\.txt|sitemap\\.xml|llms.*\\.txt|openapi\\.json|gitimg\\.png|logotext\\.svg|.*\\.json|.*\\.svg|.*\\.png|.*\\.ico|.*\\.js|.*\\.css).*)",
+      "destination": "/index.html"
     },
     {
       "source": "/(.*)",
