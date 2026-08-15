@@ -7,12 +7,30 @@ import { Menu, X, Compass, Workflow, Route as RouteIcon, Bot, FileText } from 'l
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
 import SavedJobs from './pages/SavedJobs';
+// Resilient lazy loader that automatically recovers from stale Vite chunk hashes after new deployments
+const lazyWithRetry = (componentImport) =>
+  lazy(async () => {
+    const isRefreshed = window.sessionStorage.getItem('retry-lazy-refreshed') === 'true';
+    try {
+      const component = await componentImport();
+      window.sessionStorage.setItem('retry-lazy-refreshed', 'false');
+      return component;
+    } catch (error) {
+      if (!isRefreshed) {
+        window.sessionStorage.setItem('retry-lazy-refreshed', 'true');
+        window.location.reload();
+        return { default: () => null };
+      }
+      throw error;
+    }
+  });
+
 // Lazy-loaded pages for code-splitting and performance optimization
-const Profile = lazy(() => import('./pages/Profile'));
-const CareerPath = lazy(() => import('./pages/CareerPath'));
-const Advisor = lazy(() => import('./pages/Advisor'));
-const ResumeCreator = lazy(() => import('./pages/ResumeCreator'));
-const Pricing = lazy(() => import('./pages/Pricing'));
+const Profile = lazyWithRetry(() => import('./pages/Profile'));
+const CareerPath = lazyWithRetry(() => import('./pages/CareerPath'));
+const Advisor = lazyWithRetry(() => import('./pages/Advisor'));
+const ResumeCreator = lazyWithRetry(() => import('./pages/ResumeCreator'));
+const Pricing = lazyWithRetry(() => import('./pages/Pricing'));
 
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
@@ -1269,23 +1287,36 @@ class ErrorBoundary extends React.Component {
     }
     componentDidCatch(error, errorInfo) {
         console.error("ErrorBoundary caught:", error, errorInfo);
+        const msg = error?.message || '';
+        if (msg.includes('dynamically imported module') || msg.includes('Failed to fetch') || msg.includes('ChunkLoadError')) {
+            // Auto reload to fetch latest deployed assets
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
+        }
     }
     render() {
         if (this.state.hasError) {
+            const isChunkError = this.state.error?.message?.includes('dynamically imported module') || this.state.error?.message?.includes('ChunkLoadError');
             return (
                 <div className="min-h-screen bg-[#FAF8F5] text-[#171717] flex flex-col items-center justify-center p-6 text-center">
                     <div className="max-w-md bg-white p-8 rounded-3xl border border-neutral-200/80 shadow-xl space-y-4">
                         <div className="w-12 h-12 rounded-2xl bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center mx-auto text-xl font-bold">!</div>
-                        <h2 className="text-xl font-extrabold text-[#171717]">Something went wrong</h2>
-                        <p className="text-xs text-neutral-500">{this.state.error?.message || 'An unexpected error occurred.'}</p>
+                        <h2 className="text-xl font-extrabold text-[#171717]">
+                            {isChunkError ? 'New App Version Available' : 'Something went wrong'}
+                        </h2>
+                        <p className="text-xs text-neutral-500">
+                            {isChunkError 
+                                ? 'We just updated Appliqa with new capabilities. Reloading to get the latest version...'
+                                : (this.state.error?.message || 'An unexpected error occurred.')}
+                        </p>
                         <button
                             onClick={() => {
-                                window.localStorage.removeItem('appliqa_resume');
-                                window.location.href = '/';
+                                window.location.reload();
                             }}
-                            className="px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all border-none cursor-pointer"
+                            className="px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all border-none cursor-pointer shadow-md"
                         >
-                            Reset & Reload
+                            Reload Application
                         </button>
                     </div>
                 </div>
