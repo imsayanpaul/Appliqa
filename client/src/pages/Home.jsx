@@ -505,36 +505,81 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
 
     return (
         <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717]">
-            <div className="trending-searches-container">
-                <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-start sm:justify-center gap-1.5 sm:gap-2">
-                    <div className="flex items-center gap-1 text-xs font-bold text-[#171717] mr-1 flex-shrink-0">
-                        <FiTrendingUp size={13} className="text-[#F45B25]" />
-                        <span className="hidden sm:inline">Trending Searches:</span>
-                        <span className="sm:hidden">Trending:</span>
-                    </div>
-                    {suggestedRoles.map((tag, index) => {
-                        const isTop3 = index < 3;
-                        const rankText = index === 0 ? '1st' : index === 1 ? '2nd' : '3rd';
+            {/* ── Mobile & Tablet Layout: Clean Wrapped Pills (Centered, Zero Cutoff) ── */}
+            <div className="lg:hidden w-full pt-3 pb-1 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto flex flex-col items-center justify-center text-center">
+                <div className="flex items-center justify-center gap-1.5 mb-2.5 px-0.5">
+                    <span className="w-2 h-2 rounded-full bg-[#F45B25] animate-pulse shrink-0" />
+                    <span className="text-[11px] uppercase tracking-wider font-bold text-[#66615C]">Trending Searches</span>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                    {suggestedRoles.map((tag, idx) => {
+                        const isTop3 = idx < 3;
+                        const rank = idx + 1;
                         return (
                             <button
                                 key={tag}
-                                className={`suggested-role-chip ${isTop3 ? 'top-rank-chip' : ''}`}
+                                type="button"
+                                className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#D8D4CC] text-[#171717] active:scale-95 shadow-[0_1px_2px_rgba(0,0,0,0.03)] cursor-pointer"
                                 onClick={() => navigate(`/search?query=${encodeURIComponent(tag)}`)}
                             >
                                 {isTop3 && (
-                                    <span className="trending-rank-badge font-sans" style={{ marginRight: '5px', padding: '1.5px 4px', fontSize: '9px' }}>
-                                        {rankText}
+                                    <span
+                                        className={`inline-flex items-center justify-center text-[9px] font-black mr-1.5 px-1.5 py-0.5 rounded-full leading-none shrink-0 ${
+                                            rank === 1
+                                                ? 'bg-[#F45B25] text-white'
+                                                : 'bg-[#ECE8E1] text-[#171717]'
+                                        }`}
+                                    >
+                                        #{rank}
                                     </span>
                                 )}
-                                {tag}
+                                <span>{tag}</span>
                             </button>
                         );
                     })}
                 </div>
             </div>
 
+            {/* ── Desktop Layout: Centered Floating Glass Pill Dock (1024px+) ── */}
+            <div className="hidden lg:flex w-full pt-4 pb-1 px-6 max-w-7xl mx-auto items-center justify-center">
+                <div className="inline-flex items-center flex-wrap justify-center gap-2 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-[#D8D4CC] shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#171717] mr-1 flex-shrink-0">
+                        <span className="w-2 h-2 rounded-full bg-[#F45B25] animate-pulse" />
+                        <span className="tracking-wide text-[11.5px] uppercase font-bold text-[#66615C]">Trending:</span>
+                    </div>
+                    {suggestedRoles.map((tag, idx) => {
+                        const isTop3 = idx < 3;
+                        const rank = idx + 1;
+                        return (
+                            <button
+                                key={tag}
+                                type="button"
+                                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold active:scale-95 transition-all cursor-pointer shadow-none group ${
+                                    isTop3
+                                        ? 'bg-white text-[#171717] border border-[#D8D4CC] hover:border-[#171717] hover:bg-[#171717] hover:text-white'
+                                        : 'bg-[#FAF8F5] text-[#171717] border border-[#D8D4CC] hover:bg-[#171717] hover:text-white'
+                                }`}
+                                onClick={() => navigate(`/search?query=${encodeURIComponent(tag)}`)}
+                            >
+                                {isTop3 && (
+                                    <span
+                                        className={`inline-flex items-center justify-center text-[9.5px] font-black mr-1.5 px-1.5 py-0.5 rounded-full leading-none transition-colors ${
+                                            rank === 1
+                                                ? 'bg-[#F45B25] text-white group-hover:bg-white group-hover:text-[#F45B25]'
+                                                : 'bg-[#ECE8E1] text-[#171717] group-hover:bg-white/20 group-hover:text-white'
+                                        }`}
+                                    >
+                                        #{rank}
+                                    </span>
+                                )}
+                                <span>{tag}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
 
-            <section className="w-full pt-6 pb-12 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
+            <section className="w-full pt-3 pb-12 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 lg:min-h-[520px]">
                     <div className="lg:col-span-7 bg-[#F45B25] p-8 sm:p-12 md:p-14 text-white flex flex-col justify-between relative h-full">
                         <div>
@@ -584,47 +629,45 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                                 </div>
                             </form>
 
-                            {/* Recent Searches Slot - Fixed Height Slot with Zero Layout Shift */}
-                            <div className="min-h-[36px] flex items-center mt-3.5">
-                                {recentSearches.length > 0 && (
-                                    <div className="flex items-center gap-2 text-xs text-white/90 overflow-x-auto scrollbar-none flex-nowrap min-w-0 w-full">
-                                        <span className="flex items-center gap-1 font-bold text-white shrink-0">
-                                            <FiClock size={13} />
-                                            <span>Recent:</span>
-                                        </span>
-                                        <div className="flex items-center gap-1.5 flex-nowrap shrink-0">
-                                            {recentSearches.slice(0, 3).map((q) => (
-                                                <span
-                                                    key={q}
-                                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 hover:bg-black/30 backdrop-blur-sm text-white text-xs font-medium cursor-pointer transition-all border border-white/15 group shrink-0"
-                                                    onClick={() => {
-                                                        setQuery(q);
-                                                        navigate(`/search?query=${encodeURIComponent(q)}`);
-                                                    }}
+                            {/* Recent Searches (if available) */}
+                            {recentSearches.length > 0 && (
+                                <div className="flex items-center gap-2 text-xs text-white/90 overflow-x-auto scrollbar-none flex-nowrap min-w-0 w-full mt-3.5">
+                                    <span className="flex items-center gap-1 font-bold text-white shrink-0">
+                                        <FiClock size={12} />
+                                        <span>Recent:</span>
+                                    </span>
+                                    <div className="flex items-center gap-1.5 flex-nowrap shrink-0">
+                                        {recentSearches.slice(0, 3).map((q) => (
+                                            <span
+                                                key={q}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 hover:bg-black/30 backdrop-blur-sm text-white text-xs font-medium cursor-pointer transition-all border border-white/15 group shrink-0"
+                                                onClick={() => {
+                                                    setQuery(q);
+                                                    navigate(`/search?query=${encodeURIComponent(q)}`);
+                                                }}
+                                            >
+                                                <span>{q}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleDeleteSearch(e, q)}
+                                                    className="hover:text-white/40 p-0.5 bg-transparent border-none cursor-pointer flex items-center text-white/70 group-hover:text-white"
+                                                    title="Remove from history"
                                                 >
-                                                    <span>{q}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => handleDeleteSearch(e, q)}
-                                                        className="hover:text-white/40 p-0.5 bg-transparent border-none cursor-pointer flex items-center text-white/70 group-hover:text-white"
-                                                        title="Remove from history"
-                                                    >
-                                                        <FiX size={12} />
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={handleClearAllSearches}
-                                            className="text-[11px] text-white/70 hover:text-white underline cursor-pointer bg-transparent border-none shrink-0 ml-auto"
-                                            title="Clear all search history"
-                                        >
-                                            Clear all
-                                        </button>
+                                                    <FiX size={11} />
+                                                </button>
+                                            </span>
+                                        ))}
                                     </div>
-                                )}
-                            </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleClearAllSearches}
+                                        className="text-[11px] text-white/70 hover:text-white underline cursor-pointer bg-transparent border-none shrink-0 ml-auto"
+                                        title="Clear all search history"
+                                    >
+                                        Clear all
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
