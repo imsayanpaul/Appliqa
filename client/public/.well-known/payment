@@ -1,0 +1,51 @@
+{
+  "$schema": "https://mpp.dev/schema/v1.json",
+  "protocol": "mpp/1.0",
+  "version": "1.0.0",
+  "merchant": {
+    "id": "appliqa",
+    "name": "Appliqa",
+    "domain": "www.appliqa.xyz",
+    "description": "AI-Powered Job Discovery & ATS Career Optimization"
+  },
+  "settlement": {
+    "rails": [
+      {
+        "type": "stripe",
+        "asset": "usd",
+        "methods": ["card", "agent_credit", "link"]
+      },
+      {
+        "type": "crypto",
+        "chain": "base",
+        "asset": "usdc",
+        "contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      }
+    ]
+  },
+  "routes": [
+    {
+      "path": "/search",
+      "method": "GET",
+      "price": {
+        "amount": "0.01",
+        "currency": "USD"
+      },
+      "description": "Verified tech job discovery query"
+    },
+    {
+      "path": "/x402",
+      "method": "POST",
+      "price": {
+        "amount": "0.01",
+        "currency": "USD"
+      },
+      "description": "ATS keyword matching & micro-transaction operations"
+    }
+  ],
+  "challenge": {
+    "header": "WWW-Authenticate",
+    "scheme": "Payment",
+    "realm": "appliqa-mpp"
+  }
+}
