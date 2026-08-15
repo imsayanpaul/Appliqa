@@ -1,0 +1,46 @@
+{
+  "issuer": "https://www.appliqa.xyz",
+  "authorization_endpoint": "https://www.appliqa.xyz/profile",
+  "token_endpoint": "https://www.appliqa.xyz/api/auth/token",
+  "registration_endpoint": "https://www.appliqa.xyz/api/auth/register",
+  "revocation_endpoint": "https://www.appliqa.xyz/api/auth/revoke",
+  "response_types_supported": [
+    "code",
+    "token"
+  ],
+  "grant_types_supported": [
+    "authorization_code",
+    "client_credentials",
+    "urn:ietf:params:oauth:grant-type:token-exchange"
+  ],
+  "code_challenge_methods_supported": [
+    "S256"
+  ],
+  "scopes_supported": [
+    "openid",
+    "profile",
+    "email",
+    "jobs:read",
+    "resume:read",
+    "resume:write",
+    "advisor:chat"
+  ],
+  "agent_auth": {
+    "supported": true,
+    "registration_endpoint": "https://www.appliqa.xyz/api/agent/register",
+    "claim_endpoint": "https://www.appliqa.xyz/api/agent/claim",
+    "revocation_endpoint": "https://www.appliqa.xyz/api/agent/revoke",
+    "supported_identity_types": [
+      "anonymous",
+      "identity_assertion"
+    ],
+    "supported_assertion_formats": [
+      "jwt-bearer",
+      "verifiable_credential"
+    ],
+    "delegation_mechanisms": [
+      "token_exchange",
+      "scoped_grant"
+    ]
+  }
+}
