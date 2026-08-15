@@ -631,12 +631,12 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
 
                             {/* Recent Searches (if available) */}
                             {recentSearches.length > 0 && (
-                                <div className="flex items-center gap-2 text-xs text-white/90 overflow-x-auto scrollbar-none flex-nowrap min-w-0 w-full mt-3.5">
+                                <div className="flex flex-wrap items-center gap-2 text-xs text-white/90 w-full mt-3.5 pt-0.5">
                                     <span className="flex items-center gap-1 font-bold text-white shrink-0">
                                         <FiClock size={12} />
                                         <span>Recent:</span>
                                     </span>
-                                    <div className="flex items-center gap-1.5 flex-nowrap shrink-0">
+                                    <div className="flex flex-wrap items-center gap-1.5">
                                         {recentSearches.slice(0, 3).map((q) => (
                                             <span
                                                 key={q}
@@ -661,7 +661,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                                     <button
                                         type="button"
                                         onClick={handleClearAllSearches}
-                                        className="text-[11px] text-white/70 hover:text-white underline cursor-pointer bg-transparent border-none shrink-0 ml-auto"
+                                        className="text-[11px] text-white/80 hover:text-white underline cursor-pointer bg-transparent border-none shrink-0"
                                         title="Clear all search history"
                                     >
                                         Clear all
