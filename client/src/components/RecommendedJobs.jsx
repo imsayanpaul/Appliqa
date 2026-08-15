@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowRight, FiZap } from 'react-icons/fi';
 import { searchJobs, getSavedJobs } from '../services/api';
@@ -11,6 +11,7 @@ function RecommendedJobs({ user, resumeData }) {
     const [savedJobs, setSavedJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedJob, setSelectedJob] = useState(null);
+    const activeReqRef = useRef(0);
 
     const profileRole = user?.preferences?.desiredRole;
     const resumeRole = resumeData?.suggestedRoles?.[0];
@@ -29,33 +30,46 @@ function RecommendedJobs({ user, resumeData }) {
     }, [user]);
 
     useEffect(() => {
-        // If the user has a location preference, append it to the search
+        const requestId = ++activeReqRef.current;
         const searchQuery = userLocation ? `${targetRole} in ${userLocation}` : targetRole;
         const cacheKey = `appliqa_recs_${searchQuery.replace(/\s+/g, '_')}`;
 
-        const fetchRecs = async () => {
-            const cached = sessionStorage.getItem(cacheKey);
-            if (cached) {
-                try {
-                    setJobs(JSON.parse(cached));
+        // 1. Instant Cache Check
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setJobs(parsed);
+                    setLoading(false);
                     return;
-                } catch {
-                    // ignore parse error
                 }
+            } catch {
+                sessionStorage.removeItem(cacheKey);
             }
+        }
 
-            setLoading(true);
+        // 2. Fresh Network Fetch with Safe Timeout
+        setLoading(true);
+
+        const fetchRecs = async () => {
             try {
                 const res = await searchJobs({ query: searchQuery, page: 1 });
-                const fetchedJobs = (res.data.jobs || []).slice(0, 3);
+                // Discard if a newer request was dispatched
+                if (requestId !== activeReqRef.current) return;
+
+                const fetchedJobs = (res.data?.jobs || []).slice(0, 3);
                 setJobs(fetchedJobs);
                 if (fetchedJobs.length > 0) {
                     sessionStorage.setItem(cacheKey, JSON.stringify(fetchedJobs));
                 }
             } catch (err) {
+                if (requestId !== activeReqRef.current) return;
                 console.error("Failed to fetch recommended jobs", err);
             } finally {
-                setLoading(false);
+                if (requestId === activeReqRef.current) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -140,7 +154,7 @@ function RecommendedJobs({ user, resumeData }) {
                     <FiZap className="mx-auto text-[#F45B25] mb-2" size={24} />
                     <p className="font-semibold text-[#171717]">No live recommendations cached at this moment.</p>
                     <button
-                        onClick={() => navigate('/search?query=Software')}
+                        onClick={() => navigate(`/search?query=${encodeURIComponent(targetRole)}`)}
                         className="mt-3 px-5 py-2 rounded-xl bg-[#171717] text-white text-xs font-bold border-none cursor-pointer"
                     >
                         Search All Opportunities
