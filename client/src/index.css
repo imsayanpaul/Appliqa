@@ -2506,8 +2506,8 @@ main::-webkit-scrollbar-thumb:hover {
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid var(--glass-border);
-  border-top-color: var(--accent-purple);
+  border: 3px solid rgba(244, 91, 37, 0.18);
+  border-top-color: #F45B25;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
