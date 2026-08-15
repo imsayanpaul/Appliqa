@@ -5,6 +5,13 @@ export default function handler(req, res) {
   res.setHeader('X-Payment-Required', 'true');
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
+  // RFC 9331 RateLimit Header Fields
+  res.setHeader('RateLimit', 'limit=100, remaining=47, reset=42');
+  res.setHeader('RateLimit-Limit', '100');
+  res.setHeader('RateLimit-Remaining', '47');
+  res.setHeader('RateLimit-Reset', '42');
+  res.setHeader('RateLimit-Policy', '100;w=60');
+
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
