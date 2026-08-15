@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "name": "appliqa-agent-skills",
+  "displayName": "Appliqa Agent Skills",
+  "description": "Task-specific skills and workflows that autonomous AI agents can invoke on Appliqa for job search, ATS auditing, and career acceleration.",
+  "skills": [
+    {
+      "id": "job-discovery",
+      "name": "Verified Job Discovery",
+      "description": "Search and filter 50,000+ live verified tech job postings across LinkedIn, Indeed, and Glassdoor.",
+      "category": "search",
+      "invocation": {
+        "type": "http",
+        "method": "GET",
+        "url": "https://www.appliqa.xyz/search",
+        "parameters": {
+          "query": "string (Job title or skills)",
+          "location": "string (City/Region)",
+          "country": "string (2-letter ISO code, e.g. us, in, gb)",
+          "remote": "boolean",
+          "employmentType": "string (FULLTIME | CONTRACTOR | PARTTIME | INTERN)"
+        }
+      }
+    },
+    {
+      "id": "ats-resume-audit",
+      "name": "ATS Resume Scanner & Score",
+      "description": "Audit candidate resume against target job description to compute keyword match percentage and skill gap breakdown.",
+      "category": "analysis",
+      "invocation": {
+        "type": "mcp_tool",
+        "tool_name": "score_resume_ats",
+        "server_card": "https://www.appliqa.xyz/.well-known/mcp/server-card.json"
+      }
+    },
+    {
+      "id": "career-roadmap-generation",
+      "name": "Career Path & Salary Benchmarking",
+      "description": "Generate step-by-step career progression ladders with salary benchmarks and timeline milestones.",
+      "category": "planning",
+      "invocation": {
+        "type": "mcp_tool",
+        "tool_name": "generate_career_path",
+        "server_card": "https://www.appliqa.xyz/.well-known/mcp/server-card.json"
+      }
+    },
+    {
+      "id": "ai-interview-prep",
+      "name": "AI Career Advisor & Mock Interview",
+      "description": "Generate tailored behavioral and technical mock interview questions, custom cover letters, and recruiter outreach notes.",
+      "category": "coaching",
+      "invocation": {
+        "type": "mcp_tool",
+        "tool_name": "ai_career_advisor",
+        "server_card": "https://www.appliqa.xyz/.well-known/mcp/server-card.json"
+      }
+    },
+    {
+      "id": "resume-builder",
+      "name": "Visual ATS Resume Creator",
+      "description": "Draft, edit, and export tailored ATS-optimized resumes with live keyword scores.",
+      "category": "creation",
+      "invocation": {
+        "type": "web_navigation",
+        "url": "https://www.appliqa.xyz/resume-creator"
+      }
+    }
+  ]
+}
