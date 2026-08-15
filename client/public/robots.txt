@@ -1,5 +1,8 @@
 # robots.txt for Appliqa (https://www.appliqa.xyz)
+Content-Signal: search=yes, ai-input=yes, ai-train=no
+
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 Allow: /search
 Allow: /llms.txt
