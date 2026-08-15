@@ -1,16 +1,75 @@
 {
+  "cleanUrls": true,
   "headers": [
+    {
+      "source": "/llms.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/markdown; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/llms-full.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/markdown; charset=utf-8"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
         {
           "key": "Link",
           "value": "</llms.txt>; rel=\"describedby\"; type=\"text/markdown\", </openapi.json>; rel=\"service-desc\"; type=\"application/json\", </sitemap.xml>; rel=\"sitemap\"; type=\"application/xml\""
+        },
+        {
+          "key": "Vary",
+          "value": "Accept"
         }
       ]
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text\\/markdown.*|.*text\\/x-markdown.*"
+        }
+      ],
+      "destination": "/llms.txt"
+    },
+    {
+      "source": "/search",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text\\/markdown.*|.*text\\/x-markdown.*"
+        }
+      ],
+      "destination": "/llms.txt"
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text\\/markdown.*|.*text\\/x-markdown.*"
+        }
+      ],
+      "destination": "/llms.txt"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
