@@ -506,12 +506,12 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
     return (
         <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717]">
             {/* ── Mobile & Tablet Layout: Clean Wrapped Pills (Centered, Zero Cutoff) ── */}
-            <div className="lg:hidden w-full pt-3 pb-1 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto flex flex-col items-center justify-center text-center">
-                <div className="flex items-center justify-center gap-1.5 mb-2.5 px-0.5">
-                    <span className="w-2 h-2 rounded-full bg-[#F45B25] animate-pulse shrink-0" />
-                    <span className="text-[11px] uppercase tracking-wider font-bold text-[#66615C]">Trending Searches</span>
+            <div className="lg:hidden w-full pt-1.5 pb-1 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto flex flex-col items-center justify-center text-center">
+                <div className="flex items-center justify-center gap-1.5 mb-1.5 px-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-pulse shrink-0" />
+                    <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#66615C]">Trending Searches</span>
                 </div>
-                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
                     {suggestedRoles.map((tag, idx) => {
                         const isTop3 = idx < 3;
                         const rank = idx + 1;
@@ -519,12 +519,12 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                             <button
                                 key={tag}
                                 type="button"
-                                className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#D8D4CC] text-[#171717] active:scale-95 shadow-[0_1px_2px_rgba(0,0,0,0.03)] cursor-pointer"
+                                className="inline-flex items-center px-2.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold bg-white border border-[#D8D4CC] text-[#171717] active:scale-95 shadow-[0_1px_2px_rgba(0,0,0,0.03)] cursor-pointer"
                                 onClick={() => navigate(`/search?query=${encodeURIComponent(tag)}`)}
                             >
                                 {isTop3 && (
                                     <span
-                                        className={`inline-flex items-center justify-center text-[9px] font-black mr-1.5 px-1.5 py-0.5 rounded-full leading-none shrink-0 ${
+                                        className={`inline-flex items-center justify-center text-[8.5px] sm:text-[9px] font-black mr-1 sm:mr-1.5 px-1.5 py-0.5 rounded-full leading-none shrink-0 ${
                                             rank === 1
                                                 ? 'bg-[#F45B25] text-white'
                                                 : 'bg-[#ECE8E1] text-[#171717]'
@@ -579,16 +579,16 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                 </div>
             </div>
 
-            <section className="w-full pt-3 pb-12 px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
+            <section className="w-full pt-1.5 sm:pt-3 pb-8 sm:pb-12 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 lg:min-h-[520px]">
-                    <div className="lg:col-span-7 bg-[#F45B25] p-8 sm:p-12 md:p-14 text-white flex flex-col justify-between relative h-full">
+                    <div className="lg:col-span-7 bg-[#F45B25] p-5 sm:p-10 md:p-14 text-white flex flex-col justify-between relative h-full">
                         <div>
-                            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.08] mb-6">
+                            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] mb-2 sm:mb-6">
                                 Outsmart the ATS.<br />
                                 Land Dream Roles.<br />
                                 All in One Place.
                             </h1>
-                            <p className="text-base sm:text-lg text-white/90 font-normal leading-relaxed mb-8 max-w-xl">
+                            <p className="text-xs sm:text-base md:text-lg text-white/90 font-normal leading-normal sm:leading-relaxed mb-3.5 sm:mb-8 max-w-xl">
                                 Bypass automated application filters, lock in 90%+ keyword optimization, and auto-generate bespoke cover letters alongside tailored recruiter outreach notes.
                             </p>
                         </div>
