@@ -1,0 +1,64 @@
+{
+  "protocol": "ap2/1.0",
+  "version": "1.0.0",
+  "merchant": {
+    "id": "appliqa-inc",
+    "name": "Appliqa",
+    "url": "https://www.appliqa.xyz",
+    "country": "US",
+    "currency": "USD",
+    "support_url": "https://www.appliqa.xyz/profile",
+    "categories": ["software", "career-services", "ai-agents"]
+  },
+  "payment_rails": [
+    {
+      "type": "usdc-base",
+      "network": "base",
+      "asset": "USDC",
+      "contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "status": "active",
+      "description": "Native USDC micro-transactions on Base L2"
+    },
+    {
+      "type": "lightning",
+      "network": "bitcoin-lightning",
+      "asset": "BTC",
+      "status": "active",
+      "description": "Instant Satoshi micro-settlements"
+    },
+    {
+      "type": "stripe_agentic",
+      "provider": "stripe",
+      "supported_methods": ["card", "apple_pay", "google_pay", "link"],
+      "status": "active",
+      "checkout_url": "https://www.appliqa.xyz/pricing"
+    }
+  ],
+  "endpoints": {
+    "pricing": "https://www.appliqa.xyz/pricing",
+    "checkout": "https://www.appliqa.xyz/checkout",
+    "micropayments": "https://www.appliqa.xyz/x402",
+    "api_catalog": "https://www.appliqa.xyz/.well-known/api-catalog",
+    "skills": "https://www.appliqa.xyz/.well-known/agent-skills/index.json"
+  },
+  "tiers": [
+    {
+      "id": "starter",
+      "name": "Starter Pass",
+      "price": 0.0,
+      "interval": "monthly"
+    },
+    {
+      "id": "pro",
+      "name": "Pro Career Pass",
+      "price": 19.0,
+      "interval": "monthly"
+    },
+    {
+      "id": "agentic",
+      "name": "Agentic & API",
+      "price": 99.0,
+      "interval": "monthly"
+    }
+  ]
+}

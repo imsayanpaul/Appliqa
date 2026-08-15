@@ -17,6 +17,8 @@ const MARKDOWN_CONTENT = `# Appliqa — AI-Powered Job Finder & Career Optimizat
 - Pricing & Commerce: https://www.appliqa.xyz/pricing
 - Checkout Surface: https://www.appliqa.xyz/checkout
 - Direct Role Query: https://www.appliqa.xyz/search?query=React+Developer
+- Agent Payments Protocol (AP2): https://www.appliqa.xyz/.well-known/ap2
+- Agent Commerce Protocol (ACP): https://www.appliqa.xyz/.well-known/acp
 - x402-Mesh Manifest: https://www.appliqa.xyz/.well-known/x402-mesh.json
 - Agent Skills: https://www.appliqa.xyz/.well-known/agent-skills/index.json
 - API Catalog (RFC 9727): https://www.appliqa.xyz/.well-known/api-catalog
@@ -41,7 +43,7 @@ export default function middleware(req) {
         'RateLimit-Remaining': '47',
         'RateLimit-Reset': '42',
         'RateLimit-Policy': '100;w=60',
-        'Link': '</llms.txt>; rel="describedby"; type="text/markdown", </openapi.json>; rel="service-desc"; type="application/json", </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json", </.well-known/agent-skills/index.json>; rel="agent-skills"; type="application/json", </.well-known/mcp/server-card.json>; rel="mcp-server"; type="application/json", </.well-known/oauth-authorization-server>; rel="oauth-authorization-server"; type="application/json", </.well-known/x402-mesh.json>; rel="x402-mesh"; type="application/json", </x402>; rel="payment"; type="application/json", </sitemap.xml>; rel="sitemap"; type="application/xml"'
+        'Link': '</llms.txt>; rel="describedby"; type="text/markdown", </openapi.json>; rel="service-desc"; type="application/json", </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json", </.well-known/agent-skills/index.json>; rel="agent-skills"; type="application/json", </.well-known/ap2>; rel="payment-protocol"; type="application/json", </.well-known/acp>; rel="commerce-protocol"; type="application/json", </.well-known/mcp/server-card.json>; rel="mcp-server"; type="application/json", </.well-known/oauth-authorization-server>; rel="oauth-authorization-server"; type="application/json", </.well-known/x402-mesh.json>; rel="x402-mesh"; type="application/json", </x402>; rel="payment"; type="application/json", </sitemap.xml>; rel="sitemap"; type="application/xml"'
       }
     });
   }
