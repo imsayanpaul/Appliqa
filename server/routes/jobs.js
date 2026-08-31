@@ -292,24 +292,26 @@ router.get('/search', optionalAuth, async (req, res) => {
   }
 });
 
-// Save a job
+// Save a job (including custom external jobs)
 router.post('/save', requireAuth, async (req, res) => {
   try {
     const { job } = req.body;
-    if (!job) return res.status(400).json({ error: 'job required' });
+    if (!job || !job.title) return res.status(400).json({ error: 'Job title is required' });
 
+    const jobId = job.id || `custom_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const { data: savedJob, error } = await supabase.from('saved_jobs').insert({
       user_id: req.user.id,
-      job_id: job.id,
+      job_id: jobId,
       title: job.title,
-      company: job.company || '',
+      company: job.company || 'Direct Employer',
       location: job.location || '',
       salary: job.salary || '',
       description: job.description || '',
-      employment_type: job.employmentType || '',
+      employment_type: job.employmentType || 'Full-time',
       apply_link: job.applyLink || '',
       company_logo: job.companyLogo || '',
-      date_posted: job.datePosted || '',
+      date_posted: job.datePosted || new Date().toISOString(),
+      status: job.status || 'saved',
       match_score: job.matchScore || 0,
       match_details: job.matchDetails || null,
       cover_letter: job.coverLetter || '',
@@ -363,6 +365,35 @@ router.get('/saved', requireAuth, async (req, res) => {
     }));
 
     res.json({ success: true, jobs: formattedJobs });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update saved job details (e.g. for custom opportunities)
+router.patch('/saved/:id', requireAuth, async (req, res) => {
+  try {
+    const { title, company, location, salary, applyLink, description, status } = req.body;
+    
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (company !== undefined) updateData.company = company;
+    if (location !== undefined) updateData.location = location;
+    if (salary !== undefined) updateData.salary = salary;
+    if (applyLink !== undefined) updateData.apply_link = applyLink;
+    if (description !== undefined) updateData.description = description;
+    if (status !== undefined) updateData.status = status;
+
+    const { data: job, error } = await supabase
+      .from('saved_jobs')
+      .update(updateData)
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json({ success: true, job });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

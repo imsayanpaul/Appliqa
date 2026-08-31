@@ -114,6 +114,18 @@ export const saveJob = async (job) => {
   return res;
 };
 
+export const updateSavedJob = async (id, updates) => {
+  const res = await api.patch(`/jobs/saved/${id}`, updates);
+  // Invalidate or update cache in-place
+  if (savedJobsCache && savedJobsCache.data?.jobs) {
+    savedJobsCache.data.jobs = savedJobsCache.data.jobs.map(j =>
+      j._id === id ? { ...j, ...updates, applyLink: updates.applyLink ?? j.applyLink } : j
+    );
+    sessionStorage.setItem('appliqa_saved_jobs', JSON.stringify(savedJobsCache));
+  }
+  return res;
+};
+
 export const updateJobStatus = async (id, status) => {
   const res = await api.patch(`/jobs/saved/${id}/status`, { status });
   // Update cache in-place

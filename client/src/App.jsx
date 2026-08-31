@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiChevronDown, FiCalendar, FiChevronRight } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Compass, Workflow, Route as RouteIcon, Bot, FileText } from 'lucide-react';
+import { Menu, X, Compass, Workflow, Route as RouteIcon, Bot, FileText, Shield } from 'lucide-react';
 
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
@@ -31,6 +31,7 @@ const CareerPath = lazyWithRetry(() => import('./pages/CareerPath'));
 const Advisor = lazyWithRetry(() => import('./pages/Advisor'));
 const ResumeCreator = lazyWithRetry(() => import('./pages/ResumeCreator'));
 const Pricing = lazyWithRetry(() => import('./pages/Pricing'));
+const Vault = lazyWithRetry(() => import('./pages/Vault'));
 
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
@@ -220,6 +221,13 @@ function AppContent() {
             desc: 'ATS score boost & tailored exports',
             path: '/resume-creator', 
             icon: FileText
+        },
+        { 
+            name: 'My Vault', 
+            mobileTitle: 'My Vault', 
+            desc: 'Candidate repository & documents',
+            path: '/vault', 
+            icon: Shield
         }
     ];
     const handleNavClick = (path) => {
@@ -280,6 +288,7 @@ function AppContent() {
             '/career': 'Appliqa - Career Path',
             '/advisor': 'Appliqa - Career Advisor',
             '/resume-creator': 'Appliqa - AI Resume Builder',
+            '/vault': 'Appliqa - My Vault',
             '/profile': 'Appliqa - Profile Settings'
         };
         const baseTitle = routeTitles[location.pathname] || 'Appliqa - Job Search';
@@ -757,6 +766,9 @@ function AppContent() {
                         } />
                         <Route path="/resume-creator" element={
                             <ProtectedRoute session={session} authResolved={authResolved}><ResumeCreator user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
+                        } />
+                        <Route path="/vault" element={
+                            <ProtectedRoute session={session} authResolved={authResolved}><Vault user={user} /></ProtectedRoute>
                         } />
                         <Route path="/profile" element={
                             <Profile user={user} session={session} authResolved={authResolved} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />

@@ -232,22 +232,49 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const [uploadStatus, setUploadStatus] = useState('');
     const [uploadError, setUploadError] = useState('');
 
+    // Helper to serialize current builder state for comparison
+    const serializeResumeState = (pInfo, exp, edu, sk, expList, certs, langs, summ, tmpl) => {
+        return JSON.stringify({
+            personalInfo: pInfo,
+            experience: exp,
+            education: edu,
+            skills: sk,
+            expertise: expList,
+            certifications: certs,
+            languages: langs,
+            summary: summ,
+            template: tmpl
+        });
+    };
+
     // Sync / Save state & Dirty tracker
     const [syncing, setSyncing] = useState(false);
     const [saved, setSaved] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
-    const isFirstMountRef = useRef(true);
+    const initialSnapshotRef = useRef(null);
 
-    // Track user changes across all resume sections
+    // Track user changes across all resume sections using exact snapshot comparison
     useEffect(() => {
-        if (isFirstMountRef.current) {
-            if (hasInitializedRef.current) {
-                isFirstMountRef.current = false;
-            }
-            return;
+        if (!hasInitializedRef.current || !initialSnapshotRef.current) return;
+
+        const currentSnapshot = serializeResumeState(
+            personalInfo,
+            experience,
+            education,
+            skills,
+            expertise,
+            certifications,
+            languages,
+            summary,
+            template
+        );
+
+        if (currentSnapshot !== initialSnapshotRef.current) {
+            setIsDirty(true);
+            setSaved(false);
+        } else {
+            setIsDirty(false);
         }
-        setIsDirty(true);
-        setSaved(false);
     }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, template]);
 
     // Global keyboard shortcut (Ctrl+S / Cmd+S) to save resume from anywhere
@@ -315,23 +342,36 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             lastPropResumeDataRef.current = resumeData;
             hasInitializedRef.current = true;
         } else if (user) {
-            setPersonalInfo(prev => ({
-                ...prev,
-                name: user.name || prev.name,
-                email: user.email || prev.email,
-                phone: user.phone || prev.phone,
+            const fallbackInfo = {
+                name: user.name || '',
+                title: user.preferences?.desiredRole || '',
+                email: user.email || '',
+                phone: user.phone || '',
                 location: user.preferences?.location 
                     ? `${user.preferences.location}${user.preferences.country ? ', ' + user.preferences.country : ''}` 
-                    : prev.location,
-                website: user.portfolioWebsite || prev.website,
-                linkedin: user.portfolioLinkedin || prev.linkedin,
-                github: user.portfolioGithub || prev.github,
-                address: prev.address || '',
-                dob: prev.dob || '',
-                country: user.preferences?.country || prev.country || '',
-                nationality: prev.nationality || ''
-            }));
+                    : '',
+                website: user.portfolioWebsite || '',
+                linkedin: user.portfolioLinkedin || '',
+                github: user.portfolioGithub || '',
+                address: '',
+                dob: '',
+                country: user.preferences?.country || '',
+                nationality: ''
+            };
+            setPersonalInfo(fallbackInfo);
             hasInitializedRef.current = true;
+            initialSnapshotRef.current = serializeResumeState(
+                fallbackInfo,
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                '',
+                template
+            );
+            setIsDirty(false);
         }
     }, [resumeData, user]);
 
@@ -341,31 +381,38 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         
         hasInitializedRef.current = true;
         
-        setPersonalInfo(prev => ({
-            ...prev,
-            name: data.personalInfo?.name || data.name || user?.name || prev.name,
-            title: data.personalInfo?.title || data.title || data.suggestedRoles?.[0] || user?.preferences?.desiredRole || prev.title,
-            email: data.personalInfo?.email || data.email || user?.email || prev.email,
-            phone: data.personalInfo?.phone || data.phone || user?.phone || prev.phone,
-            location: data.personalInfo?.location || data.location || user?.preferences?.location || prev.location,
-            website: data.personalInfo?.website || data.website || user?.portfolioWebsite || prev.website,
-            linkedin: data.personalInfo?.linkedin || data.linkedin || user?.portfolioLinkedin || prev.linkedin,
-            github: data.personalInfo?.github || data.github || user?.portfolioGithub || prev.github,
-            address: data.personalInfo?.address || data.address || prev.address || '',
-            dob: data.personalInfo?.dob || data.dob || prev.dob || '',
-            country: data.personalInfo?.country || data.country || user?.preferences?.country || prev.country || '',
-            nationality: data.personalInfo?.nationality || data.nationality || prev.nationality || ''
-        }));
+        const newPersonalInfo = {
+            name: data.personalInfo?.name || data.name || user?.name || '',
+            title: data.personalInfo?.title || data.title || data.suggestedRoles?.[0] || user?.preferences?.desiredRole || '',
+            email: data.personalInfo?.email || data.email || user?.email || '',
+            phone: data.personalInfo?.phone || data.phone || user?.phone || '',
+            location: data.personalInfo?.location || data.location || user?.preferences?.location || '',
+            website: data.personalInfo?.website || data.website || user?.portfolioWebsite || '',
+            linkedin: data.personalInfo?.linkedin || data.linkedin || user?.portfolioLinkedin || '',
+            github: data.personalInfo?.github || data.github || user?.portfolioGithub || '',
+            address: data.personalInfo?.address || data.address || '',
+            dob: data.personalInfo?.dob || data.dob || '',
+            country: data.personalInfo?.country || data.country || user?.preferences?.country || '',
+            nationality: data.personalInfo?.nationality || data.nationality || ''
+        };
+        setPersonalInfo(newPersonalInfo);
 
-        setSummary(data.summary || '');
-        setSkills(data.skills || []);
-        setExpertise(data.expertise || []);
-        setCertifications(data.certifications || []);
-        setLanguages(data.languages || []);
+        const newSummary = data.summary || '';
+        const newSkills = data.skills || [];
+        const newExpertise = data.expertise || [];
+        const newCerts = data.certifications || [];
+        const newLangs = data.languages || [];
+
+        setSummary(newSummary);
+        setSkills(newSkills);
+        setExpertise(newExpertise);
+        setCertifications(newCerts);
+        setLanguages(newLangs);
 
         // Format Experience
+        let formattedExp = [];
         if (data.experience && data.experience.length > 0) {
-            const formattedExp = data.experience.map(item => {
+            formattedExp = data.experience.map(item => {
                 if (typeof item === 'string') {
                     return parseExperienceStr(item);
                 }
@@ -376,14 +423,13 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     bullets: item.bullets || ['Key achievement or responsibility.']
                 };
             });
-            setExperience(formattedExp);
-        } else {
-            setExperience([]);
         }
+        setExperience(formattedExp);
 
         // Format Education
+        let formattedEdu = [];
         if (data.education && data.education.length > 0) {
-            const formattedEdu = data.education.map(item => {
+            formattedEdu = data.education.map(item => {
                 if (typeof item === 'string') {
                     return parseEducationStr(item);
                 }
@@ -393,10 +439,22 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     dates: item.dates || ''
                 };
             });
-            setEducation(formattedEdu);
-        } else {
-            setEducation([]);
         }
+        setEducation(formattedEdu);
+
+        // Set baseline initial snapshot
+        initialSnapshotRef.current = serializeResumeState(
+            newPersonalInfo,
+            formattedExp,
+            formattedEdu,
+            newSkills,
+            newExpertise,
+            newCerts,
+            newLangs,
+            newSummary,
+            template
+        );
+        setIsDirty(false);
     };
 
     const parseExperienceStr = (str) => {
@@ -761,6 +819,17 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 if (onUpdateUser) {
                     onUpdateUser(res.data.user);
                 }
+                initialSnapshotRef.current = serializeResumeState(
+                    personalInfo,
+                    experience,
+                    education,
+                    skills,
+                    expertise,
+                    certifications,
+                    languages,
+                    summary,
+                    template
+                );
                 setIsDirty(false);
                 setSaved(true);
                 setTimeout(() => setSaved(false), 3500);

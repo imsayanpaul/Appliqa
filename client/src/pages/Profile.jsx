@@ -266,6 +266,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
+    const initialFormSnapshotRef = useRef(null);
 
     // Global keyboard shortcut (Ctrl+S / Cmd+S) to save profile from anywhere
     useEffect(() => {
@@ -281,7 +282,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
     useEffect(() => {
         if (user) {
-            setForm({
+            const initialForm = {
                 name: user?.name || '',
                 email: user?.email || '',
                 dob: user?.dob || '',
@@ -317,7 +318,10 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 resumesOptimizedCount: user?.resumesOptimizedCount || 0,
                 coverLettersGeneratedCount: user?.coverLettersGeneratedCount || 0,
                 recruiterDmsSentCount: user?.recruiterDmsSentCount || 0
-            });
+            };
+            setForm(initialForm);
+            initialFormSnapshotRef.current = JSON.stringify(initialForm);
+            setIsDirty(false);
         }
     }, [user, resumeData]);
 
@@ -366,9 +370,18 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
     };
 
     const handleChange = (field, value) => {
-        setForm(prev => ({ ...prev, [field]: value }));
-        setIsDirty(true);
-        setSaved(false);
+        setForm(prev => {
+            const updated = { ...prev, [field]: value };
+            if (initialFormSnapshotRef.current) {
+                const isChanged = JSON.stringify(updated) !== initialFormSnapshotRef.current;
+                setIsDirty(isChanged);
+                if (isChanged) setSaved(false);
+            } else {
+                setIsDirty(true);
+                setSaved(false);
+            }
+            return updated;
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -420,6 +433,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
             const res = await createOrUpdateUser(userData);
             onUpdateUser(res.data.user);
+            initialFormSnapshotRef.current = JSON.stringify(form);
             setIsDirty(false);
             setSaved(true);
             setTimeout(() => setSaved(false), 3500);
