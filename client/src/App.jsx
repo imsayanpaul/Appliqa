@@ -1014,34 +1014,7 @@ function AppContent() {
                                             />
                                         </div>
 
-                                        {onboardingForm.educationStatus === "College/University Student" && (
-                                            <>
-                                                <div>
-                                                    <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                                        Course / Major
-                                                    </label>
-                                                    <input 
-                                                        type="text" 
-                                                        placeholder="e.g. Computer Science"
-                                                        value={onboardingForm.collegeCourse}
-                                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, collegeCourse: e.target.value }))}
-                                                        className="onboarding-input-field"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                                        Grad Year
-                                                    </label>
-                                                    <input 
-                                                        type="number" 
-                                                        placeholder="2027"
-                                                        value={onboardingForm.expectedGraduationYear}
-                                                        onChange={(e) => setOnboardingForm(prev => ({ ...prev, expectedGraduationYear: e.target.value }))}
-                                                        className="onboarding-input-field"
-                                                    />
-                                                </div>
-                                            </>
-                                        )}
+                                        {/* Course / Major and Grad Year temporarily hidden */}
                                     </motion.div>
                                 )}
 

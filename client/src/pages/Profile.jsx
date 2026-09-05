@@ -1065,29 +1065,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
 
-                            {form.educationStatus === "College/University Student" && (
-                                <>
-                                    <div className="form-group">
-                                        <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">College Course / Major</label>
-                                        <PremiumIconInput
-                                            icon={FiBookOpen}
-                                            placeholder="e.g. B.Tech Computer Science"
-                                            value={form.collegeCourse}
-                                            onChange={(e) => handleChange('collegeCourse', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Expected Graduation Year</label>
-                                        <PremiumIconInput
-                                            icon={FiCalendar}
-                                            type="number"
-                                            placeholder="e.g. 2027"
-                                            value={form.expectedGraduationYear}
-                                            onChange={(e) => handleChange('expectedGraduationYear', e.target.value)}
-                                        />
-                                    </div>
-                                </>
-                            )}
+                            {/* College Course / Major and Expected Graduation Year temporarily hidden */}
 
                             <div className="form-group">
                                 <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Target Cities</label>
