@@ -10,7 +10,7 @@ import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Dropdown } from '../components/ui/Dropdown';
 import PremiumDatePicker from '../components/ui/PremiumDatePicker';
-import { PageSkeleton } from '../components/ui/PageSkeleton';
+import { PageSkeleton, AuthSkeleton } from '../components/ui/PageSkeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const GoogleIcon = () => (
@@ -447,6 +447,9 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
     const isOAuthCallback = typeof window !== 'undefined' && (window.location.hash?.includes('access_token') || window.location.hash?.includes('refresh_token'));
 
     if ((!authResolved && !session) || (!session && isOAuthCallback)) {
+        if (!session && !isOAuthCallback) {
+            return <AuthSkeleton />;
+        }
         return <PageSkeleton />;
     }
 

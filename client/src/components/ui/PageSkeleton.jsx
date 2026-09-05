@@ -227,6 +227,81 @@ export function ProfileSkeleton() {
   );
 }
 
+// 3b. 🔐 Auth / Sign In Skeleton (/profile when unauthenticated)
+export function AuthSkeleton() {
+  return (
+    <div className="auth-split-wrapper animate-pulse">
+      {/* Left Column: Form Centered Horizontally & Vertically */}
+      <div className="auth-split-left">
+        <div className="auth-split-form-container">
+          {/* Title Section */}
+          <div style={{ marginBottom: '28px' }}>
+            <div className="h-3.5 w-24 bg-neutral-200/80 rounded mb-2" />
+            <div className="h-8 w-56 bg-neutral-300/80 rounded-lg" />
+          </div>
+
+          {/* Form Fields */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Email Field */}
+            <div className="auth-field-wrapper">
+              <div className="h-3.5 w-14 bg-neutral-200/80 rounded" />
+              <div className="h-12 w-full bg-neutral-100 rounded-lg border border-[#E2E8F0]" />
+            </div>
+
+            {/* Password Field */}
+            <div className="auth-field-wrapper">
+              <div className="flex justify-between items-center">
+                <div className="h-3.5 w-16 bg-neutral-200/80 rounded" />
+                <div className="h-3 w-12 bg-neutral-200/50 rounded" />
+              </div>
+              <div className="h-12 w-full bg-neutral-100 rounded-lg border border-[#E2E8F0]" />
+            </div>
+
+            {/* Keep me signed in checkbox */}
+            <div className="flex items-center gap-2 pt-1">
+              <div className="w-4 h-4 bg-neutral-200 rounded" />
+              <div className="h-3 w-28 bg-neutral-200/60 rounded" />
+            </div>
+
+            {/* Solid Theme Submit Button */}
+            <div className="h-12 w-full bg-[#F45B25]/25 rounded-lg mt-2" />
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-6">
+            <div className="h-[1px] flex-1 bg-neutral-200" />
+            <div className="h-3 w-24 bg-neutral-200/60 rounded" />
+            <div className="h-[1px] flex-1 bg-neutral-200" />
+          </div>
+
+          {/* Social Row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-11 bg-neutral-100 rounded-lg border border-[#E2E8F0]" />
+            <div className="h-11 bg-neutral-100 rounded-lg border border-[#E2E8F0]" />
+          </div>
+
+          {/* Bottom Switcher */}
+          <div className="flex justify-center mt-7">
+            <div className="h-3.5 w-52 bg-neutral-200/60 rounded" />
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side: Visual Artwork Placeholder */}
+      <div className="auth-split-right bg-[#171717]">
+        <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center">
+          <div className="w-20 h-20 rounded-2xl bg-neutral-800/40" />
+        </div>
+        <div className="absolute bottom-8 right-8 z-10 flex items-center gap-1.5 bg-black/40 px-3.5 py-1.5 rounded-full border border-white/10">
+          <div className="w-5 h-1 rounded-full bg-white/50" />
+          <div className="w-1.5 h-1 rounded-full bg-white/20" />
+          <div className="w-1.5 h-1 rounded-full bg-white/20" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // 4. 💬 AI Advisor Chat Skeleton (/advisor)
 export function AdvisorSkeleton() {
   return (
@@ -432,7 +507,31 @@ export function PageSkeleton() {
     return <ResumeCreatorSkeleton />;
   }
   if (path.startsWith('/profile')) {
-    return <ProfileSkeleton />;
+    // Check if user has an active session or cached user profile
+    let hasAuth = false;
+    try {
+      if (typeof window !== 'undefined') {
+        const savedUser = window.localStorage.getItem('appliqa_user');
+        if (savedUser) {
+          hasAuth = true;
+        } else {
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key && (key.includes('auth-token') || key.startsWith('sb-'))) {
+              const val = window.localStorage.getItem(key);
+              if (val && (val.includes('access_token') || val.includes('user'))) {
+                hasAuth = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      hasAuth = false;
+    }
+
+    return hasAuth ? <ProfileSkeleton /> : <AuthSkeleton />;
   }
   if (path.startsWith('/advisor')) {
     return <AdvisorSkeleton />;
