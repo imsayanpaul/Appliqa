@@ -2161,11 +2161,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
             {/* AI Bullet Enhancer Modal Overlay */}
             {showEnhancer && (
-                <div className="resume-modal-overlay">
+                <div className="resume-modal-overlay" data-lenis-prevent>
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.96, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         className="resume-modal-content max-w-[560px]"
+                        data-lenis-prevent
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
@@ -2265,11 +2266,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
             {/* Scan Resume Upload Modal */}
             {showUploadModal && (
-                <div className="resume-modal-overlay">
+                <div className="resume-modal-overlay" data-lenis-prevent>
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="resume-modal-content max-w-[460px]"
+                        data-lenis-prevent
                     >
                         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
                             <div>
@@ -2326,11 +2328,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
             {/* Tailor Resume Modal */}
             {showTailorModal && (
-                <div className="resume-modal-overlay">
+                <div className="resume-modal-overlay" data-lenis-prevent>
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="resume-modal-content max-w-[480px]"
+                        data-lenis-prevent
                     >
                         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
                             <div>

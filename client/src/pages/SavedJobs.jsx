@@ -562,8 +562,8 @@ function SavedJobs({ user, resumeData }) {
 
                 {/* Cover Letter Modal */}
                 {coverLetterJob && (
-                    <div className="modal-overlay" onClick={() => setCoverLetterJob(null)}>
-                        <div className="modal-content max-w-2xl bg-white rounded-3xl p-8 border border-neutral-200 shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="modal-overlay" onClick={() => setCoverLetterJob(null)} data-lenis-prevent>
+                        <div className="modal-content max-w-2xl bg-white rounded-3xl p-8 border border-neutral-200 shadow-2xl" onClick={e => e.stopPropagation()} data-lenis-prevent>
                             <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-100">
                                 <div>
                                     <h3 className="text-xl font-bold text-[#171717]">Saved Cover Letter</h3>

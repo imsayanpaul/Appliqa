@@ -457,7 +457,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
         return (
             <div className="auth-split-wrapper">
                 {/* Left Column: Form Centered Horizontally & Vertically */}
-                <div className="auth-split-left">
+                <div className="auth-split-left" data-lenis-prevent>
                     <div className="auth-split-form-container">
                         {/* Title Section */}
                         <div style={{ marginBottom: '28px' }}>

@@ -93,8 +93,8 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }}>
+        <div className="modal-overlay" onClick={onClose} data-lenis-prevent>
+            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }} data-lenis-prevent>
                 <button className="modal-close" onClick={onClose} aria-label="Close modal">
                     <FiX size={15} />
                 </button>

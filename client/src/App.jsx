@@ -110,17 +110,28 @@ function AppContent() {
             wrapper: mainRef.current,
             content: contentRef.current,
             eventsTarget: mainRef.current,
-            duration: 1.0,
+            duration: 0.9,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             orientation: 'vertical',
             gestureOrientation: 'vertical',
             smoothWheel: true,
             wheelMultiplier: 1.0,
             touchMultiplier: 1.2,
+            allowNestedScroll: true,
+            prevent: (node) => {
+                if (!node || typeof node.closest !== 'function') return false;
+                return Boolean(node.closest('.modal-content, .modal-overlay, [data-lenis-prevent], .resume-modal-content, .auth-split-left, textarea, select, input'));
+            }
         });
 
         lenisRef.current = lenis;
         window.lenis = lenis;
+
+        // Automatically update Lenis scrollable limits whenever page content or API data changes size
+        const resizeObserver = new ResizeObserver(() => {
+            lenis.resize();
+        });
+        resizeObserver.observe(contentRef.current);
 
         let rafId;
         function raf(time) {
@@ -130,16 +141,20 @@ function AppContent() {
         rafId = requestAnimationFrame(raf);
 
         return () => {
+            resizeObserver.disconnect();
             cancelAnimationFrame(rafId);
             lenis.destroy();
             delete window.lenis;
         };
     }, []);
 
-    // Instant clean scroll to top on route change
+    // Re-measure dimensions and scroll to top on route change
     useEffect(() => {
         if (lenisRef.current) {
-            lenisRef.current.scrollTo(0, { immediate: true });
+            setTimeout(() => {
+                lenisRef.current?.resize();
+                lenisRef.current?.scrollTo(0, { immediate: true });
+            }, 50);
         } else if (mainRef.current) {
             mainRef.current.scrollTop = 0;
         }

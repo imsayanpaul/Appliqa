@@ -147,8 +147,8 @@ function JobDetail({ job, user, resumeData, onClose }) {
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={onClose} data-lenis-prevent>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} data-lenis-prevent>
                 <button className="modal-close" onClick={onClose}>
                     <FiX />
                 </button>
