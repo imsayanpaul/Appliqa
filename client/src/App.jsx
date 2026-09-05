@@ -41,6 +41,8 @@ import { getUserProfile, createOrUpdateUser } from './services/api';
 import { Dropdown } from './components/ui/Dropdown';
 import PremiumDatePicker from './components/ui/PremiumDatePicker';
 import { PageSkeleton } from './components/ui/PageSkeleton';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
 import './App.css';
 
 // Protected Route Wrapper with auth resolution check
@@ -95,6 +97,43 @@ function AppContent() {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // 🌊 Lenis Smooth Scroll Engine for 60fps buttery scrolling
+    useEffect(() => {
+        const lenis = new Lenis({
+            duration: 1.0,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            orientation: 'vertical',
+            gestureOrientation: 'vertical',
+            smoothWheel: true,
+            wheelMultiplier: 0.95,
+            touchMultiplier: 1.2,
+        });
+
+        window.lenis = lenis;
+
+        let rafId;
+        function raf(time) {
+            lenis.raf(time);
+            rafId = requestAnimationFrame(raf);
+        }
+        rafId = requestAnimationFrame(raf);
+
+        return () => {
+            cancelAnimationFrame(rafId);
+            lenis.destroy();
+            delete window.lenis;
+        };
+    }, []);
+
+    // Instant clean scroll to top on route change
+    useEffect(() => {
+        if (window.lenis) {
+            window.lenis.scrollTo(0, { immediate: true });
+        } else {
+            window.scrollTo(0, 0);
+        }
+    }, [location.pathname]);
 
     const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
     const [onboardingForm, setOnboardingForm] = useState({
