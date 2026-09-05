@@ -1026,21 +1026,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             </span>
                         </div>
                         <div className="preferences-form">
-                            <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Job Search Urgency</label>
-                                <Dropdown
-                                    options={[
-                                        { value: "", label: "Select urgency" },
-                                        { value: "Actively looking (Ready to interview/start immediately)", label: "Actively looking (Ready to start)" },
-                                        { value: "Open to opportunities (Passive search)", label: "Open to opportunities" },
-                                        { value: "Just browsing (Not looking)", label: "Just browsing / Not looking" }
-                                    ]}
-                                    value={form.jobSearchUrgency}
-                                    onChange={(val) => handleChange('jobSearchUrgency', val)}
-                                    placeholder="Select urgency"
-                                    variant="form"
-                                />
-                            </div>
+                            {/* Job Search Urgency temporarily hidden */}
 
                             <div className="form-group">
                                 <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Professional / Academic Status</label>
