@@ -41,7 +41,8 @@ import { getUserProfile, createOrUpdateUser } from './services/api';
 import { Dropdown } from './components/ui/Dropdown';
 import PremiumDatePicker from './components/ui/PremiumDatePicker';
 import { PageSkeleton } from './components/ui/PageSkeleton';
-import { useSmoothScroll } from './hooks/useSmoothScroll';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
 import './App.css';
 
 // Protected Route Wrapper with auth resolution check
@@ -97,14 +98,50 @@ function AppContent() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // 🌊 Buttery 60fps momentum scroll on <main>
+    // 🌊 Lenis Smooth Scrolling scoped to <main>
     const mainRef = useRef(null);
-    useSmoothScroll(mainRef);
+    const contentRef = useRef(null);
+    const lenisRef = useRef(null);
+
+    useEffect(() => {
+        if (!mainRef.current || !contentRef.current) return;
+
+        const lenis = new Lenis({
+            wrapper: mainRef.current,
+            content: contentRef.current,
+            eventsTarget: mainRef.current,
+            duration: 1.0,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            orientation: 'vertical',
+            gestureOrientation: 'vertical',
+            smoothWheel: true,
+            wheelMultiplier: 1.0,
+            touchMultiplier: 1.2,
+        });
+
+        lenisRef.current = lenis;
+        window.lenis = lenis;
+
+        let rafId;
+        function raf(time) {
+            lenis.raf(time);
+            rafId = requestAnimationFrame(raf);
+        }
+        rafId = requestAnimationFrame(raf);
+
+        return () => {
+            cancelAnimationFrame(rafId);
+            lenis.destroy();
+            delete window.lenis;
+        };
+    }, []);
 
     // Instant clean scroll to top on route change
     useEffect(() => {
-        if (mainRef.current) {
-            mainRef.current.scrollTo({ top: 0, behavior: 'instant' });
+        if (lenisRef.current) {
+            lenisRef.current.scrollTo(0, { immediate: true });
+        } else if (mainRef.current) {
+            mainRef.current.scrollTop = 0;
         }
     }, [location.pathname]);
 
@@ -751,43 +788,45 @@ function AppContent() {
             </AnimatePresence>
 
             <main ref={mainRef} onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px' }}>
-                <Suspense fallback={<PageSkeleton />}>
-                    <Routes>
-                        <Route path="/" element={
-                            <Home user={user} session={session} authResolved={authResolved} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
-                        } />
-                        <Route path="/search" element={
-                            <SearchResults user={user} resumeData={resumeData} />
-                        } />
-                        <Route path="/pricing" element={
-                            <Pricing user={user} session={session} />
-                        } />
-                        <Route path="/checkout" element={
-                            <Pricing user={user} session={session} />
-                        } />
-                        
-                        {/* Protected Routes */}
-                        <Route path="/saved" element={
-                            <ProtectedRoute session={session} authResolved={authResolved}><SavedJobs user={user} resumeData={resumeData} /></ProtectedRoute>
-                        } />
-                        <Route path="/career" element={
-                            <ProtectedRoute session={session} authResolved={authResolved}><CareerPath user={user} resumeData={resumeData} /></ProtectedRoute>
-                        } />
-                        <Route path="/advisor" element={
-                            <ProtectedRoute session={session} authResolved={authResolved}><Advisor user={user} resumeData={resumeData} /></ProtectedRoute>
-                        } />
-                        <Route path="/resume-creator" element={
-                            <ProtectedRoute session={session} authResolved={authResolved}><ResumeCreator user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
-                        } />
-                        <Route path="/vault" element={
-                            <ProtectedRoute session={session} authResolved={authResolved}><Vault user={user} /></ProtectedRoute>
-                        } />
-                        <Route path="/profile" element={
-                            <Profile user={user} session={session} authResolved={authResolved} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
-                        } />
-                    </Routes>
-                    {location.pathname === '/' && <Footer />}
-                </Suspense>
+                <div ref={contentRef} style={{ width: '100%', minHeight: '100%' }}>
+                    <Suspense fallback={<PageSkeleton />}>
+                        <Routes>
+                            <Route path="/" element={
+                                <Home user={user} session={session} authResolved={authResolved} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
+                            } />
+                            <Route path="/search" element={
+                                <SearchResults user={user} resumeData={resumeData} />
+                            } />
+                            <Route path="/pricing" element={
+                                <Pricing user={user} session={session} />
+                            } />
+                            <Route path="/checkout" element={
+                                <Pricing user={user} session={session} />
+                            } />
+                            
+                            {/* Protected Routes */}
+                            <Route path="/saved" element={
+                                <ProtectedRoute session={session} authResolved={authResolved}><SavedJobs user={user} resumeData={resumeData} /></ProtectedRoute>
+                            } />
+                            <Route path="/career" element={
+                                <ProtectedRoute session={session} authResolved={authResolved}><CareerPath user={user} resumeData={resumeData} /></ProtectedRoute>
+                            } />
+                            <Route path="/advisor" element={
+                                <ProtectedRoute session={session} authResolved={authResolved}><Advisor user={user} resumeData={resumeData} /></ProtectedRoute>
+                            } />
+                            <Route path="/resume-creator" element={
+                                <ProtectedRoute session={session} authResolved={authResolved}><ResumeCreator user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
+                            } />
+                            <Route path="/vault" element={
+                                <ProtectedRoute session={session} authResolved={authResolved}><Vault user={user} /></ProtectedRoute>
+                            } />
+                            <Route path="/profile" element={
+                                <Profile user={user} session={session} authResolved={authResolved} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
+                            } />
+                        </Routes>
+                        {location.pathname === '/' && <Footer />}
+                    </Suspense>
+                </div>
             </main>
 
             {showLocationPrompt && (
