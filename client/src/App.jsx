@@ -41,6 +41,7 @@ import { getUserProfile, createOrUpdateUser } from './services/api';
 import { Dropdown } from './components/ui/Dropdown';
 import PremiumDatePicker from './components/ui/PremiumDatePicker';
 import { PageSkeleton } from './components/ui/PageSkeleton';
+import { useSmoothScroll } from './hooks/useSmoothScroll';
 import './App.css';
 
 // Protected Route Wrapper with auth resolution check
@@ -95,6 +96,17 @@ function AppContent() {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // 🌊 Buttery 60fps momentum scroll on <main>
+    const mainRef = useRef(null);
+    useSmoothScroll(mainRef);
+
+    // Instant clean scroll to top on route change
+    useEffect(() => {
+        if (mainRef.current) {
+            mainRef.current.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }, [location.pathname]);
 
     const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
     const [onboardingForm, setOnboardingForm] = useState({
@@ -738,7 +750,7 @@ function AppContent() {
                 )}
             </AnimatePresence>
 
-            <main onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px', scrollBehavior: 'smooth' }}>
+            <main ref={mainRef} onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px' }}>
                 <Suspense fallback={<PageSkeleton />}>
                     <Routes>
                         <Route path="/" element={
