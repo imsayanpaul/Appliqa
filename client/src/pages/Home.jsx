@@ -462,11 +462,18 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                     </button>
                 </div>
                 <div className="md:col-span-6 min-h-[260px] bg-[#EFECE6] relative overflow-hidden">
-                    <img
-                        src="/workspace-desk.jpg"
-                        alt="Modern Workspace Desk"
-                        className="w-full h-full object-cover object-center"
-                    />
+                    <picture>
+                        <source srcSet="/workspace-desk.webp" type="image/webp" />
+                        <img
+                            src="/workspace-desk.jpg"
+                            alt="Modern Workspace Desk"
+                            className="w-full h-full object-cover object-center"
+                            loading="lazy"
+                            decoding="async"
+                            width="1200"
+                            height="800"
+                        />
+                    </picture>
                 </div>
             </div>
         </section>
@@ -662,12 +669,19 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                     </div>
 
                     <div className="lg:col-span-5 bg-[#EFECE6] relative min-h-[340px] lg:min-h-full overflow-hidden">
-                        <img
-                            src="/hero-portrait.jpg"
-                            alt="Professional Tech Candidate"
-                            className="w-full h-full object-cover object-center"
-                        />
-
+                        <picture>
+                            <source srcSet="/hero-portrait.webp" type="image/webp" />
+                            <img
+                                src="/hero-portrait.jpg"
+                                alt="Professional Tech Candidate"
+                                className="w-full h-full object-cover object-center"
+                                loading="eager"
+                                fetchPriority="high"
+                                decoding="async"
+                                width="1200"
+                                height="896"
+                            />
+                        </picture>
                     </div>
                 </div>
             </section>

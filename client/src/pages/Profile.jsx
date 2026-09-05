@@ -636,11 +636,16 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
                 {/* Right Side: Full-Bleed Editorial Fluid Artwork in Appliqa Palette */}
                 <div className="auth-split-right">
-                    <img 
-                        src="/auth-art.jpg" 
-                        alt="Appliqa Editorial Fluid Artwork" 
-                        className="w-full h-full object-cover object-center block select-none pointer-events-none"
-                    />
+                    <picture>
+                        <source srcSet="/auth-art.webp" type="image/webp" />
+                        <img 
+                            src="/auth-art.jpg" 
+                            alt="Appliqa Editorial Fluid Artwork" 
+                            className="w-full h-full object-cover object-center block select-none pointer-events-none"
+                            loading="eager"
+                            decoding="async"
+                        />
+                    </picture>
                     
                     {/* Subtle Overlay Badge / Carousel Indicators at bottom-right */}
                     <div className="absolute bottom-8 right-8 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
