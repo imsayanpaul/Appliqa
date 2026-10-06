@@ -368,6 +368,20 @@
   margin-left: auto;
 }
 
+/* Right-side cells are ruled on their left; the frame border closes the row */
+.nav-right .nav-cell {
+  border-right: none;
+  border-left: 1px solid var(--line);
+  min-width: 140px;
+  justify-content: center;
+}
+
+.nav-right .nav-cta {
+  min-width: 168px;
+  justify-content: space-between;
+  border-left-color: var(--accent-primary);
+}
+
 .nav-cta {
   gap: 10px;
   padding: 0 22px;
@@ -490,15 +504,18 @@
   padding: 0 20px;
 }
 
-/* ---- Hairline grid: 1px gaps over the line color draw the rules ---- */
+/* ---- Hairline grid ---- */
 .ds-gridlines {
   display: grid;
   gap: 1px;
-  background: var(--line);
+  overflow: hidden;
 }
 
+/* Each cell draws the rule to its right and below (into the 1px gap). Edges are
+   clipped by the container, and empty slots in a partial last row stay blank. */
 .ds-gridlines > * {
   background: var(--bg-primary);
+  box-shadow: 1px 1px 0 0 var(--line);
 }
 
 .ds-gridlines > .ds-cell-hover:hover,
@@ -534,4 +551,37 @@
   background: var(--accent-primary);
   border-color: var(--accent-primary);
   color: #FFFFFF;
+}
+
+/* ---- Native select, styled to match ---- */
+.ds-select {
+  height: 36px;
+  padding: 0 32px 0 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23171717' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.ds-select:hover {
+  border-color: var(--text-primary);
+}
+
+/* Sign-in side panel: drop the decorative wordmark and tighten on short screens */
+@media (max-height: 760px) {
+  .auth-wordmark { display: none; }
+}
+
+@media (max-height: 620px) {
+  .auth-step { padding-top: 14px; padding-bottom: 14px; }
 }

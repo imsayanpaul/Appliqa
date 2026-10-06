@@ -20,7 +20,7 @@ const snippet = (html, max = 170) => {
     return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
 };
 
-function CompanyMark({ logo, company }) {
+export function CompanyMark({ logo, company }) {
     const [failed, setFailed] = useState(false);
     const initial = (company || '?').trim().charAt(0).toUpperCase();
     return (

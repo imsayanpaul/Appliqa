@@ -1,83 +1,26 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { formatSalary } from '../lib/format';
-import { 
-    FiTrash2, FiBookmark, FiUser, FiGrid, FiSend, FiVideo, FiCheckCircle, 
-    FiXCircle, FiMapPin, FiDollarSign, FiZap, FiFileText, FiCopy, FiCheck, 
-    FiX, FiExternalLink, FiAward, FiClock, FiPlus, FiEdit2
-} from 'react-icons/fi';
+import { FiTrash2, FiUser, FiVideo, FiFileText, FiCopy, FiCheck, FiX, FiPlus, FiEdit2, FiArrowUpRight } from 'react-icons/fi';
 import { getSavedJobs, updateJobStatus, deleteSavedJob, saveJob, updateSavedJob } from '../services/api';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { Button } from '../components/ui/Button';
-import { Dropdown } from '../components/ui/Dropdown';
 import JobDetail from '../components/JobDetail';
+import { CompanyMark } from '../components/JobCard';
 import InterviewPrep from '../components/InterviewPrep';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const STATUS_CONFIG = {
-    saved: { 
-        label: 'Saved', 
-        badgeBg: 'bg-neutral-100', 
-        badgeText: 'text-neutral-600', 
-        badgeBorder: 'border-neutral-200',
-        dotColor: 'bg-neutral-400',
-        icon: FiBookmark 
-    },
-    applied: { 
-        label: 'Applied', 
-        badgeBg: 'bg-neutral-100', 
-        badgeText: 'text-[#171717]', 
-        badgeBorder: 'border-neutral-300',
-        dotColor: 'bg-[#171717]',
-        icon: FiSend 
-    },
-    interview: { 
-        label: 'Interview', 
-        badgeBg: 'bg-[#FFF0E8]', 
-        badgeText: 'text-[#CA3C0A]', 
-        badgeBorder: 'border-[#CA3C0A]/30',
-        dotColor: 'bg-[#CA3C0A]',
-        icon: FiVideo 
-    },
-    offer: { 
-        label: 'Offer', 
-        badgeBg: 'bg-[#171717]', 
-        badgeText: 'text-white', 
-        badgeBorder: 'border-[#171717]',
-        dotColor: 'bg-[#CA3C0A]',
-        icon: FiAward 
-    },
-    rejected: { 
-        label: 'Rejected', 
-        badgeBg: 'bg-neutral-100', 
-        badgeText: 'text-neutral-500', 
-        badgeBorder: 'border-neutral-200',
-        dotColor: 'bg-neutral-400',
-        icon: FiXCircle 
-    }
-};
-
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: { staggerChildren: 0.05 }
-    }
-};
-
-const cardVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { 
-        opacity: 1, 
-        y: 0,
-        transition: { type: "spring", stiffness: 120, damping: 18 }
-    }
+    saved: { label: 'Saved', text: 'text-[#4A4540]', dot: 'bg-[#8A8580]' },
+    applied: { label: 'Applied', text: 'text-[#171717]', dot: 'bg-[#171717]' },
+    interview: { label: 'Interview', text: 'text-[#CA3C0A]', dot: 'bg-[#CA3C0A]' },
+    offer: { label: 'Offer', text: 'text-[#047857]', dot: 'bg-[#047857]' },
+    rejected: { label: 'Rejected', text: 'text-[#6F6A65]', dot: 'bg-[#D8D4CC]' },
 };
 
 function SavedJobs({ user, resumeData }) {
+    const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
@@ -101,6 +44,7 @@ function SavedJobs({ user, resumeData }) {
         description: ''
     });
     const [savingCustom, setSavingCustom] = useState(false);
+    useEscapeKey(() => setShowAddCustomModal(false), showAddCustomModal);
 
     useEffect(() => {
         if (user) fetchSavedJobs();
@@ -305,243 +249,166 @@ function SavedJobs({ user, resumeData }) {
         );
     }
 
+    const iconBtn = 'relative z-10 h-9 w-9 shrink-0 inline-flex items-center justify-center border border-[#D8D4CC] bg-transparent text-[#171717] hover:border-[#171717] cursor-pointer transition-colors';
+
     return (
-        <motion.div 
-            className="fade-in bg-[#FAF8F5] min-h-screen text-[#171717] pb-24"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-        >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8">
-                {/* Section Header */}
-                <div className="mb-6">
-                    <p className="text-xs font-bold uppercase tracking-widest text-[#CA3C0A] mb-1">
-                        [ Pipeline Intelligence ]
-                    </p>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#171717] leading-tight m-0">
-                        Application Tracker
-                    </h1>
+        <div className="bg-[#F7F5F2] min-h-screen text-[#171717] pb-24">
+            <section className="ds-frame ds-rule-b">
+                <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+                    <span className="ds-mono truncate">tracker / {filter === 'all' ? 'all jobs' : STATUS_CONFIG[filter].label.toLowerCase()}</span>
+                    <span className="ds-mono ds-mono-muted shrink-0 flex items-center gap-2">
+                        {loading ? 'loading…' : `${filteredJobs.length} of ${jobs.length}`}
+                        <span className={`ds-square ${loading ? 'animate-pulse' : ''}`} />
+                    </span>
                 </div>
 
-                {/* Toolbar: Status Segmented Tabs + Squarish Add Custom Job Action */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
-                    {/* Status Segmented Tabs Bar (2-Column Grid on Mobile, Inline Strip on Desktop) */}
-                    <motion.div 
-                        className="grid grid-cols-2 sm:flex sm:flex-row w-full sm:w-fit bg-white rounded-lg p-1.5 sm:p-1 border border-[#D8D4CC] gap-1.5 sm:gap-1"
-                        variants={cardVariants}
-                        style={{ boxShadow: 'none' }}
-                    >
-                        {Object.entries({ all: { label: 'All', icon: FiGrid }, ...STATUS_CONFIG }).map(([key, val]) => {
-                            const Icon = val.icon;
-                            const isActive = filter === key;
-                            const count = statusCounts[key];
-                            return (
-                                <button
-                                    key={key}
-                                    onClick={() => setFilter(key)}
-                                    className={`w-full sm:w-auto px-3 sm:px-3.5 py-2 sm:py-1.5 rounded-md text-xs font-bold flex items-center justify-between sm:justify-start gap-2 transition-all border cursor-pointer select-none ${
-                                        isActive 
-                                            ? 'bg-[#171717] text-white border-[#171717] shadow-xs' 
-                                            : 'bg-[#FAF8F5] sm:bg-transparent text-[#66615C] border-[#D8D4CC]/50 sm:border-transparent hover:text-[#171717] hover:bg-neutral-100 sm:hover:bg-[#FAF8F5]'
-                                    }`}
-                                    style={{ boxShadow: 'none' }}
-                                >
-                                    <div className="flex items-center gap-1.5 sm:gap-2">
-                                        <Icon size={14} className={isActive ? 'text-white' : 'text-[#8A8580]'} />
-                                        <span>{val.label}</span>
-                                    </div>
-                                    <span className={`px-1.5 py-0.5 rounded text-[10.5px] font-bold ${
-                                        isActive ? 'bg-white/20 text-white' : 'bg-white text-[#171717] border border-[#D8D4CC]'
-                                    }`}>
-                                        {count}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </motion.div>
-
-                    {/* Squarish, Refined "Add Custom Job" Action Button */}
-                    <button
-                        type="button"
-                        onClick={handleOpenAddModal}
-                        className="group h-[38px] px-3.5 rounded-lg bg-white hover:bg-[#FAF8F5] text-[#171717] hover:text-[#CA3C0A] text-xs font-bold transition-all duration-150 flex items-center justify-center gap-2 border border-[#D8D4CC] hover:border-[#CA3C0A]/50 cursor-pointer shadow-xs active:scale-[0.98] shrink-0"
-                    >
-                        <span className="w-5 h-5 rounded-[4px] bg-[#FFF0E8] text-[#CA3C0A] border border-[#CA3C0A]/30 flex items-center justify-center transition-transform group-hover:scale-105">
-                            <FiPlus size={13} className="stroke-[3]" />
-                        </span>
-                        <span>Add Custom Job</span>
-                        <span className="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded-[3px] bg-[#FAF8F5] text-[#66615C] border border-[#D8D4CC] group-hover:border-[#CA3C0A]/30 group-hover:text-[#CA3C0A] transition-colors">
-                            + NEW
-                        </span>
+                <div className="ds-cell !pt-12 sm:!pt-16 !pb-8 flex flex-wrap items-end justify-between gap-6">
+                    <div>
+                        <h1 className="ds-slash m-0">tracker</h1>
+                        <p className="ds-body mt-4 mb-0 max-w-md">Every job you've saved, from first look to offer. Change a status to move it along.</p>
+                    </div>
+                    <button type="button" onClick={handleOpenAddModal} className="ds-btn ds-btn-ink w-full sm:w-auto">
+                        Add a job manually <FiPlus size={18} className="ds-btn-arrow" aria-hidden="true" />
                     </button>
                 </div>
 
-                {/* Main Content Grid */}
+                <div role="tablist" aria-label="Filter by status" className="flex overflow-x-auto">
+                    {Object.entries({ all: { label: 'All' }, ...STATUS_CONFIG }).map(([key, val]) => {
+                        const selected = filter === key;
+                        return (
+                            <button
+                                key={key}
+                                type="button"
+                                role="tab"
+                                aria-selected={selected}
+                                onClick={() => setFilter(key)}
+                                className={`h-14 px-5 sm:px-6 shrink-0 flex items-center gap-3 text-[15px] font-medium cursor-pointer border-0 border-t border-r border-[#D8D4CC] ${selected ? 'bg-white text-[#171717]' : 'bg-[#EFECE6] text-[#4A4540] hover:bg-white'}`}
+                            >
+                                {val.label}
+                                <span className={`ds-mono ${selected ? 'text-[#CA3C0A]' : 'ds-mono-muted'}`}>{statusCounts[key]}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </section>
+
+            <section className="ds-frame ds-rule-b" aria-busy={loading}>
                 {loading ? (
-                    <EmptyState loading title="Loading application tracker..." />
+                    <div className="ds-gridlines grid-cols-1 md:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+                        {[1, 2, 3, 4, 5, 6].map(i => (
+                            <div key={i} className="p-6 min-h-[230px] flex flex-col animate-pulse">
+                                <div className="flex gap-4">
+                                    <div className="w-11 h-11 bg-[#E7E3DC]" />
+                                    <div className="flex-1 space-y-2 pt-1">
+                                        <div className="h-4 w-4/5 bg-[#E7E3DC]" />
+                                        <div className="h-3 w-1/3 bg-[#EFECE6]" />
+                                    </div>
+                                </div>
+                                <div className="h-3 w-1/2 bg-[#EFECE6] mt-6" />
+                                <div className="h-3 w-1/3 bg-[#EFECE6] mt-4" />
+                                <div className="h-9 w-full bg-[#EFECE6] mt-auto" />
+                            </div>
+                        ))}
+                    </div>
                 ) : filteredJobs.length > 0 ? (
-                    <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" layout>
-                        <AnimatePresence mode="popLayout">
-                            {filteredJobs.map(job => {
-                                const statusConfig = STATUS_CONFIG[job.status] || STATUS_CONFIG.saved;
-                                const StatusIcon = statusConfig.icon;
-                                const hasSalary = job.salary && job.salary !== 'Not specified';
-                                const isCustomJob = Boolean(job.jobId?.startsWith('custom_') || job.job_id?.startsWith('custom_') || String(job._id)?.startsWith('temp_'));
+                    <ul className="ds-gridlines grid-cols-1 md:grid-cols-2 lg:grid-cols-3 list-none m-0 p-0">
+                        {filteredJobs.map(job => {
+                            const status = STATUS_CONFIG[job.status] || STATUS_CONFIG.saved;
+                            const salary = formatSalary(job.salary);
+                            const isCustomJob = Boolean(job.jobId?.startsWith('custom_') || job.job_id?.startsWith('custom_') || String(job._id)?.startsWith('temp_'));
+                            const meta = [job.location, job.employmentType?.toLowerCase().replace(/_/g, '-')].filter(Boolean);
 
-                                return (
-                                    <motion.div
-                                        key={job._id}
-                                        layout
-                                        variants={cardVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        transition={{ type: "spring", stiffness: 450, damping: 25 }}
-                                        className="relative focus-within:z-50 hover:z-20"
-                                    >
-                                        <div 
-                                            onClick={() => setSelectedJob(job)}
-                                            className="group relative bg-white rounded-lg p-5 border border-[#D8D4CC] hover:border-[#171717] transition-all duration-200 cursor-pointer flex flex-col justify-between h-full"
-                                            style={{ boxSizing: 'border-box', boxShadow: 'none' }}
-                                        >
-                                            <div>
-                                                {/* Header: Logo, Title & Status Badge */}
-                                                <div className="flex gap-3.5 items-start justify-between w-full mb-3.5">
-                                                    <div className="flex gap-3 items-start flex-1 min-w-0">
-                                                        {/* Logo container */}
-                                                        <div className="w-11 h-11 rounded-md border border-[#E0DCD6] bg-[#FAF8F5] p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                                            {job.companyLogo ? (
-                                                                <img src={job.companyLogo} alt="" className="w-full h-full object-contain object-center rounded-sm" />
-                                                            ) : (
-                                                                <div className="w-full h-full rounded-sm bg-[#FFF0E8] flex items-center justify-center text-[#CA3C0A] font-black text-sm">
-                                                                    {(job.company || '?')[0].toUpperCase()}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        {/* Title & Company */}
-                                                        <div className="flex-1 min-w-0">
-                                                            <h3 className="text-base font-bold text-[#171717] tracking-tight leading-snug group-hover:text-[#CA3C0A] transition-colors duration-200 line-clamp-1" title={job.title}>
-                                                                {job.title}
-                                                            </h3>
-                                                            <p className="text-xs text-neutral-500 font-semibold truncate mt-0.5">
-                                                                {job.company}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Status Badge Pill */}
-                                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border flex-shrink-0 ${statusConfig.badgeBg} ${statusConfig.badgeText} ${statusConfig.badgeBorder}`} style={{ boxShadow: 'none' }}>
-                                                        <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dotColor} animate-pulse`} />
-                                                        <span>{statusConfig.label}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Metadata Row */}
-                                                <div className="flex flex-wrap items-center gap-1.5 mb-4 select-none">
-                                                    {job.location && (
-                                                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#FAF8F5] text-[#171717] font-medium border border-neutral-200">
-                                                            <FiMapPin size={11} className="text-neutral-400" /> {job.location}
-                                                        </span>
-                                                    )}
-                                                    {hasSalary && (
-                                                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#FFF8F5] text-[#CA3C0A] font-bold border border-[#CA3C0A]/20">
-                                                            <FiDollarSign size={11} /> {formatSalary(job.salary)}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Bottom Controls: Status Dropdown & Action Buttons */}
-                                            <div 
-                                                className="pt-3.5 border-t border-neutral-100 flex items-center justify-between gap-2 mt-auto"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                {/* Status Selector */}
-                                                <Dropdown
-                                                    options={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))}
-                                                    value={job.status}
-                                                    onChange={(val) => handleStatusChange(job._id, val)}
-                                                    placeholder="Select Status"
-                                                    variant="filter"
-                                                    direction="down"
-                                                />
-
-                                                {/* Actions */}
-                                                <div className="flex items-center gap-1.5">
-                                                    {/* Interview Prep button */}
-                                                    {job.status === 'interview' && (
-                                                        <button
-                                                            className="h-8 w-8 rounded-md bg-[#FFF0E8] text-[#CA3C0A] hover:bg-[#CA3C0A] hover:text-white border border-[#CA3C0A]/20 flex items-center justify-center transition-all cursor-pointer flex-shrink-0"
-                                                            onClick={(e) => { e.stopPropagation(); setPrepJob(job); }}
-                                                            title="Launch Interview Prep & STAR Questions"
-                                                            style={{ boxShadow: 'none', boxSizing: 'border-box' }}
-                                                        >
-                                                            <FiVideo size={14} />
-                                                        </button>
-                                                    )}
-
-                                                    {/* Cover Letter button */}
-                                                    {job.coverLetter && (
-                                                        <button
-                                                            className="h-8 w-8 rounded-md bg-neutral-100 text-[#171717] hover:bg-neutral-200 border border-neutral-200/60 flex items-center justify-center transition-all cursor-pointer flex-shrink-0"
-                                                            onClick={(e) => { e.stopPropagation(); setCoverLetterJob(job); }}
-                                                            title="View Saved Cover Letter"
-                                                            style={{ boxShadow: 'none', boxSizing: 'border-box' }}
-                                                        >
-                                                            <FiFileText size={14} />
-                                                        </button>
-                                                    )}
-
-                                                    {/* Apply link */}
-                                                    {job.applyLink && (
-                                                        <a 
-                                                            href={job.applyLink} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer" 
-                                                            className="h-8 px-3.5 rounded-md bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 no-underline flex-shrink-0 leading-none"
-                                                            style={{ boxShadow: 'none', boxSizing: 'border-box' }}
-                                                        >
-                                                            <span>Apply</span>
-                                                            <FiExternalLink size={12} />
-                                                        </a>
-                                                    )}
-
-                                                    {/* Edit Button (Only for Custom Created Jobs) */}
-                                                    {isCustomJob && (
-                                                        <button 
-                                                            onClick={(e) => { e.stopPropagation(); handleOpenEditModal(job); }} 
-                                                            title="Edit Custom Opportunity" 
-                                                            className="h-8 w-8 rounded-md bg-[#FAF8F5] hover:bg-[#FFF0E8] text-neutral-400 hover:text-[#CA3C0A] border border-neutral-200/60 hover:border-[#CA3C0A]/30 flex items-center justify-center transition-all cursor-pointer flex-shrink-0"
-                                                            style={{ boxShadow: 'none', boxSizing: 'border-box' }}
-                                                        >
-                                                            <FiEdit2 size={13} />
-                                                        </button>
-                                                    )}
-
-                                                    {/* Delete */}
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); handleDelete(job._id); }} 
-                                                        title="Remove from Tracker" 
-                                                        className="h-8 w-8 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-neutral-400 hover:text-[#171717] border border-neutral-200/60 flex items-center justify-center transition-all cursor-pointer flex-shrink-0"
-                                                        style={{ boxShadow: 'none', boxSizing: 'border-box' }}
+                            return (
+                                <li key={job._id}>
+                                    <article className="group relative h-full flex flex-col bg-[#F7F5F2] hover:bg-white transition-colors duration-150 p-6">
+                                        <div className="flex items-start gap-4">
+                                            <CompanyMark logo={job.companyLogo} company={job.company} />
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="m-0 text-[17px] font-semibold leading-snug tracking-[-0.01em] text-[#171717]">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSelectedJob(job)}
+                                                        className="text-left bg-transparent border-none p-0 cursor-pointer text-inherit line-clamp-2 group-hover:text-[#CA3C0A] after:absolute after:inset-0 after:content-['']"
                                                     >
-                                                        <FiTrash2 size={14} />
+                                                        {job.title}
                                                     </button>
-                                                </div>
+                                                </h3>
+                                                <p className="m-0 mt-1 text-[14px] text-[#4A4540] truncate">{job.company}</p>
                                             </div>
                                         </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </AnimatePresence>
-                    </motion.div>
+
+                                        <p className="ds-mono mt-5 mb-0 flex items-center gap-2 min-w-0">
+                                            <span className={`w-2 h-2 shrink-0 ${status.dot}`} aria-hidden="true" />
+                                            <span className={`shrink-0 ${status.text}`}>{status.label.toLowerCase()}</span>
+                                            {meta.length > 0 && <span className="ds-mono-muted truncate">· {meta.join(' · ')}</span>}
+                                        </p>
+
+                                        <p className="mt-3 mb-0 text-[14px] font-semibold text-[#171717] truncate">
+                                            {salary || <span className="ds-mono ds-mono-muted font-normal">salary not listed</span>}
+                                        </p>
+
+                                        <div className="mt-auto pt-6 flex flex-wrap items-center gap-2">
+                                            <label className="relative z-10 flex-1 min-w-[130px]">
+                                                <span className="sr-only">Status for {job.title}</span>
+                                                <select
+                                                    value={job.status}
+                                                    onChange={(e) => handleStatusChange(job._id, e.target.value)}
+                                                    className="ds-select w-full"
+                                                >
+                                                    {Object.entries(STATUS_CONFIG).map(([k, v]) => (
+                                                        <option key={k} value={k}>{v.label}</option>
+                                                    ))}
+                                                </select>
+                                            </label>
+
+                                            {job.status === 'interview' && (
+                                                <button type="button" className={iconBtn} onClick={() => setPrepJob(job)} aria-label={`Interview prep for ${job.title}`} title="Interview prep">
+                                                    <FiVideo size={15} />
+                                                </button>
+                                            )}
+                                            {job.coverLetter && (
+                                                <button type="button" className={iconBtn} onClick={() => setCoverLetterJob(job)} aria-label={`Cover letter for ${job.title}`} title="Cover letter">
+                                                    <FiFileText size={15} />
+                                                </button>
+                                            )}
+                                            {isCustomJob && (
+                                                <button type="button" className={iconBtn} onClick={() => handleOpenEditModal(job)} aria-label={`Edit ${job.title}`} title="Edit">
+                                                    <FiEdit2 size={14} />
+                                                </button>
+                                            )}
+                                            <button type="button" className={`${iconBtn} hover:!border-[#B91C1C] hover:text-[#B91C1C]`} onClick={() => handleDelete(job._id)} aria-label={`Remove ${job.title} from tracker`} title="Remove">
+                                                <FiTrash2 size={14} />
+                                            </button>
+                                            {job.applyLink && (
+                                                <a
+                                                    href={job.applyLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="relative z-10 ds-btn ds-btn-accent !min-h-0 h-9 !px-3 !text-[14px] !gap-2 no-underline shrink-0"
+                                                >
+                                                    Apply <FiArrowUpRight size={15} aria-hidden="true" />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </article>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 ) : (
-                    <EmptyState 
-                        icon={FiBookmark} 
-                        title={filter === 'all' ? 'No applications tracked yet' : `No ${filter} opportunities`}
-                        description="Bookmark opportunities from Search or Recommendations to manage your hiring pipeline here."
-                    />
+                    <div className="ds-cell !py-20 text-center">
+                        <p className="ds-mono ds-mono-muted m-0 mb-3">{filter === 'all' ? 'nothing saved yet' : `no ${STATUS_CONFIG[filter].label.toLowerCase()} jobs`}</p>
+                        <p className="m-0 text-[24px] font-medium tracking-[-0.02em]">
+                            {filter === 'all' ? 'Save jobs from search to track them here.' : 'Nothing in this column right now.'}
+                        </p>
+                        {filter === 'all' && (
+                            <button type="button" onClick={() => navigate('/search')} className="ds-btn ds-btn-accent mt-8">
+                                Search jobs <FiArrowUpRight size={18} className="ds-btn-arrow" aria-hidden="true" />
+                            </button>
+                        )}
+                    </div>
                 )}
+            </section>
 
                 {/* Job Detail Modal */}
                 {selectedJob && (
@@ -801,8 +668,7 @@ function SavedJobs({ user, resumeData }) {
                     </AnimatePresence>,
                     document.body
                 )}
-            </div>
-        </motion.div>
+        </div>
     );
 }
 
