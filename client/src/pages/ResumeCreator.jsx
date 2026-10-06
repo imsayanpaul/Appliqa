@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { certificationLabel, formatScore, formatRange, safeUrl } from '../lib/resumeProfile';
 import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
 import { 
@@ -33,6 +34,13 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const [saveAsName, setSaveAsName] = useState('');
     const [confirmReplaceId, setConfirmReplaceId] = useState(null);
     const saveMenuRef = useRef(null);
+    const [notice, setNotice] = useState('');
+    const [tailorError, setTailorError] = useState('');
+    useEffect(() => {
+        if (!notice) return;
+        const t = setTimeout(() => setNotice(''), 8000);
+        return () => clearTimeout(t);
+    }, [notice]);
     useEffect(() => {
         if (!saveMenuOpen) return;
         const onKey = (e) => { if (e.key === 'Escape') setSaveMenuOpen(false); };
@@ -186,6 +194,19 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const [selectedExpIndexForChat, setSelectedExpIndexForChat] = useState(null);
     const [chatbotSuggestedBullet, setChatbotSuggestedBullet] = useState(null);
     const chatbotEndRef = useRef(null);
+
+    // Escape closes the builder sheets (not while they are working)
+    useEffect(() => {
+        const onKey = (e) => {
+            if (e.key !== 'Escape') return;
+            setShowEnhancer(false);
+            setShowChatbot(false);
+            if (!uploading) setShowUploadModal(false);
+            if (!tailoring) setShowTailorModal(false);
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [uploading, tailoring]);
 
     // Initial load tracking refs to prevent redundant resets during editing
     const lastPropResumeDataRef = useRef(null);
@@ -562,6 +583,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const handleTailorResume = async () => {
         if (!tailorJD.trim()) return;
         setTailoring(true);
+        setTailorError('');
         try {
             const res = await tailorResume({
                 personalInfo,
@@ -594,11 +616,11 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 }
                 setShowTailorModal(false);
                 setTailorJD('');
-                alert("Successfully tailored your resume summary and bullet points to match the target job description!");
+                setNotice('Tailored to the job. Review the changes, then use Save as → Save as new resume to keep your original.');
             }
         } catch (err) {
             console.error(err);
-            alert("Tailoring failed: " + (err.response?.data?.error || err.message));
+            setTailorError(err.response?.data?.error || 'Tailoring didn’t work this time. Please try again.');
         } finally {
             setTailoring(false);
         }
@@ -658,7 +680,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         setExperience(updated);
         setShowChatbot(false);
         setChatbotSuggestedBullet(null);
-        alert("Success! Added the metric-driven achievement bullet to your experience profile.");
+        setNotice('Bullet added to your experience.');
     };
 
     const switchResume = (id) => {
@@ -848,8 +870,9 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             const data = res.data.analysis;
 
             loadFromResumeData(data);
+            initialSnapshotRef.current = '__imported__'; // imported content is unsaved
             setShowUploadModal(false);
-            alert("Successfully parsed and loaded your resume details into the creator workspace!");
+            setNotice('Resume imported. Check each section, then save.');
         } catch (err) {
             console.error(err);
             setUploadError(`Parsing failed: ${err.message || 'Make sure it is a readable PDF/TXT'}`);
@@ -1201,6 +1224,13 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         </button>
                     </div>
 
+                    {notice && (
+                        <div role="status" className="shrink-0 flex items-start justify-between gap-3 px-5 py-3 bg-[#FFF0E8] border-0 border-b border-[#D8D4CC] text-[14px] text-[#171717]">
+                            <span className="flex items-start gap-2"><span className="ds-square mt-1.5" />{notice}</span>
+                            <button type="button" onClick={() => setNotice('')} aria-label="Dismiss" className="shrink-0 bg-transparent border-0 p-0 cursor-pointer text-[#6F6A65] hover:text-[#171717]"><X size={16} /></button>
+                        </div>
+                    )}
+
                     {/* Section tabs */}
                     <div role="tablist" aria-label="Resume sections" style={{ scrollbarWidth: 'none' }} className="shrink-0 flex overflow-x-auto border-0 border-b border-[#D8D4CC] bg-[#EFECE6]">
                         {[
@@ -1456,7 +1486,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
                                             {/* Experience Bullet Points */}
                                             <div className="space-y-3">
-                                                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Bullet Points (Action / Impact)</label>
+                                                <label className="resume-input-label">bullet points · start with an action, add a result</label>
                                                 {exp.bullets.map((bullet, bulletIdx) => (
                                                     <div key={bulletIdx} className="flex gap-2.5 items-start group">
                                                         <textarea
@@ -1625,7 +1655,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 {/* AI Skills Suggestion Section */}
                                 <div className="border-t border-neutral-100 pt-6 space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-xs font-bold text-[#171717] uppercase tracking-wider font-mono">AI Recommended Skills</h3>
+                                        <h3 className="ds-mono ds-mono-muted m-0">suggested skills</h3>
                                         <button
                                             onClick={handleSuggestSkills}
                                             disabled={loadingSkills}
@@ -2355,335 +2385,244 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 </div>
 
             {/* AI Bullet Enhancer Modal Overlay */}
-            {showEnhancer && (
-                <div className="resume-modal-overlay" data-lenis-prevent>
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.96, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        className="resume-modal-content max-w-[560px]"
-                        data-lenis-prevent
-                    >
-                        {/* Header */}
-                        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
-                            <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
-                                    [ Bullet Point Enhancer ]
-                                </span>
-                                <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
-                                    Action & Metrics Optimization
-                                </h3>
-                            </div>
-                            <button 
+            {showEnhancer && createPortal(
+                <div className="modal-overlay" onClick={() => setShowEnhancer(false)} data-lenis-prevent>
+                    <div className="modal-content ds-sheet" role="dialog" aria-modal="true" aria-labelledby="enh-title" onClick={(e) => e.stopPropagation()} data-lenis-prevent>
+                        <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                            <span className="ds-mono self-center px-6 sm:px-8 truncate">resume builder / improve a bullet</span>
+                            <button
+                                type="button"
                                 onClick={() => setShowEnhancer(false)}
-                                className="resume-modal-close-btn"
+                                aria-label="Close"
+                                className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white disabled:opacity-40"
                             >
-                                <X size={14} />
+                                <X size={18} />
                             </button>
                         </div>
-
-                        {/* Content */}
-                        <div className="resume-modal-body p-6 space-y-4">
-                            <div>
-                                <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Original Bullet Point</label>
+                        <div className="ds-sheet-body" data-lenis-prevent>
+                            <header className="ds-sheet-section !pt-8">
+                                <h2 id="enh-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em]">Make this point stronger</h2>
+                                <p className="ds-body mt-3 mb-0">Get rewrites that lead with an action and show a result. Pick one to replace your text.</p>
+                            </header>
+                            <section className="ds-sheet-section">
+                                <label htmlFor="enh-original" className="ds-label">your text</label>
                                 <textarea
+                                    id="enh-original"
                                     value={enhancerData.originalText}
                                     onChange={(e) => setEnhancerData({ ...enhancerData, originalText: e.target.value })}
-                                    rows={3}
-                                    className="resume-modal-textarea"
-                                    placeholder="Enter your rough bullet point or project milestone..."
+                                    rows={4}
+                                    className="resume-input-field resize-y"
+                                    placeholder="e.g. Worked on the payments page"
                                 />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Target Role Context</label>
-                                    <input
-                                        type="text"
-                                        value={enhancerData.roleContext}
-                                        onChange={(e) => setEnhancerData({ ...enhancerData, roleContext: e.target.value })}
-                                        className="resume-input-field"
-                                        placeholder="e.g. Senior Frontend Dev"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Action Verb To Lead With</label>
-                                    <input
-                                        type="text"
-                                        value={enhancerData.actionVerb}
-                                        onChange={(e) => setEnhancerData({ ...enhancerData, actionVerb: e.target.value })}
-                                        className="resume-input-field"
-                                        placeholder="e.g. Spearheaded"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end pt-2">
-                                <button
-                                    onClick={handleEnhanceBullet}
-                                    disabled={enhancerData.loading || !enhancerData.originalText.trim()}
-                                    className="resume-modal-action-btn"
-                                >
-                                    {enhancerData.loading ? (
-                                        <>
-                                            <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-[2px] border-white border-t-transparent" />
-                                            <span>Generating Variations...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>Generate Enhanced Variations</span>
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Variations list */}
-                            {enhancerData.variations.length > 0 && (
-                                <div className="space-y-3 pt-4 border-t border-neutral-100">
-                                    <label className="block text-[10px] font-mono font-bold text-[#CA3C0A] uppercase tracking-wider">Select Enhanced Variation</label>
-                                    <div className="space-y-2">
-                                        {enhancerData.variations.map((variant, i) => (
-                                            <button
-                                                key={i}
-                                                onClick={() => applyVariation(variant)}
-                                                className="resume-modal-variation-btn group"
-                                            >
-                                                <span className="flex-1 pr-4 leading-relaxed font-medium">{variant}</span>
-                                                <ArrowRight size={13} className="shrink-0 text-neutral-400 group-hover:text-[#CA3C0A] transition-colors" />
-                                            </button>
-                                        ))}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                                    <div>
+                                        <label htmlFor="enh-role" className="ds-label">for a role like</label>
+                                        <input id="enh-role" type="text" value={enhancerData.roleContext} onChange={(e) => setEnhancerData({ ...enhancerData, roleContext: e.target.value })} className="resume-input-field" placeholder="e.g. Frontend developer" />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="enh-verb" className="ds-label">start with (optional)</label>
+                                        <input id="enh-verb" type="text" value={enhancerData.actionVerb} onChange={(e) => setEnhancerData({ ...enhancerData, actionVerb: e.target.value })} className="resume-input-field" placeholder="e.g. Built, Led, Reduced" />
                                     </div>
                                 </div>
+                            </section>
+                            {enhancerData.variations.length > 0 && (
+                                <section className="ds-sheet-section border-b-0">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-3">pick one</h3>
+                                    <ul className="list-none m-0 p-0 border border-[#D8D4CC] bg-white">
+                                        {enhancerData.variations.map((variant, i) => (
+                                            <li key={i} className="border-0 border-t border-[#D8D4CC] first:border-t-0">
+                                                <button type="button" onClick={() => applyVariation(variant)} className="w-full text-left px-4 py-3.5 flex items-start justify-between gap-4 bg-transparent hover:bg-[#F7F5F2] border-0 cursor-pointer group">
+                                                    <span className="flex items-start gap-3 text-[15px] leading-relaxed text-[#171717]">
+                                                        <span className="ds-mono text-[#CA3C0A] pt-0.5">0{i + 1}</span>
+                                                        {variant}
+                                                    </span>
+                                                    <span className="ds-mono ds-mono-muted shrink-0 pt-0.5 group-hover:text-[#CA3C0A]">use</span>
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
                             )}
                         </div>
-                    </motion.div>
-                </div>
+                        <div className="shrink-0 border-0 border-t border-[#D8D4CC]">
+                            <button type="button" onClick={handleEnhanceBullet} disabled={enhancerData.loading || !enhancerData.originalText.trim()} className="ds-btn ds-btn-accent w-full !min-h-[64px] !px-6 sm:!px-8">
+                                {enhancerData.loading ? 'Writing…' : enhancerData.variations.length ? 'Write new options' : 'Write stronger options'}
+                                {enhancerData.loading ? <RefreshCw size={17} className="animate-spin" /> : <Sparkles size={17} />}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
 
-            {/* Scan Resume Upload Modal */}
-            {showUploadModal && (
-                <div className="resume-modal-overlay" data-lenis-prevent>
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.96 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="resume-modal-content max-w-[460px]"
-                        data-lenis-prevent
-                    >
-                        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
-                            <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
-                                    [ Resume Parser ]
-                                </span>
-                                <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
-                                    Scan Existing Resume
-                                </h3>
-                            </div>
-                            <button 
+            {showUploadModal && createPortal(
+                <div className="modal-overlay" onClick={() => !uploading && setShowUploadModal(false)} data-lenis-prevent>
+                    <div className="modal-content ds-sheet" role="dialog" aria-modal="true" aria-labelledby="scan-title" onClick={(e) => e.stopPropagation()} data-lenis-prevent>
+                        <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                            <span className="ds-mono self-center px-6 sm:px-8 truncate">resume builder / import</span>
+                            <button
+                                type="button"
                                 onClick={() => setShowUploadModal(false)}
-                                className="resume-modal-close-btn"
                                 disabled={uploading}
+                                aria-label="Close"
+                                className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white disabled:opacity-40"
                             >
-                                <X size={14} />
+                                <X size={18} />
                             </button>
                         </div>
-
-                        <div className="resume-modal-body p-6 space-y-4">
-                            <p className="text-xs text-neutral-600 leading-relaxed m-0">
-                                Upload your existing PDF or TXT resume. We will scan its text contents and leverage AI to break down and map details directly into the workspace layout.
-                            </p>
-                            
-                            <div className="resume-modal-dropzone">
-                                <input 
-                                    type="file" 
-                                    accept=".pdf,.txt" 
-                                    onChange={handleFileScan}
-                                    disabled={uploading}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                />
-                                <FileText size={32} className="dropzone-icon" />
-                                <span className="text-xs font-semibold text-[#171717]">Click to browse or drop file here</span>
-                                <span className="text-[10px] text-neutral-500 mt-1.5">PDF or TXT (Max 5MB)</span>
-                            </div>
-
-                            {uploadStatus && (
-                                <div className="flex items-center gap-2 text-xs text-[#CA3C0A] font-medium bg-[#FFF0E8] p-3 rounded-md border border-[#CA3C0A]/20">
-                                    <RefreshCw className="animate-spin" size={14} />
-                                    <span>{uploadStatus}</span>
-                                </div>
-                            )}
-
-                            {uploadError && (
-                                <div className="text-xs text-rose-700 bg-rose-50 p-3 rounded-md border border-rose-200 text-center font-medium">
-                                    {uploadError}
-                                </div>
-                            )}
+                        <div className="ds-sheet-body" data-lenis-prevent>
+                            <header className="ds-sheet-section !pt-8">
+                                <h2 id="scan-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em]">Import an existing resume</h2>
+                                <p className="ds-body mt-3 mb-0">We’ll read your file and fill in each section here. You can review everything before saving.</p>
+                            </header>
+                            <section className="ds-sheet-section">
+                                <label className={`relative flex flex-col items-center justify-center text-center gap-2 px-6 py-14 border border-dashed bg-white ${uploading ? 'border-[#CA3C0A] cursor-wait' : 'border-[#8A8580] hover:border-[#171717] cursor-pointer'}`}>
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.txt"
+                                        onChange={handleFileScan}
+                                        disabled={uploading}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-wait"
+                                        aria-label="Choose a PDF or TXT resume"
+                                    />
+                                    <span className="w-12 h-12 inline-flex items-center justify-center border border-[#D8D4CC] bg-[#F7F5F2]">
+                                        {uploading ? <RefreshCw size={20} className="animate-spin text-[#CA3C0A]" /> : <Upload size={20} />}
+                                    </span>
+                                    <span className="text-[16px] font-semibold text-[#171717]">{uploading ? (uploadStatus || 'Reading your resume…') : 'Choose a file or drop it here'}</span>
+                                    <span className="ds-mono ds-mono-muted">pdf or txt · up to 5 mb</span>
+                                </label>
+                                {uploadError && <p role="alert" className="m-0 mt-4 text-[15px] text-[#991B1B]">{uploadError}</p>}
+                            </section>
+                            <section className="ds-sheet-section border-b-0">
+                                <p className="ds-mono ds-mono-muted m-0 mb-2">good to know</p>
+                                <ul className="ds-list">
+                                    <li>This replaces what’s in the editor, not your saved resumes. Nothing is saved until you click Save.</li>
+                                    <li>To keep the current version too, use Save as → Save as new resume after importing.</li>
+                                </ul>
+                            </section>
                         </div>
-                    </motion.div>
-                </div>
+                    </div>
+                </div>,
+                document.body
             )}
 
-            {/* Tailor Resume Modal */}
-            {showTailorModal && (
-                <div className="resume-modal-overlay" data-lenis-prevent>
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.96 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="resume-modal-content max-w-[480px]"
-                        data-lenis-prevent
-                    >
-                        <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
-                            <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
-                                    [ Target Alignment ]
-                                </span>
-                                <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
-                                    Tailor Resume to Job Posting
-                                </h3>
-                            </div>
-                            <button 
+            {showTailorModal && createPortal(
+                <div className="modal-overlay" onClick={() => !tailoring && setShowTailorModal(false)} data-lenis-prevent>
+                    <div className="modal-content ds-sheet" role="dialog" aria-modal="true" aria-labelledby="tailor-title" onClick={(e) => e.stopPropagation()} data-lenis-prevent>
+                        <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                            <span className="ds-mono self-center px-6 sm:px-8 truncate">resume builder / tailor</span>
+                            <button
+                                type="button"
                                 onClick={() => setShowTailorModal(false)}
-                                className="resume-modal-close-btn"
                                 disabled={tailoring}
+                                aria-label="Close"
+                                className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white disabled:opacity-40"
                             >
-                                <X size={14} />
+                                <X size={18} />
                             </button>
                         </div>
-
-                        <div className="resume-modal-body p-6 space-y-4">
-                            <p className="text-xs text-neutral-600 leading-relaxed m-0">
-                                Paste the target job description. Our AI will automatically rewrite your professional summary, tailor your experience achievements using job-specific keywords, and suggest highly relevant skills.
-                            </p>
-                            
-                            <div>
-                                <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Job Description</label>
+                        <div className="ds-sheet-body" data-lenis-prevent>
+                            <header className="ds-sheet-section !pt-8">
+                                <h2 id="tailor-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em]">Tailor this resume to a job</h2>
+                                <p className="ds-body mt-3 mb-0">We’ll rewrite your summary and bullet points around the job’s keywords and suggest skills to add.</p>
+                            </header>
+                            <section className="ds-sheet-section">
+                                <label htmlFor="tailor-jd" className="ds-label">job description</label>
                                 <textarea
+                                    id="tailor-jd"
                                     value={tailorJD}
                                     onChange={(e) => setTailorJD(e.target.value)}
-                                    rows={8}
-                                    className="resume-modal-textarea"
-                                    placeholder="Paste full job description listing duties, requirements, and responsibilities..."
+                                    rows={12}
+                                    className="resume-input-field resize-y"
+                                    placeholder="Paste the full job post: responsibilities, requirements and nice-to-haves."
                                     disabled={tailoring}
                                 />
-                            </div>
-
-                            {tailoring ? (
-                                <div className="flex items-center gap-2.5 text-xs text-[#CA3C0A] font-medium bg-[#FFF0E8] p-3.5 rounded-md border border-[#CA3C0A]/20">
-                                    <RefreshCw className="animate-spin" size={14} />
-                                    <span>Orchestrating AI resume tailoring... mapping coordinates and metrics...</span>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={handleTailorResume}
-                                    disabled={!tailorJD.trim()}
-                                    className="resume-modal-action-btn"
-                                >
-                                    <Sliders size={13} />
-                                    <span>Analyze & Tailor Resume</span>
-                                </button>
-                            )}
+                                <p className="ds-mono ds-mono-muted m-0 mt-2">{tailorJD.trim() ? `${tailorJD.trim().split(/\s+/).length} words` : 'longer posts give better results'}</p>
+                                {tailorError && <p role="alert" className="m-0 mt-4 text-[15px] text-[#991B1B]">{tailorError}</p>}
+                            </section>
+                            <section className="ds-sheet-section border-b-0">
+                                <p className="ds-mono ds-mono-muted m-0 mb-2">tip</p>
+                                <p className="m-0 text-[15px] leading-relaxed text-[#4A4540]">
+                                    Tailoring changes the open resume (“{activeResume?.name || 'Main resume'}”). To keep it as it is, save the result with Save as → Save as new resume, named after the company.
+                                </p>
+                            </section>
                         </div>
-                    </motion.div>
-                </div>
+                        <div className="shrink-0 border-0 border-t border-[#D8D4CC]">
+                            <button type="button" onClick={handleTailorResume} disabled={tailoring || !tailorJD.trim()} className="ds-btn ds-btn-accent w-full !min-h-[64px] !px-6 sm:!px-8">
+                                {tailoring ? 'Tailoring your resume…' : 'Tailor my resume'}
+                                {tailoring ? <RefreshCw size={17} className="animate-spin" /> : <Sliders size={17} />}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
 
-            {/* AI Achievement Finder Chatbot Drawer */}
-            {showChatbot && (
-                <div className="resume-drawer-overlay">
-                    <motion.div
-                        initial={{ x: '100%' }}
-                        animate={{ x: 0 }}
-                        exit={{ x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="resume-drawer-content"
-                    >
-                        {/* Chat Header */}
-                        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4 bg-[#FAF8F5] relative z-10">
-                            <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
-                                    [ Bullet Architect ]
-                                </span>
-                                <h3 className="text-xs font-mono font-bold text-[#171717] uppercase tracking-wider m-0">
-                                    {selectedExpIndexForChat !== null && experience[selectedExpIndexForChat]
-                                        ? `${experience[selectedExpIndexForChat].role} · ${experience[selectedExpIndexForChat].company || 'Experience'}`
-                                        : 'Experience Accomplishment Copilot'}
-                                </h3>
-                            </div>
-                            <button 
-                                onClick={() => setShowChatbot(false)}
-                                className="resume-modal-close-btn"
-                                title="Close Drawer"
-                            >
-                                <X size={14} />
+            {/* Bullet-writing chat: a sheet like the other builder tools */}
+            {showChatbot && createPortal(
+                <div className="modal-overlay" onClick={() => setShowChatbot(false)} data-lenis-prevent>
+                    <div className="modal-content ds-sheet" role="dialog" aria-modal="true" aria-labelledby="chat-title" onClick={(e) => e.stopPropagation()} data-lenis-prevent>
+                        <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                            <span className="ds-mono self-center px-6 sm:px-8 truncate">resume builder / write a bullet</span>
+                            <button type="button" onClick={() => setShowChatbot(false)} aria-label="Close" className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white">
+                                <X size={18} />
                             </button>
                         </div>
 
-                        {/* Chat Messages */}
-                        <div className="flex-1 overflow-y-auto p-5 space-y-4 relative z-10 chatbot-chat-scroll bg-white">
+                        <header className="ds-sheet-section !pt-8 shrink-0">
+                            <h2 id="chat-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em]">Find an achievement</h2>
+                            <p className="ds-mono ds-mono-muted mt-3 mb-0 truncate">
+                                {selectedExpIndexForChat !== null && experience[selectedExpIndexForChat]
+                                    ? [experience[selectedExpIndexForChat].role, experience[selectedExpIndexForChat].company].filter(Boolean).join(' · ').toLowerCase()
+                                    : 'answer a few questions and get a bullet point'}
+                            </p>
+                        </header>
+
+                        <ol className="ds-sheet-body list-none m-0 p-0" aria-live="polite" data-lenis-prevent>
                             {chatbotHistory.map((msg, idx) => (
-                                <div 
-                                    key={idx} 
-                                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div className={`max-w-[85%] text-xs leading-relaxed ${
-                                        msg.role === 'user'
-                                            ? 'chat-bubble-user'
-                                            : 'chat-bubble-ai'
-                                    }`}>
-                                        {msg.text}
-                                    </div>
-                                </div>
+                                <li key={idx} className={`grid grid-cols-[84px_1fr] gap-4 px-6 sm:px-8 py-5 border-0 border-b border-[#D8D4CC] ${msg.role === 'user' ? 'bg-white' : ''}`}>
+                                    <span className={`ds-mono pt-0.5 ${msg.role === 'user' ? 'ds-mono-muted' : 'text-[#CA3C0A]'}`}>{msg.role === 'user' ? 'you' : 'coach'}</span>
+                                    <p className="m-0 text-[15px] leading-relaxed text-[#171717] whitespace-pre-wrap">{msg.text}</p>
+                                </li>
                             ))}
                             {chatbotLoading && (
-                                <div className="flex justify-start">
-                                    <div className="chat-bubble-ai px-4 py-3 flex items-center gap-1.5 shrink-0 bg-[#FAF8F5] border border-[#D8D4CC]">
-                                        <span className="h-1.5 w-1.5 bg-[#CA3C0A] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <span className="h-1.5 w-1.5 bg-[#CA3C0A] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <span className="h-1.5 w-1.5 bg-[#CA3C0A] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                    </div>
-                                </div>
+                                <li className="grid grid-cols-[84px_1fr] gap-4 px-6 sm:px-8 py-5 border-0 border-b border-[#D8D4CC]">
+                                    <span className="ds-mono text-[#CA3C0A]">coach</span>
+                                    <span className="ds-mono ds-mono-muted animate-pulse">thinking…</span>
+                                </li>
                             )}
-                            <div ref={chatbotEndRef} />
-                        </div>
+                            <li ref={chatbotEndRef} aria-hidden="true" />
+                        </ol>
 
-                        {/* Suggested Bullet Display Card */}
                         {chatbotSuggestedBullet && (
-                            <div className="chat-drawer-suggestion-card space-y-2.5 relative z-10">
-                                <div className="flex items-center gap-1 text-[10px] font-mono font-bold text-[#CA3C0A] uppercase tracking-wider">
-                                    <Sparkle size={11} />
-                                    <span>Formulated XYZ Bullet Point</span>
-                                </div>
-                                <div className="text-xs text-[#171717] bg-white border border-[#CA3C0A]/25 p-3 rounded-md leading-relaxed italic font-medium">
-                                    "{chatbotSuggestedBullet}"
-                                </div>
-                                <button
-                                    onClick={handleApplyChatbotBullet}
-                                    className="chat-drawer-apply-btn cursor-pointer"
-                                >
-                                    <Check size={13} />
-                                    <span>Apply to Experience</span>
+                            <div className="shrink-0 px-6 sm:px-8 py-5 border-0 border-t border-[#D8D4CC] bg-[#FFF0E8]">
+                                <p className="ds-mono text-[#CA3C0A] m-0 mb-2 flex items-center gap-2"><span className="ds-square" /> suggested bullet</p>
+                                <p className="m-0 text-[16px] leading-relaxed text-[#171717]">{chatbotSuggestedBullet}</p>
+                                <button type="button" onClick={handleApplyChatbotBullet} className="ds-btn ds-btn-ink mt-4 !min-h-[44px] !text-[14px]">
+                                    Use this bullet <Check size={15} />
                                 </button>
                             </div>
                         )}
 
-                        {/* Chat Input */}
-                        <form onSubmit={handleSendChatbotMessage} className="p-4 border-t border-neutral-100 flex gap-2 relative z-10 bg-[#FAF8F5]">
+                        <form onSubmit={handleSendChatbotMessage} className="shrink-0 flex items-stretch border-0 border-t border-[#D8D4CC] bg-white focus-within:shadow-[inset_0_2px_0_#CA3C0A]">
+                            <label htmlFor="chat-input" className="sr-only">Message</label>
                             <input
+                                id="chat-input"
                                 type="text"
+                                autoComplete="off"
                                 value={chatbotInput}
                                 onChange={(e) => setChatbotInput(e.target.value)}
-                                className="chat-drawer-input"
-                                placeholder={chatbotSuggestedBullet ? "Keep chatting to refine..." : "Type project details here..."}
+                                placeholder={chatbotSuggestedBullet ? 'Add details to refine it…' : 'Describe what you worked on…'}
                                 disabled={chatbotLoading}
+                                className="flex-1 min-w-0 h-16 px-6 sm:px-8 bg-transparent border-0 outline-none text-[16px] text-[#171717] placeholder:text-[#8A8580] focus-visible:!outline-none"
                             />
-                            <button
-                                type="submit"
-                                className="chat-drawer-send-btn cursor-pointer"
-                                disabled={!chatbotInput.trim() || chatbotLoading}
-                            >
-                                <Send size={14} />
+                            <button type="submit" disabled={!chatbotInput.trim() || chatbotLoading} className="ds-btn ds-btn-accent !min-h-16 !px-6 shrink-0">
+                                Send <Send size={15} />
                             </button>
                         </form>
-                    </motion.div>
-                </div>
+                    </div>
+                </div>,
+                document.body
             )}
 
             {/* ── Floating Sticky Save Bar (Pops up when changes are made) ── */}
