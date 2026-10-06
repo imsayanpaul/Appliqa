@@ -11,6 +11,7 @@ import { analyzeResumeText, expandAnalysis } from '../lib/resumeAnalysis';
 import { extractPdfText } from '../lib/pdfText';
 import DesignPanel from '../components/resume/DesignPanel';
 import SectionsPanel from '../components/resume/SectionsPanel';
+import LatexSheet from '../components/resume/LatexSheet';
 import { ProjectsEditor, AchievementsEditor } from '../components/resume/ProjectsEditor';
 import { 
     User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
@@ -235,6 +236,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
     // 2. Tailor Mode
     const [showTailorModal, setShowTailorModal] = useState(false);
+    const [showLatex, setShowLatex] = useState(false);
     const [tailorJD, setTailorJD] = useState('');
     const [tailoring, setTailoring] = useState(false);
 
@@ -255,6 +257,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             if (e.key !== 'Escape') return;
             setShowEnhancer(false);
             setShowChatbot(false);
+            setShowLatex(false);
             if (!uploading) setShowUploadModal(false);
             if (!tailoring) setShowTailorModal(false);
         };
@@ -1961,7 +1964,16 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 </span>
                                 <span>ATS Checker</span>
                             </button>
-                            <button 
+                            <button
+                                type="button"
+                                onClick={() => setShowLatex(true)}
+                                className="h-10 px-4 bg-white border border-[#D8D4CC] hover:border-[#171717] text-[14px] font-medium text-[#171717] flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                                title="Get your resume as LaTeX code"
+                            >
+                                <span className="font-mono text-[12px] text-[#CA3C0A]" aria-hidden="true">{'{}'}</span>
+                                <span>LaTeX</span>
+                            </button>
+                            <button
                                 onClick={handleDownloadPDF}
                                 className="h-10 px-4 bg-[#CA3C0A] hover:bg-[#B73609] text-white text-[14px] font-semibold border-0 flex items-center gap-2 cursor-pointer whitespace-nowrap"
                                 style={{ boxShadow: 'none' }}
@@ -2284,6 +2296,8 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 </div>,
                 document.body
             )}
+
+            {showLatex && <LatexSheet data={docData} design={design} onClose={() => setShowLatex(false)} />}
 
             {showTailorModal && createPortal(
                 <div className="modal-overlay" onClick={() => !tailoring && setShowTailorModal(false)} data-lenis-prevent>
