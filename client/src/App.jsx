@@ -59,6 +59,8 @@ import { readProfiles, writeProfiles, makeProfile, dataFromAnalysis, toAIResume 
 import { normalizeProfile, profileToText } from './lib/resumeProfile';
 import { ResumeSkillsContext } from './lib/resumeSkills';
 import FeedbackWidget from './components/FeedbackWidget';
+import LocationPrompt from './components/LocationPrompt';
+import OnboardingSheet from './components/OnboardingSheet';
 import { supabase } from './services/supabase';
 import { getUserProfile, createOrUpdateUser } from './services/api';
 import { Dropdown } from './components/ui/Dropdown';
@@ -305,7 +307,7 @@ function AppContent() {
                     }
                     
                     // Show combined onboarding setup if DOB or Education Status is missing
-                    if (profile && (!profile.dob || !profile.educationStatus)) {
+                    if (profile && (!profile.dob || !profile.educationStatus) && !sessionStorage.getItem('appliqa_onboarding_skipped')) {
                         setOnboardingForm({
                             dob: profile.dob || '',
                             educationStatus: profile.educationStatus || '',
@@ -444,44 +446,33 @@ function AppContent() {
         updateUserState(updatedUser);
     }, [updateUserState]);
 
+    const needsOnboarding = (u) => u && (!u.dob || !u.educationStatus) && !sessionStorage.getItem('appliqa_onboarding_skipped');
+
+    const saveJobLocation = async (country, city) => {
+        const updateRes = await createOrUpdateUser({
+            name: user?.name,
+            preferences: { ...user?.preferences, country, location: city },
+        });
+        updateUserState(updateRes.data.user);
+        setShowLocationPrompt(false);
+        sessionStorage.setItem('appliqa_location_prompted', 'true');
+        alert(`Job location set to ${city}, ${country}.`);
+        if (needsOnboarding(updateRes.data.user)) setShowOnboardingPrompt(true);
+    };
+
+    // Returns false when the city can't be detected, so the card can offer manual entry
     const handleDetectLocation = async () => {
         setDetectingLocation(true);
-        
         try {
             const res = await fetch('https://ipapi.co/json/');
             if (!res.ok) throw new Error('IP api response error');
             const data = await res.json();
-            const city = data.city || '';
-            const country = data.country_name || '';
-            
-            if (city && country) {
-                const userData = {
-                    name: user?.name,
-                    preferences: {
-                        ...user?.preferences,
-                        country: country,
-                        location: city
-                    }
-                };
-                const updateRes = await createOrUpdateUser(userData);
-                updateUserState(updateRes.data.user);
-                alert(`Successfully set default location to: ${city}, ${country}`);
-                setShowLocationPrompt(false);
-                sessionStorage.setItem('appliqa_location_prompted', 'true');
-                
-                // Chained check for missing onboarding
-                if (updateRes.data.user && !updateRes.data.user.educationStatus) {
-                    setShowOnboardingPrompt(true);
-                }
-            } else {
-                throw new Error('Incomplete location data from IP API');
-            }
+            if (!data.city || !data.country_name) throw new Error('Incomplete location data from IP API');
+            await saveJobLocation(data.country_name, data.city);
+            return true;
         } catch (err) {
             console.error('IP location detection failed:', err);
-            alert('Could not automatically detect location. Please set it manually in your profile.');
-            setShowLocationPrompt(false);
-            sessionStorage.setItem('appliqa_location_prompted', 'true');
-            navigate('/profile');
+            return false;
         } finally {
             setDetectingLocation(false);
         }
@@ -494,13 +485,19 @@ function AppContent() {
             navigate('/profile');
         } else {
             // Chained check for missing onboarding
-            if (user && !user.educationStatus) {
-                setShowOnboardingPrompt(true);
-            }
+            if (needsOnboarding(user)) setShowOnboardingPrompt(true);
         }
     };
 
 
+
+    const handleSkipOnboarding = () => {
+        sessionStorage.setItem('appliqa_onboarding_skipped', 'true');
+        setShowOnboardingPrompt(false);
+        if (user && (!user.preferences?.country || !user.preferences?.location) && !sessionStorage.getItem('appliqa_location_prompted')) {
+            setShowLocationPrompt(true);
+        }
+    };
 
     const handleSaveOnboarding = async () => {
         if (!onboardingForm.dob) {
@@ -530,7 +527,7 @@ function AppContent() {
             const updateRes = await createOrUpdateUser(userData);
             const updatedUser = updateRes.data.user;
             updateUserState(updatedUser);
-            alert('Profile setup completed successfully!');
+            alert('You’re all set. Your career path and matches now use these details.');
             setShowOnboardingPrompt(false);
 
             // Chained check for missing location (queued until alert is dismissed)
@@ -738,233 +735,22 @@ function AppContent() {
             </ResumeSkillsContext.Provider>
 
             {showLocationPrompt && (
-                <div 
-                    className="location-prompt"
-                    style={{ 
-                        position: 'fixed', 
-                        bottom: isMobileViewport ? '16px' : '24px', 
-                        left: isMobileViewport ? '16px' : 'auto',
-                        right: isMobileViewport ? '16px' : '24px', 
-                        width: isMobileViewport ? 'auto' : '380px', 
-                        background: '#FFFFFF',
-                        border: '1px solid #D8D4CC',
-                        borderRadius: '8px',
-                        padding: '22px',
-                        boxShadow: '0 16px 40px -8px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)',
-                        zIndex: 1100,
-                        animation: 'slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }}
-                >
-                    <button 
-                        onClick={() => handleDismissLocationPrompt(false)}
-                        style={{
-                            position: 'absolute',
-                            top: '14px',
-                            right: '14px',
-                            background: '#FAF8F5',
-                            border: '1px solid #D8D4CC',
-                            color: '#8A8580',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            width: '26px',
-                            height: '26px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.15s ease',
-                            padding: '0'
-                        }}
-                        onMouseOver={(e) => {
-                            e.currentTarget.style.color = '#171717';
-                            e.currentTarget.style.borderColor = '#171717';
-                        }}
-                        onMouseOut={(e) => {
-                            e.currentTarget.style.color = '#8A8580';
-                            e.currentTarget.style.borderColor = '#D8D4CC';
-                        }}
-                        title="Dismiss"
-                    >
-                        <FiX size={13} />
-                    </button>
-                    
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '18px' }}>
-                        <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            width: '38px', 
-                            height: '38px', 
-                            borderRadius: '6px', 
-                            background: '#FFF0E8', 
-                            border: '1px solid rgba(202, 60, 10, 0.25)', 
-                            color: '#CA3C0A',
-                            flexShrink: 0
-                        }}>
-                            <FiMapPin size={17} />
-                        </div>
-                        <div style={{ flex: 1, paddingRight: '16px' }}>
-                            <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#171717', letterSpacing: '-0.01em', margin: '0 0 3px 0' }}>
-                                Set Default Location
-                            </h3>
-                            <p style={{ color: '#66615C', fontSize: '12px', lineHeight: '1.5', margin: 0 }}>
-                                Automatically detect country and city to optimize your job searches and matching scores.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <button 
-                            onClick={handleDetectLocation} 
-                            disabled={detectingLocation}
-                            style={{ 
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center', 
-                                width: '100%', 
-                                padding: '10px 16px', 
-                                borderRadius: '6px',
-                                fontSize: '13px',
-                                fontWeight: 700,
-                                background: '#171717',
-                                color: '#FFFFFF',
-                                border: 'none',
-                                transition: 'all 0.15s ease',
-                                cursor: 'pointer'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#CA3C0A';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.background = '#171717';
-                            }}
-                        >
-                            {detectingLocation ? (
-                                <><div className="spinner primary-spinner" style={{ width: 14, height: 14, borderWidth: 2, marginRight: 8, borderColor: '#FFFFFF', borderTopColor: 'transparent' }}></div> Detecting Location...</>
-                            ) : (
-                                'Detect Automatically'
-                            )}
-                        </button>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <button 
-                                onClick={() => handleDismissLocationPrompt(true)}
-                                disabled={detectingLocation}
-                                style={{ 
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center', 
-                                    padding: '8px 12px',
-                                    borderRadius: '6px',
-                                    fontSize: '12px',
-                                    fontWeight: 700,
-                                    background: '#FAF8F5',
-                                    border: '1px solid #D8D4CC',
-                                    color: '#171717',
-                                    transition: 'all 0.15s ease',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.background = '#FFFFFF';
-                                    e.currentTarget.style.borderColor = '#171717';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.background = '#FAF8F5';
-                                    e.currentTarget.style.borderColor = '#D8D4CC';
-                                }}
-                            >
-                                Choose Manually
-                            </button>
-                            <button 
-                                onClick={() => handleDismissLocationPrompt(false)}
-                                disabled={detectingLocation}
-                                style={{ 
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center', 
-                                    padding: '8px 12px', 
-                                    background: 'transparent', 
-                                    border: '1px solid transparent', 
-                                    color: '#8A8580',
-                                    borderRadius: '6px',
-                                    fontSize: '12px',
-                                    fontWeight: 600,
-                                    transition: 'all 0.15s ease',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.color = '#171717'}
-                                onMouseOut={(e) => e.currentTarget.style.color = '#8A8580'}
-                            >
-                                Not Now
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <LocationPrompt
+                    detecting={detectingLocation}
+                    onDetect={handleDetectLocation}
+                    onManualSave={saveJobLocation}
+                    onDismiss={() => handleDismissLocationPrompt(false)}
+                />
             )}
 
-
-
             {showOnboardingPrompt && (
-                <div className="onboarding-modal-overlay">
-                    <div className="onboarding-modal-card">
-                        <div style={{ textAlign: 'center' }}>
-                            <div className="onboarding-header-icon-container">
-                                <FiBriefcase size={24} />
-                            </div>
-                            
-                            <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', marginBottom: '8px' }}>
-                                Complete Your Profile
-                            </h3>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: '1.6', marginBottom: '20px' }}>
-                                Please provide a few details to optimize your career path matching and investor-ready profile.
-                            </p>
-                        </div>
-
-                        <div style={{ overflow: 'visible', position: 'relative' }}>
-                            <div className="onboarding-grid">
-                                <div>
-                                    <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                        Date of Birth
-                                    </label>
-                                    <PremiumDatePicker
-                                        value={onboardingForm.dob}
-                                        onChange={(val) => setOnboardingForm(prev => ({ ...prev, dob: val }))}
-                                        placeholder="Select Date of Birth"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>
-                                        Current Status
-                                    </label>
-                                    <Dropdown
-                                        options={[
-                                            { value: "Working Professional", label: "Working Professional" },
-                                            { value: "College/University Student", label: "College Student" },
-                                            { value: "School Student", label: "School Student" },
-                                            { value: "Self-Educated / Career Switcher", label: "Self-Educated / Career Switcher" }
-                                        ]}
-                                        value={onboardingForm.educationStatus}
-                                        onChange={(val) => setOnboardingForm(prev => ({ ...prev, educationStatus: val }))}
-                                        placeholder="Select Status"
-                                        variant="form"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Navigation Controls */}
-                        <div className="onboarding-buttons-row" style={{ marginTop: '24px' }}>
-                            <button 
-                                type="button"
-                                className="onboarding-next-btn"
-                                style={{ width: '100%' }}
-                                disabled={!onboardingForm.dob || !onboardingForm.educationStatus || savingOnboarding}
-                                onClick={handleSaveOnboarding}
-                            >
-                                {savingOnboarding ? 'Saving...' : 'Complete Setup'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <OnboardingSheet
+                    form={onboardingForm}
+                    setForm={setOnboardingForm}
+                    saving={savingOnboarding}
+                    onSave={handleSaveOnboarding}
+                    onSkip={handleSkipOnboarding}
+                />
             )}
 
             <AnimatePresence>
