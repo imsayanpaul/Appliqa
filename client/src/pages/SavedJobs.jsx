@@ -8,6 +8,7 @@ import { getSavedJobs, updateJobStatus, deleteSavedJob, saveJob, updateSavedJob 
 import { EmptyState } from '../components/ui/EmptyState';
 import JobDetail from '../components/JobDetail';
 import { CompanyMark } from '../components/JobCard';
+import SelectMenu from '../components/ui/SelectMenu';
 import InterviewPrep from '../components/InterviewPrep';
 
 
@@ -350,18 +351,15 @@ function SavedJobs({ user, resumeData }) {
                                         </p>
 
                                         <div className="mt-auto pt-6 flex flex-wrap items-center gap-2">
-                                            <label className="relative z-10 flex-1 min-w-[130px]">
-                                                <span className="sr-only">Status for {job.title}</span>
-                                                <select
+                                            <div className="relative z-10 flex-1 min-w-[130px]">
+                                                <SelectMenu
+                                                    size="sm"
+                                                    ariaLabel={`Status for ${job.title}`}
                                                     value={job.status}
-                                                    onChange={(e) => handleStatusChange(job._id, e.target.value)}
-                                                    className="ds-select w-full"
-                                                >
-                                                    {Object.entries(STATUS_CONFIG).map(([k, v]) => (
-                                                        <option key={k} value={k}>{v.label}</option>
-                                                    ))}
-                                                </select>
-                                            </label>
+                                                    onChange={(v) => handleStatusChange(job._id, v)}
+                                                    options={Object.entries(STATUS_CONFIG).map(([k, v]) => ({ value: k, label: v.label, dot: v.dot }))}
+                                                />
+                                            </div>
 
                                             {job.status === 'interview' && (
                                                 <button type="button" className={iconBtn} onClick={() => setPrepJob(job)} aria-label={`Interview prep for ${job.title}`} title="Interview prep">

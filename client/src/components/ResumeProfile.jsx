@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowUp, ArrowDown, Copy, Check, Plus, Trash2, Pencil, X, Globe, Link2 } from 'lucide-react';
 import { FiGithub } from 'react-icons/fi';
+import SelectMenu from './ui/SelectMenu';
 import {
     normalizeProfile, formatRange, formatMonth, formatScore,
     safeUrl, newId, EXPERIENCE_TYPES, EDUCATION_LEVELS, SCORE_TYPES,
@@ -31,12 +32,9 @@ function MonthInput({ value, onChange, disabled }) {
     return <input type="month" className={inputCls} value={value || ''} onChange={(e) => onChange(e.target.value)} disabled={disabled} />;
 }
 
-function Select({ value, onChange, options }) {
-    return (
-        <select className="ds-select w-full !h-[46px] !bg-white" value={value} onChange={(e) => onChange(e.target.value)}>
-            {options.map((o) => <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>)}
-        </select>
-    );
+function Select({ value, onChange, options, ariaLabel }) {
+    const items = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+    return <SelectMenu value={value} onChange={onChange} options={items} ariaLabel={ariaLabel} />;
 }
 
 function Checkbox({ checked, onChange, label }) {
