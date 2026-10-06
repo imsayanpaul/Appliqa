@@ -86,7 +86,10 @@ const withRecentLocal = (data) => {
   return extra.length ? { ...data, history: [...extra, ...history] } : data;
 };
 
-export const searchJobs = (params) => {
+// Background searches (Home's "for you" list) pass { record: false } so they
+// don't show up in the person's recent searches
+export const searchJobs = (params, { record = true } = {}) => {
+  if (!record) return api.get('/jobs/search', { params: { ...params, record: '0' } });
   // Put the query at the top of the cached history so Home shows it straight
   // away; the next history fetch confirms it with the server in the background
   const query = params?.query?.trim();
@@ -253,46 +256,28 @@ export const getSearchHistory = async (onFresh) => {
   return searchHistoryCache;
 };
 
-export const deleteSearchHistory = async (query) => {
+// keepalive lets the delete finish even if the page is refreshed or closed
+// straight after clicking (otherwise the history comes back on reload)
+const durable = { adapter: 'fetch', fetchOptions: { keepalive: true } };
+
+export const deleteSearchHistory = (query) => {
   const clean = query?.trim();
   for (const q of recentLocalQueries.keys()) if (q.toLowerCase() === clean?.toLowerCase()) recentLocalQueries.delete(q);
   if (searchHistoryCache && searchHistoryCache.data?.history) {
     searchHistoryCache.data.history = searchHistoryCache.data.history.filter(
-      h => h.query?.trim().toLowerCase() !== clean.toLowerCase()
+      h => h.query?.trim().toLowerCase() !== clean?.toLowerCase()
     );
     sessionStorage.setItem('appliqa_search_history', JSON.stringify(searchHistoryCache));
   }
-
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user && clean) {
-      await supabase.from('search_history').delete().ilike('query', clean).eq('user_id', user.id);
-    }
-  } catch (e) {
-    console.error('Supabase direct history delete error:', e);
-  }
-
-  const res = await api.delete('/user/history', { params: { query: clean } }).catch(() => ({ data: { success: true } }));
-  return res;
+  return api.delete('/user/history', { params: { query: clean }, ...durable });
 };
 
-export const clearAllSearchHistory = async () => {
+export const clearAllSearchHistory = () => {
   recentLocalQueries.clear();
   searchHistoryCache = { data: { success: true, history: [] } };
   sessionStorage.setItem('appliqa_search_history', JSON.stringify(searchHistoryCache));
   localStorage.removeItem('appliqa_recent_searches');
-
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from('search_history').delete().eq('user_id', user.id);
-    }
-  } catch (e) {
-    console.error('Supabase direct history clear error:', e);
-  }
-
-  const res = await api.delete('/user/history', { params: { all: 'true', query: '__all__' } }).catch(() => ({ data: { success: true } }));
-  return res;
+  return api.delete('/user/history', { params: { all: 'true' }, ...durable });
 };
 
 export default api;

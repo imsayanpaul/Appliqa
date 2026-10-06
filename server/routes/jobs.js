@@ -97,7 +97,8 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       datePosted = '',
       remote = '',
       experience = '',
-      radius = ''
+      radius = '',
+      record = '1' // '0' for background searches that shouldn't appear in history
     } = req.query;
 
     const userId = req.user?.id; // From optional auth middleware
@@ -131,9 +132,38 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
 
     const cacheKey = params.toString();
     
+    // Record the search in the person's history (in the background), whether
+    // the results came from a cache or from JSearch. First page only; a repeat
+    // of an older search replaces it so it moves to the top.
+    const saveHistory = (resultsCount) => {
+      if (!userId || record === '0' || Number(page) !== 1) return;
+      (async () => {
+        try {
+          const cleanQuery = query.trim().replace(/\s+/g, ' ');
+          if (!isValidSearchQuery(cleanQuery, resultsCount)) return;
+          await supabase.from('search_history').delete()
+            .eq('user_id', userId)
+            .ilike('query', cleanQuery.replace(/[\\%_]/g, '\\$&'));
+          const { error: historyError } = await supabase.from('search_history').insert({
+            user_id: userId,
+            query: cleanQuery,
+            filter_location: location,
+            filter_employment_type: employmentType,
+            filter_date_posted: datePosted,
+            filter_remote: remote === 'true',
+            results_count: resultsCount
+          });
+          if (historyError) console.error('Failed to save search history to Supabase:', historyError);
+        } catch (e) {
+          console.error('Failed to save search history', e);
+        }
+      })();
+    };
+
     // 1. Check in-memory cache first
     const cachedInMemory = getCached(cacheKey);
     if (cachedInMemory) {
+      saveHistory(cachedInMemory.jobs?.length || 0);
       return res.json({ success: true, ...cachedInMemory, fromCache: true, fromMemory: true });
     }
 
@@ -180,6 +210,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
 
           const result = { jobs: mappedJobs, totalResults: mappedJobs.length, page: parseInt(page) };
           setCache(cacheKey, result);
+          saveHistory(mappedJobs.length);
 
           return res.json({ success: true, ...result, fromCache: true, fromDatabase: true });
         }
@@ -235,29 +266,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
     // --- Background Operations (Asynchronous) ---
 
     // 1. Save search history in the background
-    if (userId) {
-      (async () => {
-        try {
-          const cleanQuery = query.trim().replace(/\s+/g, ' ');
-          if (isValidSearchQuery(cleanQuery, filtered.length)) {
-            const { error: historyError } = await supabase.from('search_history').insert({
-              user_id: userId,
-              query: cleanQuery,
-              filter_location: location,
-              filter_employment_type: employmentType,
-              filter_date_posted: datePosted,
-              filter_remote: remote === 'true',
-              results_count: filtered.length
-            });
-            if (historyError) {
-              console.error('Failed to save search history to Supabase:', historyError);
-            }
-          }
-        } catch (e) {
-          console.error('Failed to save search history', e);
-        }
-      })();
-    }
+    saveHistory(filtered.length);
 
     // 2. Save to Supabase Caching Layer in the background
     if (filtered.length > 0) {

@@ -61,7 +61,7 @@ function RecommendedJobs({ user, resumeData }) {
 
         const fetchRecs = async () => {
             try {
-                const res = await searchJobs({ query: searchQuery, page: 1 });
+                const res = await searchJobs({ query: searchQuery, page: 1 }, { record: false });
                 // Discard if a newer request was dispatched
                 if (requestId !== activeReqRef.current) return;
 
