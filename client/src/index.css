@@ -5096,7 +5096,7 @@ input[type="number"] {
   }
 
   /* Hide all non-printable elements */
-  header,
+  header.app-navbar,
   .app-navbar,
   .navbar-container,
   .navbar-wrapper,

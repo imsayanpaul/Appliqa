@@ -159,7 +159,8 @@ export default function ResumeDocument({ data, design, print = false }) {
 
     return (
         <div className={`rd rd-${design.template} ${print ? 'rd-print' : 'rd-screen'}`} style={style}>
-            <header className={`rd-header rd-header-${design.headerAlign} ${showPhoto ? 'has-photo' : ''}`}>
+            {/* A div, not <header>, so print rules aimed at the site header never hide it */}
+            <div className={`rd-header rd-header-${design.headerAlign} ${showPhoto ? 'has-photo' : ''}`}>
                 <div className="rd-header-text">
                     <h1 className="rd-name">{personalInfo.name || 'Your Name'}</h1>
                     {personalInfo.title && <p className="rd-role">{personalInfo.title}</p>}
@@ -176,7 +177,7 @@ export default function ResumeDocument({ data, design, print = false }) {
                     {details.length > 0 && <p className="rd-contact">{details.join(' | ')}</p>}
                 </div>
                 {showPhoto && <img src={photo} alt="" className={`rd-photo rd-photo-${design.photoShape}`} />}
-            </header>
+            </div>
 
             {visible.map((key) => (
                 <section key={key} className="rd-section">
