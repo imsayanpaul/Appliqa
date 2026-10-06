@@ -34,8 +34,9 @@
 /* ---- Header ---- */
 .rd-header { display: flex; align-items: flex-start; gap: 14pt; margin-bottom: var(--rd-section-gap); }
 .rd-header-text { flex: 1; min-width: 0; text-align: var(--rd-align); }
+/* Photo sits opposite the text: right of a left header, left of a right header, above a centred one */
 .rd-header-right { flex-direction: row-reverse; }
-.rd-header-center { flex-direction: column; align-items: center; }
+.rd-header-center { flex-direction: column-reverse; align-items: center; }
 .rd-header-center .rd-header-text { width: 100%; }
 
 .rd-name {

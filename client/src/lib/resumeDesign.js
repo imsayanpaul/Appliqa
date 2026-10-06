@@ -59,7 +59,7 @@ export const DEFAULT_DESIGN = {
     educationFirst: 'institution', // institution | degree
     photoShow: true,
     photoSize: 80, // pt
-    photoShape: 'rounded', // square | rounded | circle
+    photoShape: 'square', // square | rounded | circle
     sectionOrder: BUILT_IN_SECTIONS.map((s) => s.key),
     hidden: [],
     titles: {},
@@ -74,7 +74,11 @@ const oneOf = (v, list, fallback) => (list.includes(v) ? v : fallback);
 // Fill gaps and keep stored values in range; also keeps the section order in
 // step with the built-in and custom sections that exist right now.
 export function normalizeDesign(design, customSections = []) {
-    const d = { ...DEFAULT_DESIGN, ...(design && typeof design === 'object' ? design : {}) };
+    const stored = design && typeof design === 'object' ? design : {};
+    const d = { ...DEFAULT_DESIGN, ...stored };
+    // Designs saved before v2 carry the old default photo shape ("rounded")
+    if (!stored.v && stored.photoShape === 'rounded') d.photoShape = 'square';
+    d.v = 2;
     const out = {
         ...d,
         template: oneOf(d.template, ['modern', 'classic', 'elegant'], 'modern'),
@@ -102,7 +106,7 @@ export function normalizeDesign(design, customSections = []) {
         educationFirst: oneOf(d.educationFirst, ['institution', 'degree'], 'institution'),
         photoShow: d.photoShow !== false,
         photoSize: clamp(d.photoSize, 48, 140, 80),
-        photoShape: oneOf(d.photoShape, ['square', 'rounded', 'circle'], 'rounded'),
+        photoShape: oneOf(d.photoShape, ['square', 'rounded', 'circle'], 'square'),
         hidden: Array.isArray(d.hidden) ? d.hidden.filter((k) => typeof k === 'string') : [],
         titles: d.titles && typeof d.titles === 'object' ? d.titles : {},
     };
