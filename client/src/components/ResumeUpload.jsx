@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { FileText, Upload, X } from 'lucide-react';
 import { analyzeResume } from '../services/api';
-import ResumeProfile from './ResumeProfile';
+import ResumeProfiles from './ResumeProfiles';
 import * as pdfjsLib from 'pdfjs-dist';
 import { createWorker } from 'tesseract.js';
 
@@ -205,17 +205,11 @@ function ResumeUpload({ onResumeAnalyzed, onUpdateUser, existingData = null, use
     const experienceLevel = analysis?.experienceLevel || 'Mid-Level';
     const industries = analysis?.industries || ['Technology & Software'];
 
-    // Show saved profile edits when they are newer than the last resume upload
-    const builderData = user?.builderData;
+    // When the current upload happened; newer than every saved resume -> offer to import it
     const uploadedAt = Math.max(
         new Date(user?.resumeData?.uploadedAt || existingData?.uploadedAt || 0).getTime() || 0,
         analyzedAtRef.current
-    );
-    const profileSource = useMemo(() => {
-        const editedAt = builderData?.profileUpdatedAt ? new Date(builderData.profileUpdatedAt).getTime() : 0;
-        if (builderData && editedAt && editedAt >= uploadedAt) return builderData;
-        return analysis || builderData || {};
-    }, [builderData, analysis, uploadedAt]);
+    ) || null;
 
     return (
         <div>
@@ -312,13 +306,12 @@ function ResumeUpload({ onResumeAnalyzed, onUpdateUser, existingData = null, use
             </div>
 
             {(analysis || user?.builderData || user) && (
-                <ResumeProfile
-                    source={profileSource}
-                    existingBuilder={user?.builderData}
+                <ResumeProfiles
                     user={user}
                     onUpdateUser={onUpdateUser}
+                    analysis={analysis}
+                    uploadedAt={uploadedAt}
                     suggestedRoles={analysis?.suggestedRoles || []}
-                    fileName={fileName}
                     onFindJobs={() => {
                         const savedRole = user?.preferences?.desiredRole?.trim() || user?.desiredRole?.trim();
                         const queryRole = savedRole || analysis?.suggestedRoles?.[0] || 'Software Engineer';

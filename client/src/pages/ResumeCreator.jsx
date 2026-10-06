@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { certificationLabel, formatScore, formatRange, safeUrl } from '../lib/resumeProfile';
+import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
 import { 
     User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
     Sparkles, Sparkle, Download, Save, Upload, X, 
     Plus, Trash2, Check, ArrowRight, RefreshCw,
     MessageSquare, Send, Wand2, Gauge, Activity, AlertCircle, CheckCircle2,
-    Sliders, Monitor, FileText, FileCheck
+    Sliders, Monitor, FileText, FileCheck, ChevronDown
 } from 'lucide-react';
 import { 
     enhanceResumeBullet, suggestResumeSkills, analyzeResume, createOrUpdateUser, incrementStat,
@@ -21,6 +22,25 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs
 
 export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const collection = readProfiles(user?.builderData);
+    const [activeResumeId, setActiveResumeId] = useState(() => searchParams.get('resume') || null);
+    const activeResume = collection.profiles.find((p) => p.id === activeResumeId)
+        || collection.profiles.find((p) => p.id === collection.primaryId)
+        || null;
+    const activeBuilderData = activeResume ? activeResume.data : null;
+    const [saveMenuOpen, setSaveMenuOpen] = useState(false);
+    const [saveAsName, setSaveAsName] = useState('');
+    const [confirmReplaceId, setConfirmReplaceId] = useState(null);
+    const saveMenuRef = useRef(null);
+    useEffect(() => {
+        if (!saveMenuOpen) return;
+        const onKey = (e) => { if (e.key === 'Escape') setSaveMenuOpen(false); };
+        const onClick = (e) => { if (saveMenuRef.current && !saveMenuRef.current.contains(e.target)) setSaveMenuOpen(false); };
+        window.addEventListener('keydown', onKey);
+        window.addEventListener('mousedown', onClick);
+        return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onClick); };
+    }, [saveMenuOpen]);
     const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
 
     useEffect(() => {
@@ -31,155 +51,6 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    if (isMobile) {
-        return (
-            <div className="resume-creator-mobile-notice-container" style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 'calc(100vh - 64px)',
-                padding: '32px 20px',
-                textAlign: 'center',
-                background: '#FAF8F5',
-                color: '#171717',
-                boxSizing: 'border-box'
-            }}>
-                <div className="resume-creator-mobile-notice-card" style={{
-                    position: 'relative',
-                    width: '100%',
-                    maxWidth: '420px',
-                    background: '#FFFFFF',
-                    border: '1px solid #D8D4CC',
-                    borderRadius: '8px',
-                    padding: '36px 24px',
-                    boxShadow: '0 16px 40px -8px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)'
-                }}>
-                    {/* Accent Badge */}
-                    <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        background: '#FFF0E8',
-                        border: '1px solid rgba(202, 60, 10, 0.3)',
-                        borderRadius: '4px',
-                        padding: '4px 10px',
-                        fontSize: '11px',
-                        fontWeight: '700',
-                        color: '#CA3C0A',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        marginBottom: '20px'
-                    }}>
-                        <span style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            backgroundColor: '#CA3C0A'
-                        }} />
-                        Desktop Recommended
-                    </div>
-
-                    {/* Monitor Icon Container */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '8px',
-                        background: '#FFF0E8',
-                        border: '1px solid rgba(202, 60, 10, 0.25)',
-                        margin: '0 auto 20px auto'
-                    }}>
-                        <Monitor size={28} className="text-[#CA3C0A]" />
-                    </div>
-
-                    <h2 style={{
-                        fontSize: '20px',
-                        fontWeight: '800',
-                        lineHeight: '1.3',
-                        letterSpacing: '-0.02em',
-                        color: '#171717',
-                        margin: '0 0 10px 0'
-                    }}>
-                        Optimize Your Builder Experience
-                    </h2>
-
-                    <p style={{
-                        fontSize: '13px',
-                        lineHeight: '1.6',
-                        color: '#66615C',
-                        margin: '0 0 24px 0',
-                        fontWeight: '400'
-                    }}>
-                        Appliqa's real-time visual resume generator, live ATS scanner, and split-screen design editor require a larger screen. Please open Appliqa on your computer or tablet to build and export your resume.
-                    </p>
-
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                    }}>
-                        <button
-                            onClick={() => navigate('/advisor')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '100%',
-                                padding: '11px 20px',
-                                borderRadius: '6px',
-                                background: '#171717',
-                                color: '#FFFFFF',
-                                fontWeight: '700',
-                                fontSize: '13px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#CA3C0A';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.background = '#171717';
-                            }}
-                        >
-                            Ask Career Advisor
-                        </button>
-                        <button
-                            onClick={() => navigate('/')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '100%',
-                                padding: '10px 20px',
-                                borderRadius: '6px',
-                                background: '#FAF8F5',
-                                border: '1px solid #D8D4CC',
-                                color: '#171717',
-                                fontWeight: '700',
-                                fontSize: '13px',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#FFFFFF';
-                                e.currentTarget.style.borderColor = '#171717';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.background = '#FAF8F5';
-                                e.currentTarget.style.borderColor = '#D8D4CC';
-                            }}
-                        >
-                            Back to Home
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     // Current Active Edit Tab
     const [activeTab, setActiveTab] = useState('personal');
@@ -326,19 +197,19 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         // If we have already initialized, we do not want to overwrite local state edits
         if (hasInitializedRef.current) {
             // Exception: if builderData or resumeData was initially null and is now available
-            if (user?.builderData && !lastPropBuilderDataRef.current) {
-                loadFromResumeData(user.builderData);
-                lastPropBuilderDataRef.current = user.builderData;
-            } else if (resumeData && !lastPropResumeDataRef.current && !user?.builderData) {
+            if (activeBuilderData && !lastPropBuilderDataRef.current) {
+                loadFromResumeData(activeBuilderData);
+                lastPropBuilderDataRef.current = activeBuilderData;
+            } else if (resumeData && !lastPropResumeDataRef.current && !activeBuilderData) {
                 loadFromResumeData(resumeData);
                 lastPropResumeDataRef.current = resumeData;
             }
             return;
         }
 
-        if (user?.builderData) {
-            loadFromResumeData(user.builderData);
-            lastPropBuilderDataRef.current = user.builderData;
+        if (activeBuilderData) {
+            loadFromResumeData(activeBuilderData);
+            lastPropBuilderDataRef.current = activeBuilderData;
             hasInitializedRef.current = true;
         } else if (resumeData) {
             loadFromResumeData(resumeData);
@@ -790,15 +661,27 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         alert("Success! Added the metric-driven achievement bullet to your experience profile.");
     };
 
-    // Sync to Account
-    const handleSync = async () => {
+    const switchResume = (id) => {
+        if (id === activeResume?.id) return;
+        if (isDirty && !window.confirm('You have unsaved changes in this resume. Switch anyway and lose them?')) return;
+        const next = collection.profiles.find((p) => p.id === id);
+        if (!next) return;
+        setActiveResumeId(id);
+        lastPropBuilderDataRef.current = next.data;
+        loadFromResumeData(next.data);
+        setIsDirty(false);
+    };
+
+    // Save to the open resume, a new resume, or over another one
+    const handleSync = async (target = { mode: 'current' }) => {
+        if (target?.nativeEvent) target = { mode: 'current' }; // called from onClick
         setSyncing(true);
-        const payload = {
-            ...(user?.builderData || {}),
+        const resumeData_ = {
+            ...stripCollection(activeBuilderData || {}),
             projects,
             achievements,
             profileUpdatedAt: new Date().toISOString(),
-            fileName: 'Appliqa_AI_Resume.pdf',
+            fileName: activeBuilderData?.fileName || 'Appliqa_AI_Resume.pdf',
             skills,
             expertise,
             certifications,
@@ -812,8 +695,36 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             experienceLevel: user?.resumeData?.experienceLevel || 'mid'
         };
 
+        let list = collection.profiles;
+        let primaryId = collection.primaryId;
+        let savedId;
+        const now = new Date().toISOString();
+        if (target.mode === 'new') {
+            if (list.length >= MAX_PROFILES) {
+                setSyncing(false);
+                alert(`You can keep up to ${MAX_PROFILES} resumes. Delete one on your profile first.`);
+                return;
+            }
+            const created = makeProfile(target.name || `${activeResume?.name || 'Resume'} copy`, resumeData_, list);
+            list = [...list, created];
+            savedId = created.id;
+        } else {
+            savedId = target.mode === 'replace' ? target.id : activeResume?.id;
+            if (!savedId) {
+                const first = { ...makeProfile('Main resume', resumeData_), id: 'main' };
+                list = [first];
+                savedId = first.id;
+            } else {
+                list = list.map((p) => (p.id === savedId ? { ...p, data: resumeData_, updatedAt: now } : p));
+            }
+        }
+        if (!primaryId) primaryId = savedId;
+        const payload = writeProfiles(user?.builderData, list, primaryId);
+        const savingPrimary = savedId === primaryId;
+
         try {
-            const res = await createOrUpdateUser({ 
+            // Only the primary resume updates account details (name, links, target role)
+            const res = await createOrUpdateUser(savingPrimary ? {
                 builderData: payload,
                 name: personalInfo.name,
                 phone: personalInfo.phone,
@@ -825,11 +736,16 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     desiredRole: personalInfo.title,
                     location: personalInfo.location
                 }
-            });
+            } : { builderData: payload });
             if (res.data?.user) {
                 if (onUpdateUser) {
                     onUpdateUser(res.data.user);
                 }
+                setActiveResumeId(savedId);
+                lastPropBuilderDataRef.current = res.data.user.builderData;
+                setSaveMenuOpen(false);
+                setSaveAsName('');
+                setConfirmReplaceId(null);
                 initialSnapshotRef.current = serializeResumeState(
                     personalInfo,
                     experience,
@@ -1025,12 +941,237 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         );
     };
 
+    if (isMobile) {
+        return (
+            <div className="resume-creator-mobile-notice-container" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 'calc(100vh - 64px)',
+                padding: '32px 20px',
+                textAlign: 'center',
+                background: '#FAF8F5',
+                color: '#171717',
+                boxSizing: 'border-box'
+            }}>
+                <div className="resume-creator-mobile-notice-card" style={{
+                    position: 'relative',
+                    width: '100%',
+                    maxWidth: '420px',
+                    background: '#FFFFFF',
+                    border: '1px solid #D8D4CC',
+                    borderRadius: '8px',
+                    padding: '36px 24px',
+                    boxShadow: '0 16px 40px -8px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)'
+                }}>
+                    {/* Accent Badge */}
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: '#FFF0E8',
+                        border: '1px solid rgba(202, 60, 10, 0.3)',
+                        borderRadius: '4px',
+                        padding: '4px 10px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        color: '#CA3C0A',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        marginBottom: '20px'
+                    }}>
+                        <span style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: '#CA3C0A'
+                        }} />
+                        Desktop Recommended
+                    </div>
+
+                    {/* Monitor Icon Container */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '8px',
+                        background: '#FFF0E8',
+                        border: '1px solid rgba(202, 60, 10, 0.25)',
+                        margin: '0 auto 20px auto'
+                    }}>
+                        <Monitor size={28} className="text-[#CA3C0A]" />
+                    </div>
+
+                    <h2 style={{
+                        fontSize: '20px',
+                        fontWeight: '800',
+                        lineHeight: '1.3',
+                        letterSpacing: '-0.02em',
+                        color: '#171717',
+                        margin: '0 0 10px 0'
+                    }}>
+                        Optimize Your Builder Experience
+                    </h2>
+
+                    <p style={{
+                        fontSize: '13px',
+                        lineHeight: '1.6',
+                        color: '#66615C',
+                        margin: '0 0 24px 0',
+                        fontWeight: '400'
+                    }}>
+                        Appliqa's real-time visual resume generator, live ATS scanner, and split-screen design editor require a larger screen. Please open Appliqa on your computer or tablet to build and export your resume.
+                    </p>
+
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px'
+                    }}>
+                        <button
+                            onClick={() => navigate('/advisor')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '100%',
+                                padding: '11px 20px',
+                                borderRadius: '6px',
+                                background: '#171717',
+                                color: '#FFFFFF',
+                                fontWeight: '700',
+                                fontSize: '13px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#CA3C0A';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#171717';
+                            }}
+                        >
+                            Ask Career Advisor
+                        </button>
+                        <button
+                            onClick={() => navigate('/')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: '100%',
+                                padding: '10px 20px',
+                                borderRadius: '6px',
+                                background: '#FAF8F5',
+                                border: '1px solid #D8D4CC',
+                                color: '#171717',
+                                fontWeight: '700',
+                                fontSize: '13px',
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.background = '#FFFFFF';
+                                e.currentTarget.style.borderColor = '#171717';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.background = '#FAF8F5';
+                                e.currentTarget.style.borderColor = '#D8D4CC';
+                            }}
+                        >
+                            Back to Home
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="resume-creator-outer-wrapper">
             {/* Main Full-Page Studio Container */}
             <div className="resume-creator-container">
                 {/* Left Workspace Panel: Form Editor */}
                 <div className="resume-creator-editor-panel">
+                    {/* Which resume is open, and save-as */}
+                    <div ref={saveMenuRef} className="shrink-0 relative flex items-stretch border-0 border-b border-[#D8D4CC] bg-white">
+                        <label htmlFor="rc-resume" className="ds-mono ds-mono-muted self-center pl-5 pr-3 shrink-0">resume</label>
+                        <select
+                            id="rc-resume"
+                            value={activeResume?.id || ''}
+                            onChange={(e) => switchResume(e.target.value)}
+                            disabled={!collection.profiles.length || syncing}
+                            className="ds-select flex-1 min-w-0 !h-12 !border-0 !border-l !border-[#D8D4CC] !text-[15px] !font-semibold"
+                        >
+                            {collection.profiles.length ? collection.profiles.map((p) => (
+                                <option key={p.id} value={p.id}>{p.name}{p.id === collection.primaryId ? '  ·  primary' : ''}</option>
+                            )) : <option value="">Main resume (not saved yet)</option>}
+                        </select>
+                        <button
+                            type="button"
+                            onClick={() => { setSaveMenuOpen((o) => !o); setConfirmReplaceId(null); }}
+                            aria-haspopup="true"
+                            aria-expanded={saveMenuOpen}
+                            className="shrink-0 h-12 px-4 inline-flex items-center gap-2 text-[14px] font-medium text-[#171717] bg-transparent hover:bg-[#F7F5F2] border-0 border-l border-[#D8D4CC] cursor-pointer"
+                        >
+                            Save as <ChevronDown size={15} className={saveMenuOpen ? 'rotate-180' : ''} />
+                        </button>
+
+                        {saveMenuOpen && (
+                            <div className="absolute right-0 top-full z-40 w-[min(340px,100%)] bg-white border border-[#171717] shadow-xl" role="dialog" aria-label="Save as">
+                                <form
+                                    onSubmit={(e) => { e.preventDefault(); handleSync({ mode: 'new', name: saveAsName }); }}
+                                    className="p-4 border-0 border-b border-[#D8D4CC]"
+                                >
+                                    <label htmlFor="rc-save-as" className="ds-label">save as a new resume</label>
+                                    <input
+                                        id="rc-save-as"
+                                        type="text"
+                                        autoFocus
+                                        maxLength={MAX_NAME_LENGTH}
+                                        value={saveAsName}
+                                        onChange={(e) => setSaveAsName(e.target.value)}
+                                        placeholder={uniqueName(`${activeResume?.name || 'Main resume'} copy`, collection.profiles)}
+                                        className="resume-input-field"
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={syncing || collection.profiles.length >= MAX_PROFILES}
+                                        className="ds-btn ds-btn-accent w-full mt-3 !min-h-[44px] !text-[14px]"
+                                    >
+                                        {syncing ? 'Saving…' : 'Save as new resume'} <Plus size={15} />
+                                    </button>
+                                    {collection.profiles.length >= MAX_PROFILES && (
+                                        <p className="ds-mono ds-mono-muted m-0 mt-2">limit of {MAX_PROFILES} resumes reached · delete one on your profile</p>
+                                    )}
+                                </form>
+                                {collection.profiles.filter((p) => p.id !== activeResume?.id).length > 0 && (
+                                    <div className="py-2">
+                                        <p className="ds-mono ds-mono-muted m-0 px-4 py-2">or overwrite another resume</p>
+                                        {collection.profiles.filter((p) => p.id !== activeResume?.id).map((p) => {
+                                            const armed = confirmReplaceId === p.id;
+                                            return (
+                                                <button
+                                                    key={p.id}
+                                                    type="button"
+                                                    disabled={syncing}
+                                                    onClick={() => (armed ? handleSync({ mode: 'replace', id: p.id }) : setConfirmReplaceId(p.id))}
+                                                    className={`w-full px-4 py-2.5 text-left text-[14px] border-0 cursor-pointer flex items-center justify-between gap-3 ${armed ? 'bg-[#FFF0E8] text-[#CA3C0A] font-semibold' : 'bg-transparent text-[#171717] hover:bg-[#F7F5F2]'}`}
+                                                >
+                                                    <span className="truncate">{armed ? `Click again to overwrite “${p.name}”` : p.name}</span>
+                                                    {p.id === collection.primaryId && !armed && <span className="ds-mono text-[#CA3C0A] shrink-0">primary</span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     {/* Actions strip */}
                     <div className="shrink-0 grid grid-cols-3 border-0 border-b border-[#D8D4CC] bg-[#F7F5F2]">
                         <button

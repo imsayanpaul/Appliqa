@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowUp, ArrowDown, Copy, Check, Plus, Trash2, Pencil, X, Globe, Link2 } from 'lucide-react';
 import { FiGithub } from 'react-icons/fi';
-import { createOrUpdateUser } from '../services/api';
 import {
-    normalizeProfile, toBuilderData, profileToText, formatRange, formatMonth, formatScore,
+    normalizeProfile, formatRange, formatMonth, formatScore,
     safeUrl, newId, EXPERIENCE_TYPES, EDUCATION_LEVELS, SCORE_TYPES,
     LANGUAGE_LEVELS, parseLanguage, formatLanguage,
 } from '../lib/resumeProfile';
@@ -185,7 +184,7 @@ function Section({ id, count, canAdd, children, editor, className = '', actions,
 // Main component
 // ---------------------------------------------------------------------------
 
-export default function ResumeProfile({ source, existingBuilder, user, onUpdateUser, suggestedRoles = [], fileName, onFindJobs, onSearchRole }) {
+export default function ResumeProfile({ source, onSave, title, embedded = false, suggestedRoles = [], onFindJobs, onSearchRole }) {
     const [profile, setProfile] = useState(() => normalizeProfile(source));
     const [editing, setEditing] = useState(null);
     const [draft, setDraft] = useState(null);
@@ -244,10 +243,7 @@ export default function ResumeProfile({ source, existingBuilder, user, onUpdateU
         setSaving(true);
         setError('');
         try {
-            const builderData = toBuilderData(next, existingBuilder || {});
-            builderData.rawText = profileToText(next, builderData.personalInfo || { name: user?.name });
-            const res = await createOrUpdateUser({ builderData });
-            if (res.data?.user) onUpdateUser?.(res.data.user);
+            await onSave(next);
             setProfile(next);
             setEditing(null);
             setDraft(null);
@@ -295,11 +291,11 @@ export default function ResumeProfile({ source, existingBuilder, user, onUpdateU
 
     // =======================================================================
     return (
-        <div className="mt-10 border border-[#D8D4CC] bg-[#F7F5F2]">
+        <div className={embedded ? 'bg-[#F7F5F2]' : 'mt-10 border border-[#D8D4CC] bg-[#F7F5F2]'}>
             {/* Header */}
             <div className="flex items-stretch justify-between border-0 border-b border-[#D8D4CC] min-h-14">
                 <span className="ds-mono self-center px-5 sm:px-6 py-3 truncate flex items-center gap-2" aria-live="polite">
-                    {savedAt ? <><span className="ds-square" /> saved</> : `your resume${fileName ? ` / ${fileName.toLowerCase()}` : ''}`}
+                    {savedAt ? <><span className="ds-square" /> saved</> : (title || 'your resume')}
                 </span>
                 <button type="button" onClick={onFindJobs} className="ds-btn ds-btn-accent shrink-0 !min-h-14 !px-5 sm:!px-6 !text-[14px]">
                     Find matching jobs <ArrowUpRight size={16} className="ds-btn-arrow" />

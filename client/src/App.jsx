@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiChevronDown, FiCalendar, FiChevronRight, FiArrowUpRight } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,6 +38,7 @@ import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
 import { Logo } from './components/ui/Logo';
 import { useEscapeKey } from './lib/useEscapeKey';
+import { readProfiles, toAIResume } from './lib/resumeProfiles';
 import FeedbackWidget from './components/FeedbackWidget';
 import { supabase } from './services/supabase';
 import { getUserProfile, createOrUpdateUser } from './services/api';
@@ -448,6 +449,14 @@ function AppContent() {
         }
     }, [session, updateUserState]);
 
+    // AI features (match score, ATS, interview prep, career path, advisor) use the
+    // primary saved resume. The raw upload is still passed to the uploader.
+    const aiResumeData = useMemo(() => {
+        const { profiles, primaryId } = readProfiles(user?.builderData);
+        const primary = profiles.find((p) => p.id === primaryId);
+        return primary ? toAIResume(primary.data, resumeData, primary.name) : resumeData;
+    }, [user?.builderData, resumeData]);
+
     const handleProfileUpdate = useCallback((updatedUser) => {
         updateUserState(updatedUser);
     }, [updateUserState]);
@@ -697,7 +706,7 @@ function AppContent() {
                                 <Home user={user} session={session} authResolved={authResolved} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} />
                             } />
                             <Route path="/search" element={
-                                <SearchResults user={user} resumeData={resumeData} />
+                                <SearchResults user={user} resumeData={aiResumeData} />
                             } />
                             <Route path="/pricing" element={
                                 <Pricing user={user} session={session} />
@@ -712,13 +721,13 @@ function AppContent() {
 
                             {/* Protected Routes */}
                             <Route path="/saved" element={
-                                <ProtectedRoute session={session} authResolved={authResolved}><SavedJobs user={user} resumeData={resumeData} /></ProtectedRoute>
+                                <ProtectedRoute session={session} authResolved={authResolved}><SavedJobs user={user} resumeData={aiResumeData} /></ProtectedRoute>
                             } />
                             <Route path="/career" element={
-                                <ProtectedRoute session={session} authResolved={authResolved}><CareerPath user={user} resumeData={resumeData} /></ProtectedRoute>
+                                <ProtectedRoute session={session} authResolved={authResolved}><CareerPath user={user} resumeData={aiResumeData} /></ProtectedRoute>
                             } />
                             <Route path="/advisor" element={
-                                <ProtectedRoute session={session} authResolved={authResolved}><Advisor user={user} resumeData={resumeData} /></ProtectedRoute>
+                                <ProtectedRoute session={session} authResolved={authResolved}><Advisor user={user} resumeData={aiResumeData} /></ProtectedRoute>
                             } />
                             <Route path="/resume-creator" element={
                                 <ProtectedRoute session={session} authResolved={authResolved}><ResumeCreator user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
