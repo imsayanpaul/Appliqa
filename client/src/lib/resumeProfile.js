@@ -21,6 +21,33 @@ export const SCORE_TYPES = [
     { value: 'percentage', label: 'Percentage', max: 100 },
 ];
 
+export const LANGUAGE_LEVELS = ['Native', 'Fluent', 'Professional', 'Conversational', 'Basic'];
+
+// Languages are stored as plain strings ("English (Fluent)") so every reader,
+// including the resume builder, keeps working. These convert to/from rows.
+export function parseLanguage(text) {
+    const s = String(text || '').trim();
+    const m = s.match(/^(.*?)\s*[(\-–—:,]\s*([a-z ]+?)\s*\)?$/i);
+    if (m) {
+        const t = m[2].trim().toLowerCase();
+        // Includes LinkedIn's scale: native or bilingual / full professional /
+        // professional working / limited working / elementary
+        const level = LANGUAGE_LEVELS.find((l) => l.toLowerCase() === t)
+            || (/native|bilingual|mother|first/.test(t) ? 'Native'
+                : /full professional|advanced|fluent/.test(t) ? 'Fluent'
+                : /professional|business|working/.test(t) && !/limited/.test(t) ? 'Professional'
+                : /limited|intermediate|conversational/.test(t) ? 'Conversational'
+                : /elementary|beginner|basic/.test(t) ? 'Basic' : '');
+        if (level) return { name: m[1].trim(), level };
+    }
+    return { name: s, level: '' };
+}
+
+export function formatLanguage({ name, level }) {
+    const n = String(name || '').trim();
+    return n && level ? `${n} (${level})` : n;
+}
+
 let idCounter = 0;
 export const newId = () => `${Date.now().toString(36)}${(idCounter++).toString(36)}`;
 

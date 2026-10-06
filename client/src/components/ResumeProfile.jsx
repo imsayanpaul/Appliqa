@@ -5,6 +5,7 @@ import { createOrUpdateUser } from '../services/api';
 import {
     normalizeProfile, toBuilderData, profileToText, formatRange, formatMonth, formatScore,
     safeUrl, newId, EXPERIENCE_TYPES, EDUCATION_LEVELS, SCORE_TYPES,
+    LANGUAGE_LEVELS, parseLanguage, formatLanguage,
 } from '../lib/resumeProfile';
 
 // ---------------------------------------------------------------------------
@@ -121,6 +122,7 @@ const blank = {
     projects: () => ({ id: newId(), name: '', description: '', tech: [], liveUrl: '', repoUrl: '', startDate: '', endDate: '', current: false }),
     education: () => ({ id: newId(), level: 'degree', degree: '', field: '', school: '', board: '', startDate: '', endDate: '', current: false, scoreType: 'cgpa', score: '', scoreMax: '' }),
     certifications: () => ({ id: newId(), name: '', provider: '', issueDate: '', credentialId: '', credentialUrl: '' }),
+    languages: () => ({ id: newId(), name: '', level: 'Fluent' }),
 };
 
 const SECTION_LABELS = {
@@ -200,6 +202,7 @@ export default function ResumeProfile({ source, existingBuilder, user, onUpdateU
     const startEdit = (section, addNew = false) => {
         const current = profile[section];
         let value = Array.isArray(current) ? current.map((x) => (typeof x === 'object' ? { ...x, ...(x.bullets ? { bullets: [...x.bullets] } : {}), ...(x.tech ? { tech: [...x.tech] } : {}) } : x)) : current;
+        if (section === 'languages') value = value.map((l) => ({ id: newId(), ...parseLanguage(l) }));
         if (addNew && blank[section]) value = [...value, blank[section]()];
         setDraft(value);
         setEditing(section);
@@ -215,6 +218,7 @@ export default function ResumeProfile({ source, existingBuilder, user, onUpdateU
             case 'education': return value.filter((e) => e.degree.trim() || e.school.trim());
             case 'certifications': return value.filter((c) => c.name.trim());
             case 'achievements': return value.map((a) => a.trim()).filter(Boolean);
+            case 'languages': return [...new Set(value.map(formatLanguage).filter(Boolean))];
             case 'summary': return value.trim();
             default: return value;
         }
@@ -619,11 +623,48 @@ export default function ResumeProfile({ source, existingBuilder, user, onUpdateU
                         id="languages"
                         count={profile.languages.length}
                         className="border-b-0"
-                        editor={() => (<Field label="languages" hint="e.g. English (fluent)"><TagEditor values={draft || []} onChange={setDraft} placeholder="e.g. English (fluent)" /></Field>)}
+                        canAdd
+                        editor={() => (
+                            <div>
+                                <div className="hidden sm:grid grid-cols-[1fr_200px_36px] gap-2 mb-2">
+                                    <span className="ds-label !mb-0">language</span>
+                                    <span className="ds-label !mb-0">fluency</span>
+                                </div>
+                                <ul className="list-none m-0 p-0 space-y-2">
+                                    {(draft || []).map((l, i) => (
+                                        <li key={l.id} className="grid grid-cols-[1fr_36px] sm:grid-cols-[1fr_150px_36px] gap-2 items-center">
+                                            <TextInput value={l.name} onChange={(v) => updateItem(i, { name: v })} placeholder="e.g. English" aria-label={`Language ${i + 1}`} />
+                                            <div className="col-span-1 row-start-2 sm:row-start-auto">
+                                                <Select value={l.level} onChange={(v) => updateItem(i, { level: v })} options={[{ value: '', label: 'Not specified' }, ...LANGUAGE_LEVELS]} />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeItem(i)}
+                                                aria-label={`Remove ${l.name || 'language'}`}
+                                                className="w-9 h-[46px] inline-flex items-center justify-center bg-white border border-[#D8D4CC] hover:border-[#B91C1C] hover:text-[#B91C1C] cursor-pointer"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                                {addAnother('languages', 'Add language')}
+                            </div>
+                        )}
                     >
-                        {profile.languages.length
-                            ? <div className="flex flex-wrap gap-2">{profile.languages.map((l) => <span key={l} className="ds-tag !font-sans !text-[13px]">{l}</span>)}</div>
-                            : empty('Languages you speak.')}
+                        {profile.languages.length ? (
+                            <ul className="list-none m-0 p-0">
+                                {profile.languages.map((text) => {
+                                    const { name, level } = parseLanguage(text);
+                                    return (
+                                        <li key={text} className="py-2.5 flex items-baseline justify-between gap-3 border-0 border-t border-[#D8D4CC] first:border-t-0">
+                                            <span className="text-[15px] font-medium text-[#171717]">{name}</span>
+                                            {level && <span className="ds-mono ds-mono-muted shrink-0">{level.toLowerCase()}</span>}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        ) : empty('Languages you speak, and how well.')}
                     </Section>
                 </div>
             </div>
