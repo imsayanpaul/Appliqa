@@ -2,8 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { certificationLabel, formatScore, formatRange, safeUrl } from '../lib/resumeProfile';
+import { certificationLabel } from '../lib/resumeProfile';
 import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
+import { normalizeDesign, readPhoto } from '../lib/resumeDesign';
+import ResumeDocument from '../components/resume/ResumeDocument';
+import ResumePreview from '../components/resume/ResumePreview';
+import DesignPanel from '../components/resume/DesignPanel';
+import SectionsPanel from '../components/resume/SectionsPanel';
 import { 
     User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
     Sparkles, Sparkle, Download, Save, Upload, X, 
@@ -62,7 +67,21 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
     // Current Active Edit Tab
     const [activeTab, setActiveTab] = useState('personal');
-    const [template, setTemplate] = useState('modern'); // 'modern' | 'classic' | 'elegant'
+    const [editorMode, setEditorMode] = useState('content'); // content | design
+    // Look and layout (template, colour, sizes, section order) and extra content
+    const [design, setDesign] = useState(() => normalizeDesign(null));
+    const [customSections, setCustomSections] = useState([]);
+    const [photo, setPhoto] = useState('');
+    const [photoError, setPhotoError] = useState('');
+    // Ref keeps the newest custom sections for updates queued in the same event
+    const customRef = useRef([]);
+    customRef.current = customSections;
+    const updateDesign = (patch) => setDesign((d) => normalizeDesign({ ...d, ...patch }, customRef.current));
+    const updateCustomSections = (next) => {
+        customRef.current = next;
+        setCustomSections(next);
+        setDesign((d) => normalizeDesign(d, next));
+    };
 
     // Resume Creator Form State
     const [personalInfo, setPersonalInfo] = useState({
@@ -115,7 +134,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const [uploadError, setUploadError] = useState('');
 
     // Helper to serialize current builder state for comparison
-    const serializeResumeState = (pInfo, exp, edu, sk, expList, certs, langs, summ, tmpl) => {
+    const serializeResumeState = (pInfo, exp, edu, sk, expList, certs, langs, summ, look) => {
         return JSON.stringify({
             personalInfo: pInfo,
             experience: exp,
@@ -125,7 +144,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             certifications: certs,
             languages: langs,
             summary: summ,
-            template: tmpl
+            look
         });
     };
 
@@ -148,7 +167,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             certifications,
             languages,
             summary,
-            template
+            { design, customSections, photo }
         );
 
         if (currentSnapshot !== initialSnapshotRef.current) {
@@ -157,7 +176,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         } else {
             setIsDirty(false);
         }
-    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, template]);
+    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo]);
 
     // Global keyboard shortcut (Ctrl+S / Cmd+S) to save resume from anywhere
     useEffect(() => {
@@ -169,7 +188,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, template, user]);
+    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo, user]);
 
     // Advanced Premium Features State
     // 1. ATS Score Checker
@@ -264,14 +283,14 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 [],
                 [],
                 '',
-                template
+                { design, customSections, photo }
             );
             setIsDirty(false);
         }
     }, [resumeData, user]);
 
     // Load data utility
-    const loadFromResumeData = (data) => {
+    const loadFromResumeData = (data, { keepLook = false } = {}) => {
         if (!data) return;
         
         hasInitializedRef.current = true;
@@ -341,6 +360,14 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         setProjects(Array.isArray(data.projects) ? data.projects : []);
         setAchievements(Array.isArray(data.achievements) ? data.achievements : []);
 
+        // An imported file has no design: keep the current look and photo
+        const nextCustom = keepLook ? customSections : (Array.isArray(data.customSections) ? data.customSections : []);
+        const nextDesign = keepLook ? design : normalizeDesign(data.design, nextCustom);
+        const nextPhoto = keepLook ? photo : (typeof data.photo === 'string' ? data.photo : '');
+        setCustomSections(nextCustom);
+        setDesign(nextDesign);
+        setPhoto(nextPhoto);
+
         // Set baseline initial snapshot
         initialSnapshotRef.current = serializeResumeState(
             newPersonalInfo,
@@ -351,7 +378,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             newCerts,
             newLangs,
             newSummary,
-            template
+            { design: nextDesign, customSections: nextCustom, photo: nextPhoto }
         );
         setIsDirty(false);
     };
@@ -712,6 +739,9 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             education,
             summary,
             personalInfo,
+            design,
+            customSections,
+            photo,
             rawText: `${personalInfo.name}\n${personalInfo.title}\n${summary}\n${skills.join(', ')}\nExpertise: ${expertise.join(', ')}\nCertifications: ${certifications.map(certificationLabel).join(', ')}\nLanguages: ${languages.join(', ')}`,
             suggestedRoles: personalInfo.title ? [personalInfo.title] : [],
             experienceLevel: user?.resumeData?.experienceLevel || 'mid'
@@ -777,7 +807,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     certifications,
                     languages,
                     summary,
-                    template
+                    { design, customSections, photo }
                 );
                 setIsDirty(false);
                 setSaved(true);
@@ -869,7 +899,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             const res = await analyzeResume(text);
             const data = res.data.analysis;
 
-            loadFromResumeData(data);
+            loadFromResumeData(data, { keepLook: true });
             initialSnapshotRef.current = '__imported__'; // imported content is unsaved
             setShowUploadModal(false);
             setNotice('Resume imported. Check each section, then save.');
@@ -882,86 +912,24 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         }
     };
 
-    // Styling helpers for templates
-    const getTemplateStyle = () => {
-        switch (template) {
-            case 'classic':
-                return { fontFamily: 'Georgia, serif', lineHeight: '1.6', color: '#111111' };
-            case 'elegant':
-                return { fontFamily: '"Helvetica Neue", Arial, sans-serif', letterSpacing: '0.02em', lineHeight: '1.5', color: '#222222' };
-            default:
-                return { fontFamily: '"Inter", sans-serif', lineHeight: '1.55', color: '#1d1d1f' };
+    // What the resume document renders (preview and print)
+    const docData = { personalInfo, summary, experience, education, skills, expertise, certifications, languages, projects, achievements, customSections, photo };
+    const sectionCounts = {
+        summary: summary?.trim() ? 1 : 0, experience: experience.length, projects: projects.length, education: education.length,
+        skills: skills.length, expertise: expertise.length, certifications: certifications.length, achievements: achievements.length, languages: languages.length,
+    };
+
+    const handlePhoto = async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        setPhotoError('');
+        try {
+            setPhoto(await readPhoto(file));
+            updateDesign({ photoShow: true });
+        } catch (err) {
+            setPhotoError(err.message);
         }
-    };
-
-    const getContactItems = () => {
-        const items = [];
-        
-        // Combined Address, Location, Country
-        const addressParts = [];
-        if (personalInfo.address) addressParts.push(personalInfo.address);
-        if (personalInfo.location) addressParts.push(personalInfo.location);
-        if (personalInfo.country) addressParts.push(personalInfo.country);
-        const fullAddress = addressParts.join(', ');
-        if (fullAddress) items.push({ type: 'text', value: fullAddress });
-        
-        if (personalInfo.email) items.push({ type: 'email', value: personalInfo.email, href: `mailto:${personalInfo.email}` });
-        if (personalInfo.phone) items.push({ type: 'text', value: personalInfo.phone });
-        
-        const ensureHttp = (url) => {
-            if (!url) return '';
-            if (url.startsWith('http://') || url.startsWith('https://')) return url;
-            return `https://${url}`;
-        };
-        
-        if (personalInfo.website) items.push({ type: 'link', value: personalInfo.website, href: ensureHttp(personalInfo.website) });
-        if (personalInfo.linkedin) items.push({ type: 'link', value: personalInfo.linkedin, href: ensureHttp(personalInfo.linkedin) });
-        if (personalInfo.github) items.push({ type: 'link', value: personalInfo.github, href: ensureHttp(personalInfo.github) });
-        
-        return items;
-    };
-
-    const renderContactItems = (separator) => {
-        return getContactItems().map((item, i) => (
-            <span key={i}>
-                {i > 0 && ` ${separator} `}
-                {item.type === 'text' ? (
-                    item.value
-                ) : (
-                    <a 
-                        href={item.href} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="underline"
-                        style={{ color: '#2163CA' }}
-                    >
-                        {item.value}
-                    </a>
-                )}
-            </span>
-        ));
-    };
-
-    const renderPersonalDetails = (isPrint = false) => {
-        if (!personalInfo.dob && !personalInfo.nationality) return null;
-        
-        const details = [];
-        if (personalInfo.dob) details.push(`DOB: ${personalInfo.dob}`);
-        if (personalInfo.location) details.push(personalInfo.location);
-        if (personalInfo.nationality) details.push(personalInfo.nationality);
-        
-        const alignmentClass = template === 'classic' ? 'text-center' : 'text-left';
-        const labelColor = isPrint ? 'text-black' : 'text-zinc-800';
-        const textColor = isPrint ? 'text-zinc-900' : 'text-zinc-650';
-        
-        return (
-            <div className={`text-xs mt-2 ${alignmentClass} ${textColor}`}>
-                <div className={`font-semibold ${labelColor}`}>Personal Details:</div>
-                <div className="mt-0.5">
-                    {details.join(' | ')}
-                </div>
-            </div>
-        );
     };
 
     if (isMobile) {
@@ -1231,9 +1199,38 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         </div>
                     )}
 
+                    {/* Content or design */}
+                    <div role="tablist" aria-label="Builder mode" className="shrink-0 grid grid-cols-2 border-0 border-b border-[#D8D4CC] bg-white">
+                        {[
+                            { id: 'content', label: 'Content', hint: 'what it says' },
+                            { id: 'design', label: 'Design', hint: 'how it looks' },
+                        ].map((m) => {
+                            const on = editorMode === m.id;
+                            return (
+                                <button
+                                    key={m.id}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={on}
+                                    onClick={() => setEditorMode(m.id)}
+                                    className={`relative h-12 px-5 flex items-center justify-between gap-3 text-[15px] font-semibold border-0 border-l first:border-l-0 border-[#D8D4CC] cursor-pointer ${on ? 'bg-[#171717] text-white' : 'bg-white text-[#171717] hover:bg-[#F7F5F2]'}`}
+                                >
+                                    {m.label}
+                                    <span className={`ds-mono ${on ? '!text-white/60' : 'ds-mono-muted'}`}>{m.hint}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {editorMode === 'design' ? (
+                        <div className="flex-1 overflow-y-auto resume-creator-form-scroll" data-lenis-prevent>
+                            <DesignPanel design={design} onChange={updateDesign} hasPhoto={Boolean(photo)} />
+                        </div>
+                    ) : (<>
                     {/* Section tabs */}
                     <div role="tablist" aria-label="Resume sections" style={{ scrollbarWidth: 'none' }} className="shrink-0 flex overflow-x-auto border-0 border-b border-[#D8D4CC] bg-[#EFECE6]">
                         {[
+                            { id: 'sections', name: 'Sections' },
                             { id: 'personal', name: 'Personal' },
                             { id: 'summary', name: 'Summary' },
                             { id: 'experience', name: 'Experience' },
@@ -1265,8 +1262,41 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
                     {/* Scrollable Tab Content Container */}
                     <div className="flex-1 overflow-y-auto py-6 px-6 sm:px-8 space-y-6 resume-creator-form-scroll" data-lenis-prevent>
+                        {activeTab === 'sections' && (
+                            <SectionsPanel
+                                design={design}
+                                onDesignChange={updateDesign}
+                                customSections={customSections}
+                                onCustomChange={updateCustomSections}
+                                counts={sectionCounts}
+                            />
+                        )}
+
                         {activeTab === 'personal' && (
                             <div className="space-y-3">
+                                <div className="flex items-stretch border border-[#D8D4CC] bg-white mb-2">
+                                    <div className="w-[84px] h-[84px] shrink-0 border-0 border-r border-[#D8D4CC] bg-[#F7F5F2] flex items-center justify-center overflow-hidden">
+                                        {photo
+                                            ? <img src={photo} alt="Your resume photo" className="w-full h-full object-cover" />
+                                            : <User size={26} className="text-[#B5B0A8]" aria-hidden="true" />}
+                                    </div>
+                                    <div className="flex-1 min-w-0 px-4 py-3 flex flex-col justify-center">
+                                        <p className="m-0 text-[15px] font-semibold text-[#171717]">Photo <span className="ds-mono ds-mono-muted font-normal">optional</span></p>
+                                        <p className="m-0 mt-0.5 text-[13px] text-[#6F6A65]">Common in India and Europe; usually left off for US and UK jobs.</p>
+                                        {photoError && <p role="alert" className="m-0 mt-1 text-[13px] text-[#B91C1C]">{photoError}</p>}
+                                    </div>
+                                    <div className="flex flex-col border-0 border-l border-[#D8D4CC] shrink-0">
+                                        <label className="flex-1 px-4 inline-flex items-center gap-2 text-[14px] font-medium text-[#171717] cursor-pointer hover:bg-[#F7F5F2]">
+                                            <Upload size={14} /> {photo ? 'Replace' : 'Upload'}
+                                            <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handlePhoto} className="sr-only" />
+                                        </label>
+                                        {photo && (
+                                            <button type="button" onClick={() => setPhoto('')} className="flex-1 px-4 inline-flex items-center gap-2 text-[14px] font-medium text-[#6F6A65] hover:text-[#B91C1C] bg-transparent border-0 border-t border-[#D8D4CC] cursor-pointer hover:bg-[#FEF2F2]">
+                                                <Trash2 size={14} /> Remove
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="resume-input-label">Full Name</label>
@@ -1823,23 +1853,21 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             </div>
                         )}
                     </div>
+                    </>)}
                 </div>
 
                 {/* Right Panel: Interactive ATS Live Preview */}
                 <div className="resume-creator-preview-panel">
                     {/* Template Selection & ATS Checker Row */}
                     <div className="w-full flex items-center justify-between gap-4 mb-6 shrink-0">
-                        <div className="resume-template-selector">
-                            {['modern', 'classic', 'elegant'].map((t) => (
-                                <button
-                                    key={t}
-                                    onClick={() => setTemplate(t)}
-                                    className={`resume-template-btn ${template === t ? 'active' : ''}`}
-                                >
-                                    {t}
-                                </button>
-                            ))}
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setEditorMode(editorMode === 'design' ? 'content' : 'design')}
+                            className="h-10 px-4 inline-flex items-center gap-2 bg-white border border-[#D8D4CC] hover:border-[#171717] text-[14px] font-medium text-[#171717] cursor-pointer"
+                        >
+                            <span className="w-3.5 h-3.5 shrink-0" style={{ background: design.accent }} aria-hidden="true" />
+                            {editorMode === 'design' ? 'Back to content' : 'Change design'}
+                        </button>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setShowATSPanel(!showATSPanel)}
@@ -2008,381 +2036,18 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         )}
                     </AnimatePresence>
 
-                    {/* Paper Preview Card */}
-                    <div className={`resume-paper-preview template-${template}`} style={getTemplateStyle()}>
-                        {/* Header depending on Template */}
-                        {template === 'classic' ? (
-                            <div className="text-center space-y-2">
-                                <h1 style={{ fontSize: '28px', fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>
-                                    {personalInfo.name || 'Your Name'}
-                                </h1>
-                                {personalInfo.title && (
-                                    <p style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#1d1d1f' }}>
-                                        {personalInfo.title}
-                                    </p>
-                                )}
-                                <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-zinc-600">
-                                    {renderContactItems('•')}
-                                </div>
-                                {renderPersonalDetails(false)}
-                                <div className="h-0.5 w-full my-2" style={{ backgroundColor: '#2163CA' }} />
-                            </div>
-                        ) : template === 'elegant' ? (
-                            <div className="space-y-1 border-l-2 pl-4" style={{ borderLeft: '2px solid #2163CA' }}>
-                                <h1 style={{ fontSize: '24px', letterSpacing: '0.04em', fontWeight: '600', textTransform: 'uppercase' }}>
-                                    {personalInfo.name || 'Your Name'}
-                                </h1>
-                                {personalInfo.title && (
-                                    <p style={{ fontSize: '11px', letterSpacing: '0.1em', fontWeight: 'bold', textTransform: 'uppercase', color: '#1d1d1f' }}>
-                                        {personalInfo.title}
-                                    </p>
-                                )}
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-zinc-550 pt-1">
-                                    {renderContactItems('|')}
-                                </div>
-                                {renderPersonalDetails(false)}
-                            </div>
-                        ) : (
-                            <div className="text-left space-y-1">
-                                <h1 style={{ fontSize: '26px', fontWeight: '600', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
-                                    {personalInfo.name || 'Your Name'}
-                                </h1>
-                                {personalInfo.title && (
-                                    <p className="text-sm font-bold tracking-wider uppercase" style={{ color: '#1d1d1f' }}>
-                                        {personalInfo.title}
-                                    </p>
-                                )}
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 mt-2">
-                                    {renderContactItems('|')}
-                                </div>
-                                {renderPersonalDetails(false)}
-                            </div>
-                        )}
-
-                        {/* Summary */}
-                        {summary && (
-                            <div className="space-y-1">
-                                <h2>Professional Summary</h2>
-                                <p className="text-justify leading-relaxed">{summary}</p>
-                            </div>
-                        )}
-
-                        {/* Work Experience */}
-                        {experience.length > 0 && (
-                            <div className="space-y-4">
-                                <h2>Work Experience</h2>
-                                {experience.map((exp, idx) => (
-                                    <div key={idx} className="space-y-1">
-                                        <div className="flex justify-between items-baseline">
-                                            <h3 className="font-bold text-black" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
-                                                {exp.company || 'Company Name'}
-                                            </h3>
-                                            <span className="text-[11px] text-zinc-500 font-semibold">{exp.dates}</span>
-                                        </div>
-                                        <p className="text-xs font-semibold text-zinc-800">{[exp.role || 'Job Title', exp.type && exp.type !== 'Full-time' ? exp.type : '', exp.location].filter(Boolean).join(' · ')}</p>
-                                        <ul className="list-disc pl-5 space-y-1 mt-1.5">
-                                            {exp.bullets.filter(Boolean).map((bullet, bulletIdx) => (
-                                                <li key={bulletIdx} className="text-zinc-700 leading-relaxed text-justify">{bullet}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Projects */}
-                        {projects.length > 0 && (
-                            <div className="space-y-3">
-                                <h2>Projects</h2>
-                                {projects.map((proj, idx) => (
-                                    <div key={proj.id || idx}>
-                                        <div className="flex justify-between items-baseline">
-                                            <h3 className="font-bold" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
-                                                {proj.name}
-                                            </h3>
-                                            {(proj.startDate || proj.current) && (
-                                                <span className="text-[11px] font-semibold">{formatRange(proj.startDate, proj.endDate, proj.current, 'Ongoing')}</span>
-                                            )}
-                                        </div>
-                                        {proj.tech?.length > 0 && <p className="text-xs font-semibold">{proj.tech.join(' · ')}</p>}
-                                        {proj.description && <p className="leading-relaxed mt-1">{proj.description}</p>}
-                                        {(safeUrl(proj.liveUrl) || safeUrl(proj.repoUrl)) && (
-                                            <p className="text-[11px] mt-1">
-                                                {safeUrl(proj.liveUrl) && <a href={safeUrl(proj.liveUrl)}>{proj.liveUrl.replace(/^https?:\/\//, '')}</a>}
-                                                {safeUrl(proj.liveUrl) && safeUrl(proj.repoUrl) && ' · '}
-                                                {safeUrl(proj.repoUrl) && <a href={safeUrl(proj.repoUrl)}>{proj.repoUrl.replace(/^https?:\/\//, '')}</a>}
-                                            </p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Education */}
-                        {education.length > 0 && (
-                            <div className="space-y-3">
-                                <h2>Education</h2>
-                                {education.map((edu, idx) => (
-                                    <div key={idx} className="flex justify-between items-baseline">
-                                        <div>
-                                            <h3 className="font-bold text-black" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
-                                                {edu.school || 'Institution'}
-                                            </h3>
-                                            <p className="text-xs text-zinc-700">{edu.degree || 'Degree & Major'}</p>
-                                            {(edu.board || formatScore(edu)) && (
-                                                <p className="text-[11px]">{[edu.board, formatScore(edu)].filter(Boolean).join(' · ')}</p>
-                                            )}
-                                        </div>
-                                        <span className="text-[11px] text-zinc-500 font-semibold">{edu.dates}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Areas of Expertise */}
-                        {expertise.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Areas of Expertise</h2>
-                                <p className="text-zinc-750 leading-relaxed">
-                                    {expertise.join(' • ')}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Skills */}
-                        {skills.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Skills</h2>
-                                <p className="text-zinc-750">
-                                    <span className="font-bold text-black">Technical Skills:</span> {skills.join(', ')}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Certifications */}
-                        {certifications.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Certifications</h2>
-                                <ul className="list-disc pl-5 space-y-0.5 mt-1">
-                                    {certifications.map((cert, idx) => (
-                                        <li key={idx} className="text-zinc-700 leading-relaxed">{certificationLabel(cert)}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {/* Achievements */}
-                        {achievements.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Achievements</h2>
-                                <ul className="list-disc pl-5 space-y-0.5 mt-1">
-                                    {achievements.map((a, idx) => (
-                                        <li key={idx} className="leading-relaxed">{a}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {/* Languages */}
-                        {languages.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Languages</h2>
-                                <p className="text-zinc-750">
-                                    {languages.join(', ')}
-                                </p>
-                            </div>
-                        )}
+                    {/* A4 preview: same component as the PDF */}
+                    <div className="w-full max-w-[820px] shrink-0">
+                        <ResumePreview data={docData} design={design} />
                     </div>
                 </div>
             </div>
 
-            {/* Print Only Container (Mirrors the exact ATS paper preview styling for the browser printer) */}
-                <div className="print-only-resume-container hidden">
-                    <div className={`resume-paper-preview template-${template}`} style={getTemplateStyle()}>
-                        {/* Header depending on Template */}
-                        {template === 'classic' ? (
-                            <div className="text-center space-y-2">
-                                <h1 style={{ fontSize: '28px', fontFamily: 'Georgia, serif', fontWeight: 'bold' }}>
-                                    {personalInfo.name || 'Your Name'}
-                                </h1>
-                                {personalInfo.title && (
-                                    <p style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#000000' }}>
-                                        {personalInfo.title}
-                                    </p>
-                                )}
-                                <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs">
-                                    {renderContactItems('•')}
-                                </div>
-                                {renderPersonalDetails(true)}
-                                <div className="h-0.5 w-full my-2" style={{ backgroundColor: '#2163CA' }} />
-                            </div>
-                        ) : template === 'elegant' ? (
-                            <div className="space-y-1 border-l-2 pl-4" style={{ borderLeft: '2px solid #2163CA' }}>
-                                <h1 style={{ fontSize: '24px', letterSpacing: '0.04em', fontWeight: '600', textTransform: 'uppercase' }}>
-                                    {personalInfo.name || 'Your Name'}
-                                </h1>
-                                {personalInfo.title && (
-                                    <p style={{ fontSize: '11px', letterSpacing: '0.1em', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000' }}>
-                                        {personalInfo.title}
-                                    </p>
-                                )}
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs pt-1">
-                                    {renderContactItems('|')}
-                                </div>
-                                {renderPersonalDetails(true)}
-                            </div>
-                        ) : (
-                            <div className="text-left space-y-1">
-                                <h1 style={{ fontSize: '26px', fontWeight: '600', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
-                                    {personalInfo.name || 'Your Name'}
-                                </h1>
-                                {personalInfo.title && (
-                                    <p className="text-sm font-bold tracking-wider uppercase" style={{ color: '#000000' }}>
-                                        {personalInfo.title}
-                                    </p>
-                                )}
-                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mt-2">
-                                    {renderContactItems('|')}
-                                </div>
-                                {renderPersonalDetails(true)}
-                            </div>
-                        )}
-
-                        {/* Summary */}
-                        {summary && (
-                            <div className="space-y-1">
-                                <h2>Professional Summary</h2>
-                                <p className="text-justify leading-relaxed">{summary}</p>
-                            </div>
-                        )}
-
-                        {/* Work Experience */}
-                        {experience.length > 0 && (
-                            <div className="space-y-4">
-                                <h2>Work Experience</h2>
-                                {experience.map((exp, idx) => (
-                                    <div key={idx} className="space-y-1">
-                                        <div className="flex justify-between items-baseline">
-                                            <h3 className="font-bold" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
-                                                {exp.company || 'Company Name'}
-                                            </h3>
-                                            <span className="text-[11px] font-semibold">{exp.dates}</span>
-                                        </div>
-                                        <p className="text-xs font-semibold">{[exp.role || 'Job Title', exp.type && exp.type !== 'Full-time' ? exp.type : '', exp.location].filter(Boolean).join(' · ')}</p>
-                                        <ul className="list-disc pl-5 space-y-1 mt-1.5">
-                                            {exp.bullets.filter(Boolean).map((bullet, bulletIdx) => (
-                                                <li key={bulletIdx} className="leading-relaxed text-justify">{bullet}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Projects */}
-                        {projects.length > 0 && (
-                            <div className="space-y-3">
-                                <h2>Projects</h2>
-                                {projects.map((proj, idx) => (
-                                    <div key={proj.id || idx}>
-                                        <div className="flex justify-between items-baseline">
-                                            <h3 className="font-bold" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
-                                                {proj.name}
-                                            </h3>
-                                            {(proj.startDate || proj.current) && (
-                                                <span className="text-[11px] font-semibold">{formatRange(proj.startDate, proj.endDate, proj.current, 'Ongoing')}</span>
-                                            )}
-                                        </div>
-                                        {proj.tech?.length > 0 && <p className="text-xs font-semibold">{proj.tech.join(' · ')}</p>}
-                                        {proj.description && <p className="leading-relaxed mt-1">{proj.description}</p>}
-                                        {(safeUrl(proj.liveUrl) || safeUrl(proj.repoUrl)) && (
-                                            <p className="text-[11px] mt-1">
-                                                {safeUrl(proj.liveUrl) && <a href={safeUrl(proj.liveUrl)}>{proj.liveUrl.replace(/^https?:\/\//, '')}</a>}
-                                                {safeUrl(proj.liveUrl) && safeUrl(proj.repoUrl) && ' · '}
-                                                {safeUrl(proj.repoUrl) && <a href={safeUrl(proj.repoUrl)}>{proj.repoUrl.replace(/^https?:\/\//, '')}</a>}
-                                            </p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Education */}
-                        {education.length > 0 && (
-                            <div className="space-y-3">
-                                <h2>Education</h2>
-                                {education.map((edu, idx) => (
-                                    <div key={idx} className="flex justify-between items-baseline">
-                                        <div>
-                                            <h3 className="font-bold" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
-                                                {edu.school || 'Institution'}
-                                            </h3>
-                                            <p className="text-xs">{edu.degree || 'Degree & Major'}</p>
-                                            {(edu.board || formatScore(edu)) && (
-                                                <p className="text-[11px]">{[edu.board, formatScore(edu)].filter(Boolean).join(' · ')}</p>
-                                            )}
-                                        </div>
-                                        <span className="text-[11px] font-semibold">{edu.dates}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Areas of Expertise */}
-                        {expertise.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Areas of Expertise</h2>
-                                <p className="leading-relaxed">
-                                    {expertise.join(' • ')}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Skills */}
-                        {skills.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Skills</h2>
-                                <p>
-                                    <span className="font-bold">Technical Skills:</span> {skills.join(', ')}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Certifications */}
-                        {certifications.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Certifications</h2>
-                                <ul className="list-disc pl-5 space-y-0.5 mt-1">
-                                    {certifications.map((cert, idx) => (
-                                        <li key={idx} className="leading-relaxed">{certificationLabel(cert)}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {/* Achievements */}
-                        {achievements.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Achievements</h2>
-                                <ul className="list-disc pl-5 space-y-0.5 mt-1">
-                                    {achievements.map((a, idx) => (
-                                        <li key={idx} className="leading-relaxed">{a}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {/* Languages */}
-                        {languages.length > 0 && (
-                            <div className="space-y-1">
-                                <h2>Languages</h2>
-                                <p>
-                                    {languages.join(', ')}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+            {/* Print-only copy: page margins come from the design settings */}
+            <div className="print-only-resume-container hidden">
+                <style>{`@media print { @page { margin: ${design.marginY}in ${design.marginX}in !important; } }`}</style>
+                <ResumeDocument data={docData} design={design} print />
+            </div>
 
             {/* AI Bullet Enhancer Modal Overlay */}
             {showEnhancer && createPortal(
