@@ -1097,6 +1097,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 <div className="ds-cell">
                     <ResumeUpload
                         onResumeAnalyzed={onResumeAnalyzed}
+                        onUpdateUser={onUpdateUser}
                         existingData={resumeData}
                         user={user}
                     />

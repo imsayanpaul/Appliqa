@@ -694,7 +694,7 @@ function AppContent() {
                     <Suspense fallback={<PageSkeleton />}>
                         <Routes>
                             <Route path="/" element={
-                                <Home user={user} session={session} authResolved={authResolved} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
+                                <Home user={user} session={session} authResolved={authResolved} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} />
                             } />
                             <Route path="/search" element={
                                 <SearchResults user={user} resumeData={resumeData} />

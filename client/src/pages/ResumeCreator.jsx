@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { certificationLabel, formatScore, formatRange, safeUrl } from '../lib/resumeProfile';
 import { 
     User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
     Sparkles, Sparkle, Download, Save, Upload, X, 
@@ -209,6 +210,8 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const [certifications, setCertifications] = useState([]);
     const [languages, setLanguages] = useState([]);
     const [summary, setSummary] = useState('');
+    const [projects, setProjects] = useState([]);
+    const [achievements, setAchievements] = useState([]);
 
     // AI Bullet Enhancer State
     const [showEnhancer, setShowEnhancer] = useState(false);
@@ -417,10 +420,11 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     return parseExperienceStr(item);
                 }
                 return {
+                    ...item,
                     company: item.company || '',
                     role: item.role || '',
                     dates: item.dates || '',
-                    bullets: item.bullets || ['Key achievement or responsibility.']
+                    bullets: Array.isArray(item.bullets) ? item.bullets.filter(b => b && b !== 'Key achievement or responsibility.') : []
                 };
             });
         }
@@ -434,6 +438,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     return parseEducationStr(item);
                 }
                 return {
+                    ...item,
                     school: item.school || '',
                     degree: item.degree || '',
                     dates: item.dates || ''
@@ -441,6 +446,8 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             });
         }
         setEducation(formattedEdu);
+        setProjects(Array.isArray(data.projects) ? data.projects : []);
+        setAchievements(Array.isArray(data.achievements) ? data.achievements : []);
 
         // Set baseline initial snapshot
         initialSnapshotRef.current = serializeResumeState(
@@ -478,7 +485,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             company,
             role,
             dates,
-            bullets: ['Core responsibility or project milestone achieved.']
+            bullets: []
         };
     };
 
@@ -512,7 +519,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             company: '',
             role: '',
             dates: '',
-            bullets: ['Collaborated with cross-functional teams to build and deploy key technical items.']
+            bullets: ['']
         }]);
     };
 
@@ -787,6 +794,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const handleSync = async () => {
         setSyncing(true);
         const payload = {
+            ...(user?.builderData || {}),
+            projects,
+            achievements,
+            profileUpdatedAt: new Date().toISOString(),
             fileName: 'Appliqa_AI_Resume.pdf',
             skills,
             expertise,
@@ -796,7 +807,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             education,
             summary,
             personalInfo,
-            rawText: `${personalInfo.name}\n${personalInfo.title}\n${summary}\n${skills.join(', ')}\nExpertise: ${expertise.join(', ')}\nCertifications: ${certifications.join(', ')}\nLanguages: ${languages.join(', ')}`,
+            rawText: `${personalInfo.name}\n${personalInfo.title}\n${summary}\n${skills.join(', ')}\nExpertise: ${expertise.join(', ')}\nCertifications: ${certifications.map(certificationLabel).join(', ')}\nLanguages: ${languages.join(', ')}`,
             suggestedRoles: personalInfo.title ? [personalInfo.title] : [],
             experienceLevel: user?.resumeData?.experienceLevel || 'mid'
         };
@@ -1579,8 +1590,8 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {certifications.map(item => (
-                                        <div key={item} className="resume-skill-tag">
-                                            <span>{item}</span>
+                                        <div key={certificationLabel(item)} className="resume-skill-tag">
+                                            <span>{certificationLabel(item)}</span>
                                             <button 
                                                 onClick={() => setCertifications(certifications.filter(x => x !== item))}
                                                 className="text-zinc-550 hover:text-red-400 transition-colors border-none bg-transparent cursor-pointer"
@@ -1895,14 +1906,42 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             <h3 className="font-bold text-black" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
                                                 {exp.company || 'Company Name'}
                                             </h3>
-                                            <span className="text-[11px] text-zinc-500 font-semibold">{exp.dates || 'Dates'}</span>
+                                            <span className="text-[11px] text-zinc-500 font-semibold">{exp.dates}</span>
                                         </div>
-                                        <p className="text-xs font-semibold text-zinc-800">{exp.role || 'Job Title'}</p>
+                                        <p className="text-xs font-semibold text-zinc-800">{[exp.role || 'Job Title', exp.type && exp.type !== 'Full-time' ? exp.type : '', exp.location].filter(Boolean).join(' · ')}</p>
                                         <ul className="list-disc pl-5 space-y-1 mt-1.5">
-                                            {exp.bullets.map((bullet, bulletIdx) => (
+                                            {exp.bullets.filter(Boolean).map((bullet, bulletIdx) => (
                                                 <li key={bulletIdx} className="text-zinc-700 leading-relaxed text-justify">{bullet}</li>
                                             ))}
                                         </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Projects */}
+                        {projects.length > 0 && (
+                            <div className="space-y-3">
+                                <h2>Projects</h2>
+                                {projects.map((proj, idx) => (
+                                    <div key={proj.id || idx}>
+                                        <div className="flex justify-between items-baseline">
+                                            <h3 className="font-bold" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
+                                                {proj.name}
+                                            </h3>
+                                            {(proj.startDate || proj.current) && (
+                                                <span className="text-[11px] font-semibold">{formatRange(proj.startDate, proj.endDate, proj.current, 'Ongoing')}</span>
+                                            )}
+                                        </div>
+                                        {proj.tech?.length > 0 && <p className="text-xs font-semibold">{proj.tech.join(' · ')}</p>}
+                                        {proj.description && <p className="leading-relaxed mt-1">{proj.description}</p>}
+                                        {(safeUrl(proj.liveUrl) || safeUrl(proj.repoUrl)) && (
+                                            <p className="text-[11px] mt-1">
+                                                {safeUrl(proj.liveUrl) && <a href={safeUrl(proj.liveUrl)}>{proj.liveUrl.replace(/^https?:\/\//, '')}</a>}
+                                                {safeUrl(proj.liveUrl) && safeUrl(proj.repoUrl) && ' · '}
+                                                {safeUrl(proj.repoUrl) && <a href={safeUrl(proj.repoUrl)}>{proj.repoUrl.replace(/^https?:\/\//, '')}</a>}
+                                            </p>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -1919,8 +1958,11 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                 {edu.school || 'Institution'}
                                             </h3>
                                             <p className="text-xs text-zinc-700">{edu.degree || 'Degree & Major'}</p>
+                                            {(edu.board || formatScore(edu)) && (
+                                                <p className="text-[11px]">{[edu.board, formatScore(edu)].filter(Boolean).join(' · ')}</p>
+                                            )}
                                         </div>
-                                        <span className="text-[11px] text-zinc-500 font-semibold">{edu.dates || 'Graduation Date'}</span>
+                                        <span className="text-[11px] text-zinc-500 font-semibold">{edu.dates}</span>
                                     </div>
                                 ))}
                             </div>
@@ -1952,7 +1994,19 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 <h2>Certifications</h2>
                                 <ul className="list-disc pl-5 space-y-0.5 mt-1">
                                     {certifications.map((cert, idx) => (
-                                        <li key={idx} className="text-zinc-700 leading-relaxed">{cert}</li>
+                                        <li key={idx} className="text-zinc-700 leading-relaxed">{certificationLabel(cert)}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {/* Achievements */}
+                        {achievements.length > 0 && (
+                            <div className="space-y-1">
+                                <h2>Achievements</h2>
+                                <ul className="list-disc pl-5 space-y-0.5 mt-1">
+                                    {achievements.map((a, idx) => (
+                                        <li key={idx} className="leading-relaxed">{a}</li>
                                     ))}
                                 </ul>
                             </div>
@@ -2041,14 +2095,42 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             <h3 className="font-bold" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
                                                 {exp.company || 'Company Name'}
                                             </h3>
-                                            <span className="text-[11px] font-semibold">{exp.dates || 'Dates'}</span>
+                                            <span className="text-[11px] font-semibold">{exp.dates}</span>
                                         </div>
-                                        <p className="text-xs font-semibold">{exp.role || 'Job Title'}</p>
+                                        <p className="text-xs font-semibold">{[exp.role || 'Job Title', exp.type && exp.type !== 'Full-time' ? exp.type : '', exp.location].filter(Boolean).join(' · ')}</p>
                                         <ul className="list-disc pl-5 space-y-1 mt-1.5">
-                                            {exp.bullets.map((bullet, bulletIdx) => (
+                                            {exp.bullets.filter(Boolean).map((bullet, bulletIdx) => (
                                                 <li key={bulletIdx} className="leading-relaxed text-justify">{bullet}</li>
                                             ))}
                                         </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Projects */}
+                        {projects.length > 0 && (
+                            <div className="space-y-3">
+                                <h2>Projects</h2>
+                                {projects.map((proj, idx) => (
+                                    <div key={proj.id || idx}>
+                                        <div className="flex justify-between items-baseline">
+                                            <h3 className="font-bold" style={{ fontSize: template === 'classic' ? '14px' : '13px' }}>
+                                                {proj.name}
+                                            </h3>
+                                            {(proj.startDate || proj.current) && (
+                                                <span className="text-[11px] font-semibold">{formatRange(proj.startDate, proj.endDate, proj.current, 'Ongoing')}</span>
+                                            )}
+                                        </div>
+                                        {proj.tech?.length > 0 && <p className="text-xs font-semibold">{proj.tech.join(' · ')}</p>}
+                                        {proj.description && <p className="leading-relaxed mt-1">{proj.description}</p>}
+                                        {(safeUrl(proj.liveUrl) || safeUrl(proj.repoUrl)) && (
+                                            <p className="text-[11px] mt-1">
+                                                {safeUrl(proj.liveUrl) && <a href={safeUrl(proj.liveUrl)}>{proj.liveUrl.replace(/^https?:\/\//, '')}</a>}
+                                                {safeUrl(proj.liveUrl) && safeUrl(proj.repoUrl) && ' · '}
+                                                {safeUrl(proj.repoUrl) && <a href={safeUrl(proj.repoUrl)}>{proj.repoUrl.replace(/^https?:\/\//, '')}</a>}
+                                            </p>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -2065,8 +2147,11 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                 {edu.school || 'Institution'}
                                             </h3>
                                             <p className="text-xs">{edu.degree || 'Degree & Major'}</p>
+                                            {(edu.board || formatScore(edu)) && (
+                                                <p className="text-[11px]">{[edu.board, formatScore(edu)].filter(Boolean).join(' · ')}</p>
+                                            )}
                                         </div>
-                                        <span className="text-[11px] font-semibold">{edu.dates || 'Graduation Date'}</span>
+                                        <span className="text-[11px] font-semibold">{edu.dates}</span>
                                     </div>
                                 ))}
                             </div>
@@ -2098,7 +2183,19 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 <h2>Certifications</h2>
                                 <ul className="list-disc pl-5 space-y-0.5 mt-1">
                                     {certifications.map((cert, idx) => (
-                                        <li key={idx} className="leading-relaxed">{cert}</li>
+                                        <li key={idx} className="leading-relaxed">{certificationLabel(cert)}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {/* Achievements */}
+                        {achievements.length > 0 && (
+                            <div className="space-y-1">
+                                <h2>Achievements</h2>
+                                <ul className="list-disc pl-5 space-y-0.5 mt-1">
+                                    {achievements.map((a, idx) => (
+                                        <li key={idx} className="leading-relaxed">{a}</li>
                                     ))}
                                 </ul>
                             </div>

@@ -1,47 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
-import { FileText, Upload, X, ArrowUpRight, Copy, Check, Sparkles, ExternalLink, Sliders } from 'lucide-react';
-import { analyzeResume, incrementStat } from '../services/api';
+import { FileText, Upload, X } from 'lucide-react';
+import { analyzeResume } from '../services/api';
+import ResumeProfile from './ResumeProfile';
 import * as pdfjsLib from 'pdfjs-dist';
 import { createWorker } from 'tesseract.js';
 
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-
-// Helper: Parse raw experience string into structured object
-function parseExperienceItem(str) {
-    if (!str) return { title: '', company: '', duration: '' };
-    // Pattern 1: "Title at Company (Duration)" or "Title @ Company (Duration)"
-    const match1 = str.match(/^(.*?)\s+(?:at|@)\s+(.*?)(?:\s*\((.*?)\))?$/i);
-    if (match1) {
-        return {
-            title: match1[1].trim(),
-            company: match1[2].trim(),
-            duration: match1[3]?.trim() || ''
-        };
-    }
-    // Pattern 2: "Title (Duration)"
-    const match2 = str.match(/^(.*?)(?:\s*\((.*?)\))$/i);
-    if (match2) {
-        return {
-            title: match2[1].trim(),
-            company: '',
-            duration: match2[2]?.trim() || ''
-        };
-    }
-    return { title: str, company: '', duration: '' };
-}
-
-// Helper: Parse raw education string into structured object
-function parseEducationItem(str) {
-    if (!str) return { degree: '', school: '' };
-    const match = str.match(/^(.*?)\s+from\s+(.*)$/i);
-    if (match) {
-        return { degree: match[1].trim(), school: match[2].trim() };
-    }
-    return { degree: str, school: '' };
-}
 
 function ensureArray(val) {
     if (!val) return [];
@@ -70,7 +37,7 @@ function getCleanAnalysis(data) {
     };
 }
 
-function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
+function ResumeUpload({ onResumeAnalyzed, onUpdateUser, existingData = null, user = null }) {
     const navigate = useNavigate();
     const cleanExisting = getCleanAnalysis(existingData);
     const [uploading, setUploading] = useState(false);
@@ -78,7 +45,7 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
     const [fileName, setFileName] = useState(cleanExisting?.fileName || '');
     const [analysis, setAnalysis] = useState(cleanExisting || null);
     const [error, setError] = useState('');
-    const [copiedSummary, setCopiedSummary] = useState(false);
+    const analyzedAtRef = useRef(0);
     
     // Staged file states
     const [selectedFile, setSelectedFile] = useState(null);
@@ -210,12 +177,8 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
 
             localStorage.setItem('appliqa_resume_analysis', JSON.stringify(analysisData));
 
-            try {
-                incrementStat('resumes_parsed');
-            } catch (err) {
-                console.warn('Failed to increment parsed stat:', err);
-            }
-            
+            analyzedAtRef.current = Date.now();
+
             if (onResumeAnalyzed) onResumeAnalyzed(analysisData);
         } catch (err) {
             console.error('Resume processing failed:', err);
@@ -227,12 +190,6 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
         }
     };
 
-    const handleCopySummary = () => {
-        if (!analysis?.summary) return;
-        navigator.clipboard.writeText(analysis.summary);
-        setCopiedSummary(true);
-        setTimeout(() => setCopiedSummary(false), 2000);
-    };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -247,6 +204,18 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
 
     const experienceLevel = analysis?.experienceLevel || 'Mid-Level';
     const industries = analysis?.industries || ['Technology & Software'];
+
+    // Show saved profile edits when they are newer than the last resume upload
+    const builderData = user?.builderData;
+    const uploadedAt = Math.max(
+        new Date(user?.resumeData?.uploadedAt || existingData?.uploadedAt || 0).getTime() || 0,
+        analyzedAtRef.current
+    );
+    const profileSource = useMemo(() => {
+        const editedAt = builderData?.profileUpdatedAt ? new Date(builderData.profileUpdatedAt).getTime() : 0;
+        if (builderData && editedAt && editedAt >= uploadedAt) return builderData;
+        return analysis || builderData || {};
+    }, [builderData, analysis, uploadedAt]);
 
     return (
         <div>
@@ -342,127 +311,21 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                 )}
             </div>
 
-            {analysis && (
-                <div className="mt-10 border border-[#D8D4CC] bg-[#F7F5F2]">
-                    <div className="flex items-stretch justify-between border-0 border-b border-[#D8D4CC] min-h-14">
-                        <span className="ds-mono self-center px-5 sm:px-6 py-3 truncate">
-                            your resume{fileName ? ` / ${fileName.toLowerCase()}` : ''}
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                const savedRole = user?.preferences?.desiredRole?.trim() || user?.desiredRole?.trim();
-                                const queryRole = savedRole || analysis.suggestedRoles?.[0] || 'Software Engineer';
-                                navigate(`/search?query=${encodeURIComponent(queryRole)}`);
-                            }}
-                            className="ds-btn ds-btn-accent shrink-0 !min-h-14 !px-5 sm:!px-6 !text-[14px]"
-                        >
-                            Find matching jobs <ArrowUpRight size={16} className="ds-btn-arrow" />
-                        </button>
-                    </div>
-
-                    {analysis.summary && (
-                        <section className="bg-white px-5 sm:px-6 py-6 border-0 border-b border-[#D8D4CC]">
-                            <div className="flex items-center justify-between gap-3 mb-3">
-                                <h3 className="ds-mono ds-mono-muted m-0">summary</h3>
-                                <button
-                                    type="button"
-                                    onClick={handleCopySummary}
-                                    className="h-8 px-3 inline-flex items-center gap-1.5 text-[13px] font-medium bg-transparent border border-[#D8D4CC] hover:border-[#171717] cursor-pointer"
-                                >
-                                    {copiedSummary ? <Check size={13} /> : <Copy size={13} />}
-                                    {copiedSummary ? 'Copied' : 'Copy'}
-                                </button>
-                            </div>
-                            <p className="m-0 text-[17px] sm:text-[19px] leading-relaxed text-[#171717] max-w-4xl">{analysis.summary}</p>
-                        </section>
-                    )}
-
-                    <div className="grid grid-cols-1 lg:grid-cols-12">
-                        <div className="lg:col-span-7 border-0 lg:border-r border-[#D8D4CC]">
-                            {analysis.experience?.length > 0 && (
-                                <section className="px-5 sm:px-6 py-6 border-0 border-b border-[#D8D4CC]">
-                                    <h3 className="ds-mono ds-mono-muted m-0 mb-2">experience · {analysis.experience.length}</h3>
-                                    <ul className="list-none m-0 p-0">
-                                        {analysis.experience.map((expStr, i) => {
-                                            const { title, company, duration } = parseExperienceItem(expStr);
-                                            return (
-                                                <li key={i} className="py-3.5 border-0 border-t border-[#D8D4CC] first:border-t-0">
-                                                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
-                                                        <span className="text-[16px] font-semibold text-[#171717]">{title}</span>
-                                                        {duration && <span className="ds-mono ds-mono-muted shrink-0">{duration.toLowerCase()}</span>}
-                                                    </div>
-                                                    {company && <p className="m-0 mt-0.5 text-[14px] text-[#4A4540]">{company}</p>}
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
-                                </section>
-                            )}
-
-                            {analysis.education?.length > 0 && (
-                                <section className="px-5 sm:px-6 py-6 border-0 border-b lg:border-b-0 border-[#D8D4CC]">
-                                    <h3 className="ds-mono ds-mono-muted m-0 mb-2">education</h3>
-                                    <ul className="list-none m-0 p-0">
-                                        {analysis.education.map((eduStr, i) => {
-                                            const { degree, school } = parseEducationItem(eduStr);
-                                            return (
-                                                <li key={i} className="py-3.5 border-0 border-t border-[#D8D4CC] first:border-t-0">
-                                                    <span className="text-[16px] font-semibold text-[#171717]">{degree}</span>
-                                                    {school && <p className="m-0 mt-0.5 text-[14px] text-[#4A4540]">{school}</p>}
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
-                                </section>
-                            )}
-
-                            {analysis.certifications?.length > 0 && (
-                                <section className="px-5 sm:px-6 py-6 border-0 border-t border-[#D8D4CC]">
-                                    <h3 className="ds-mono ds-mono-muted m-0 mb-3">certifications</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysis.certifications.map((cert, i) => (
-                                            <span key={i} className="ds-tag !font-sans !text-[13px]">{cert}</span>
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
-                        </div>
-
-                        <div className="lg:col-span-5">
-                            {analysis.suggestedRoles?.length > 0 && (
-                                <section className="border-0 border-b border-[#D8D4CC]">
-                                    <h3 className="ds-mono ds-mono-muted m-0 px-5 sm:px-6 pt-6 pb-3">roles that fit</h3>
-                                    <ul className="list-none m-0 p-0">
-                                        {analysis.suggestedRoles.map((role, i) => (
-                                            <li key={i} className="border-0 border-t border-[#D8D4CC]">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => navigate(`/search?query=${encodeURIComponent(role)}`)}
-                                                    className="w-full px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3 bg-transparent hover:bg-white border-0 cursor-pointer text-left text-[15px] font-medium text-[#171717] group"
-                                                >
-                                                    {role}
-                                                    <ArrowUpRight size={16} className="shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </section>
-                            )}
-
-                            {analysis.skills?.length > 0 && (
-                                <section className="px-5 sm:px-6 py-6">
-                                    <h3 className="ds-mono ds-mono-muted m-0 mb-3">skills · {analysis.skills.length}</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysis.skills.map((skill, i) => (
-                                            <span key={i} className="ds-tag !font-sans !text-[13px]">{skill}</span>
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
-                        </div>
-                    </div>
-                </div>
+            {(analysis || user?.builderData || user) && (
+                <ResumeProfile
+                    source={profileSource}
+                    existingBuilder={user?.builderData}
+                    user={user}
+                    onUpdateUser={onUpdateUser}
+                    suggestedRoles={analysis?.suggestedRoles || []}
+                    fileName={fileName}
+                    onFindJobs={() => {
+                        const savedRole = user?.preferences?.desiredRole?.trim() || user?.desiredRole?.trim();
+                        const queryRole = savedRole || analysis?.suggestedRoles?.[0] || 'Software Engineer';
+                        navigate(`/search?query=${encodeURIComponent(queryRole)}`);
+                    }}
+                    onSearchRole={(role) => navigate(`/search?query=${encodeURIComponent(role)}`)}
+                />
             )}
         </div>
     );

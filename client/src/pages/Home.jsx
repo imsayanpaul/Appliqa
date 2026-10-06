@@ -111,7 +111,7 @@ function ExampleReport() {
     );
 }
 
-function Home({ user, resumeData, onResumeAnalyzed }) {
+function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
     const navigate = useNavigate();
     const [query, setQuery] = useState('');
     const [aiMode, setAiMode] = useState(false);
@@ -463,7 +463,7 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
                 </div>
                 <div className="ds-cell">
                     <Suspense fallback={<div className="h-[220px] border border-dashed border-[#D8D4CC]" />}>
-                        <ResumeUpload onResumeAnalyzed={onResumeAnalyzed} existingData={resumeData} user={user} />
+                        <ResumeUpload onResumeAnalyzed={onResumeAnalyzed} onUpdateUser={onUpdateUser} existingData={resumeData} user={user} />
                     </Suspense>
                 </div>
             </section>
