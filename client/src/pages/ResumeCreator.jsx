@@ -15,7 +15,7 @@ import {
     Sparkles, Sparkle, Download, Save, Upload, X, 
     Plus, Trash2, Check, ArrowRight, RefreshCw,
     MessageSquare, Send, Wand2, Gauge, Activity, AlertCircle, CheckCircle2,
-    Sliders, Monitor, FileText, FileCheck, ChevronDown
+    Sliders, Monitor, FileText, FileCheck, ChevronDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
     enhanceResumeBullet, suggestResumeSkills, analyzeResume, createOrUpdateUser, incrementStat,
@@ -69,6 +69,38 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     // Current Active Edit Tab
     const [activeTab, setActiveTab] = useState('personal');
     const [editorMode, setEditorMode] = useState('content'); // content | design
+
+    useEffect(() => {
+        tabsRef.current?.querySelector(`[data-tab="${activeTab}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    }, [activeTab]);
+
+    // Section tab row: wheel scrolls sideways, arrows appear when tabs overflow
+    const tabsRef = useRef(null);
+    const [tabScroll, setTabScroll] = useState({ left: false, right: false });
+    const scrollTabs = (dir) => tabsRef.current?.scrollBy({ left: dir * 260, behavior: 'smooth' });
+    useEffect(() => {
+        const el = tabsRef.current;
+        if (!el) return;
+        const update = () => setTabScroll({
+            left: el.scrollLeft > 2,
+            right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2,
+        });
+        const onWheel = (e) => {
+            if (el.scrollWidth <= el.clientWidth || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+            e.preventDefault();
+            el.scrollLeft += e.deltaY;
+        };
+        update();
+        el.addEventListener('scroll', update, { passive: true });
+        el.addEventListener('wheel', onWheel, { passive: false });
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => {
+            el.removeEventListener('scroll', update);
+            el.removeEventListener('wheel', onWheel);
+            ro.disconnect();
+        };
+    }, [editorMode, isMobile]);
     // Look and layout (template, colour, sizes, section order) and extra content
     const [design, setDesign] = useState(() => normalizeDesign(null));
     const [customSections, setCustomSections] = useState([]);
@@ -1233,7 +1265,9 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         </div>
                     ) : (<>
                     {/* Section tabs */}
-                    <div role="tablist" aria-label="Resume sections" style={{ scrollbarWidth: 'none' }} className="shrink-0 flex overflow-x-auto border-0 border-b border-[#D8D4CC] bg-[#EFECE6]">
+                    {/* One row of tabs: the mouse wheel scrolls it sideways, arrows show when there is more */}
+                    <div className="shrink-0 relative border-0 border-b border-[#D8D4CC] bg-[#EFECE6]">
+                    <div ref={tabsRef} role="tablist" aria-label="Resume sections" style={{ scrollbarWidth: 'none', scrollPaddingInline: 44 }} className="flex overflow-x-auto">
                         {[
                             { id: 'sections', name: 'Sections' },
                             { id: 'personal', name: 'Personal' },
@@ -1255,6 +1289,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                     role="tab"
                                     aria-selected={isActive}
                                     onClick={() => setActiveTab(tab.id)}
+                                    data-tab={tab.id}
                                     className={`relative h-12 px-4 shrink-0 flex items-center gap-2 text-[14px] font-medium cursor-pointer border-0 border-r border-[#D8D4CC] whitespace-nowrap ${
                                         isActive ? 'bg-white text-[#171717]' : 'bg-transparent text-[#4A4540] hover:bg-white/60'
                                     }`}
@@ -1265,6 +1300,17 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 </button>
                             );
                         })}
+                    </div>
+                    {tabScroll.left && (
+                        <button type="button" onClick={() => scrollTabs(-1)} aria-label="Show earlier sections" className="absolute left-0 top-0 bottom-0 w-10 inline-flex items-center justify-center border-0 border-r border-[#D8D4CC] bg-[#EFECE6] hover:bg-white cursor-pointer text-[#171717] shadow-[8px_0_12px_-6px_rgba(23,23,23,0.18)]">
+                            <ChevronLeft size={16} />
+                        </button>
+                    )}
+                    {tabScroll.right && (
+                        <button type="button" onClick={() => scrollTabs(1)} aria-label="Show more sections" className="absolute right-0 top-0 bottom-0 w-10 inline-flex items-center justify-center border-0 border-l border-[#D8D4CC] bg-[#EFECE6] hover:bg-white cursor-pointer text-[#171717] shadow-[-8px_0_12px_-6px_rgba(23,23,23,0.18)]">
+                            <ChevronRight size={16} />
+                        </button>
+                    )}
                     </div>
 
                     {/* Scrollable Tab Content Container */}
