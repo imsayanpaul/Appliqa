@@ -7,6 +7,8 @@ import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, 
 import { normalizeDesign, readPhoto } from '../lib/resumeDesign';
 import ResumeDocument from '../components/resume/ResumeDocument';
 import ResumePreview from '../components/resume/ResumePreview';
+import { analyzeResumeText, expandAnalysis } from '../lib/resumeAnalysis';
+import { extractPdfText } from '../lib/pdfText';
 import DesignPanel from '../components/resume/DesignPanel';
 import SectionsPanel from '../components/resume/SectionsPanel';
 import { ProjectsEditor, AchievementsEditor } from '../components/resume/ProjectsEditor';
@@ -18,7 +20,7 @@ import {
     Sliders, Monitor, FileText, FileCheck, ChevronDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
-    enhanceResumeBullet, suggestResumeSkills, analyzeResume, createOrUpdateUser, incrementStat,
+    enhanceResumeBullet, suggestResumeSkills, createOrUpdateUser, incrementStat,
     tailorResume, getAchievementFinderChat, getATSScore
 } from '../services/api';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -895,14 +897,8 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const extractTextFromPdf = async (file) => {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let fullText = '';
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
-            fullText += pageText + '\n';
-        }
+        // Keeps line breaks so the sections can be found
+        let fullText = await extractPdfText(pdf);
 
         if (fullText.trim().length < 50) {
             setUploadStatus("Extracting images. OCR Fallback activated...");
@@ -932,9 +928,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 throw new Error("Extracted text was too short or empty.");
             }
 
-            setUploadStatus('Analyzing text with AI...');
-            const res = await analyzeResume(text);
-            const data = res.data.analysis;
+            const data = expandAnalysis(await analyzeResumeText(text, { onStatus: setUploadStatus }));
 
             loadFromResumeData(data, { keepLook: true });
             initialSnapshotRef.current = '__imported__'; // imported content is unsaved
@@ -1267,7 +1261,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     {/* Section tabs */}
                     {/* One row of tabs: the mouse wheel scrolls it sideways, arrows show when there is more */}
                     <div className="shrink-0 relative border-0 border-b border-[#D8D4CC] bg-[#EFECE6]">
-                    <div ref={tabsRef} role="tablist" aria-label="Resume sections" style={{ scrollbarWidth: 'none', scrollPaddingInline: 44 }} className="flex overflow-x-auto">
+                    <div ref={tabsRef} role="tablist" aria-label="Resume sections" style={{ scrollbarWidth: 'none', scrollPaddingInline: 44 }} className="flex overflow-x-auto overflow-y-hidden">
                         {[
                             { id: 'sections', name: 'Sections' },
                             { id: 'personal', name: 'Personal' },
@@ -1296,7 +1290,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 >
                                     <span className={`ds-mono ${isActive ? 'text-[#CA3C0A]' : 'ds-mono-muted'}`}>{String(i + 1).padStart(2, '0')}</span>
                                     {tab.name}
-                                    {isActive && <span className="absolute left-0 right-0 bottom-[-1px] h-[2px] bg-[#CA3C0A]" />}
+                                    {isActive && <span className="absolute left-0 right-0 bottom-0 h-[2px] bg-[#CA3C0A]" />}
                                 </button>
                             );
                         })}

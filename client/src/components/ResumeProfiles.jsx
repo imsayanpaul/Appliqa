@@ -141,7 +141,7 @@ export default function ResumeProfiles({ user, onUpdateUser, analysis, uploadedA
     return (
         <div className="mt-10 border border-[#D8D4CC] bg-[#F7F5F2]">
             {/* Resume tabs */}
-            <div role="tablist" aria-label="Your resumes" className="flex overflow-x-auto border-0 border-b border-[#D8D4CC] bg-[#EFECE6]" style={{ scrollbarWidth: 'thin' }}>
+            <div role="tablist" aria-label="Your resumes" className="flex overflow-x-auto overflow-y-hidden border-0 border-b border-[#D8D4CC] bg-[#EFECE6]" style={{ scrollbarWidth: 'thin' }}>
                 {list.map((p) => {
                     const active = p.id === selected.id;
                     const primary = p.id === effectivePrimary;
@@ -159,7 +159,7 @@ export default function ResumeProfiles({ user, onUpdateUser, analysis, uploadedA
                                 {primary && <><span className="ds-square" /><span className="text-[#CA3C0A]">primary</span><span aria-hidden="true">·</span></>}
                                 {p.unsaved ? 'not saved' : formatUpdated(p.updatedAt)}
                             </span>
-                            {active && <span className="absolute left-0 right-0 bottom-[-1px] h-[2px] bg-[#CA3C0A]" />}
+                            {active && <span className="absolute left-0 right-0 bottom-0 h-[2px] bg-[#CA3C0A]" />}
                         </button>
                     );
                 })}

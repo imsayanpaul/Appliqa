@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { FileText, Upload, X } from 'lucide-react';
-import { analyzeResume } from '../services/api';
+import { analyzeResumeText } from '../lib/resumeAnalysis';
+import { extractPdfText } from '../lib/pdfText';
 import ResumeProfiles from './ResumeProfiles';
 import * as pdfjsLib from 'pdfjs-dist';
 import { createWorker } from 'tesseract.js';
@@ -90,16 +91,8 @@ function ResumeUpload({ onResumeAnalyzed, onUpdateUser, existingData = null, use
     const extractTextFromPdf = async (file) => {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let fullText = '';
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
-            fullText += pageText + '\n';
-        }
-
-        const cleanedText = fullText.trim();
+        // Keeps line breaks so the sections can be found
+        const cleanedText = await extractPdfText(pdf);
 
         if (cleanedText.length < 50) {
             console.log('PDF text is empty or image-based, falling back to OCR...');
@@ -156,12 +149,11 @@ function ResumeUpload({ onResumeAnalyzed, onUpdateUser, existingData = null, use
                 throw new Error('Could not extract any text from the file. Please ensure it contains readable text.');
             }
 
-            setStatusText('Analyzing with AI...');
             setUploading(false);
             setAnalyzing(true);
 
-            const res = await analyzeResume(extractedText);
-            const parsedAnalysis = res?.data?.analysis || res?.data || res || {};
+            // Read in the browser first; the AI only adds suggestions when it's available
+            const parsedAnalysis = await analyzeResumeText(extractedText, { onStatus: setStatusText });
             
             const analysisData = {
                 ...parsedAnalysis,
@@ -182,7 +174,7 @@ function ResumeUpload({ onResumeAnalyzed, onUpdateUser, existingData = null, use
             if (onResumeAnalyzed) onResumeAnalyzed(analysisData);
         } catch (err) {
             console.error('Resume processing failed:', err);
-            setError(`Failed to process resume: ${err.message || 'Unknown error'}`);
+            setError(err.message || 'We couldn’t read that file. Please try again.');
             setStatusText('Failed');
         } finally {
             setUploading(false);

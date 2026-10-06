@@ -4,6 +4,7 @@
 // shape the resume builder already saves (personalInfo, summary, experience, ...).
 
 import { newId, normalizeProfile, toBuilderData, profileToText, formatRange, formatScore, educationDates, certificationLabel } from './resumeProfile';
+import { parseResumeText, hasUsefulParse } from './parseResume';
 
 export const MAX_PROFILES = 10;
 export const MAX_NAME_LENGTH = 60;
@@ -90,8 +91,31 @@ export function makeProfile(name, data, profiles = []) {
 }
 
 // Resume data from an AI-parsed upload, in the stored shape
-export function dataFromAnalysis(analysis, personalInfo) {
-    const normalized = normalizeProfile(analysis || {});
+// Prefer full entries (bullets, scores, links): from the upload, or re-read from
+// the stored raw text when only the plain lines came back from the server.
+function withStructured(analysis) {
+    if (!analysis) return {};
+    if (analysis.structured) return { ...analysis, ...analysis.structured };
+    if (!analysis.rawText) return analysis;
+    const parsed = parseResumeText(analysis.rawText);
+    if (!hasUsefulParse(parsed)) return analysis;
+    return {
+        ...analysis,
+        ...(parsed.experience.length ? { experience: parsed.experience } : {}),
+        ...(parsed.education.length ? { education: parsed.education } : {}),
+        ...(parsed.projects.length && !analysis.projects?.length ? { projects: parsed.projects } : {}),
+        personalInfo: analysis.personalInfo || parsed.personalInfo,
+    };
+}
+
+export function dataFromAnalysis(analysis, existingPersonalInfo) {
+    const full = withStructured(analysis);
+    const normalized = normalizeProfile(full);
+    // Keep what the person already typed; fill gaps from the resume header
+    const parsedInfo = full.personalInfo || {};
+    const personalInfo = existingPersonalInfo || Object.keys(parsedInfo).length
+        ? { ...Object.fromEntries(Object.entries(parsedInfo).filter(([, v]) => v)), ...Object.fromEntries(Object.entries(existingPersonalInfo || {}).filter(([, v]) => v)) }
+        : null;
     const data = toBuilderData(normalized, personalInfo ? { personalInfo } : {});
     data.rawText = analysis?.rawText || profileToText(normalized, personalInfo || {});
     if (analysis?.suggestedRoles) data.suggestedRoles = analysis.suggestedRoles;
