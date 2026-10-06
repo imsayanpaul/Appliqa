@@ -70,16 +70,24 @@ export default function ResumeDocument({ data, design, print = false }) {
             const when = proj.startDate || proj.current ? formatRange(proj.startDate, proj.endDate, proj.current, 'Ongoing') : '';
             return (
                 <div key={proj.id || i} className="rd-block">
-                    <EntryHead title={proj.name} date={when} inline={inline} />
+                    {live || repo ? (
+                        // Links sit on the title line as labels; dates move next to the title
+                        <div className="rd-row">
+                            <div className="rd-h">
+                                {proj.name}
+                                {when && <span className="rd-date-inline"> · {when}</span>}
+                            </div>
+                            <div className="rd-links">
+                                {live && <a href={live} target="_blank" rel="noopener noreferrer">Live demo</a>}
+                                {live && repo && <span className="rd-sep"> | </span>}
+                                {repo && <a href={repo} target="_blank" rel="noopener noreferrer">{/github\.com/i.test(repo) ? 'GitHub' : 'Code'}</a>}
+                            </div>
+                        </div>
+                    ) : (
+                        <EntryHead title={proj.name} date={when} inline={inline} />
+                    )}
                     {proj.tech?.length > 0 && <div className="rd-sub rd-italic">{proj.tech.join(', ')}</div>}
                     {proj.description && <RichText text={proj.description} />}
-                    {(live || repo) && (
-                        <div className="rd-meta">
-                            {live && <a href={live}>{shortUrl(proj.liveUrl)}</a>}
-                            {live && repo && ' · '}
-                            {repo && <a href={repo}>{shortUrl(proj.repoUrl)}</a>}
-                        </div>
-                    )}
                 </div>
             );
         }) : null,
