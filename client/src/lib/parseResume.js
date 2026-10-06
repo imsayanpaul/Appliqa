@@ -60,17 +60,29 @@ const uniq = (list) => {
     });
 };
 
+// A line ending like this was cut off mid-sentence by the PDF's line wrap
+const UNFINISHED_RE = /(?:[,–—-]|\b(?:in|of|to|and|or|for|with|by|on|at|from|the|a|an|via|using|into|across|as|than|that|which|while|within|over|under|through|per|its|their|our|my))$/i;
+
 // Join wrapped lines back onto the bullet or line they continue
 function joinWrapped(lines) {
     const out = [];
+    let prevIsBullet = false;
     for (const line of lines) {
         const prev = out[out.length - 1];
         const isBullet = BULLET_RE.test(line);
-        if (prev && !isBullet && /^[a-z(]/.test(line) && !RANGE_RE.test(line)) {
+        // A bullet that stops mid-sentence ("…compile documents in") carries on
+        // to the next line, even when that line starts with "<45ms" or a capital
+        const unfinishedBullet = prevIsBullet && UNFINISHED_RE.test(prev || '');
+        const looksLikeContinuation = /^[a-z(]/.test(line)
+            || (prevIsBullet && /^[<>~%$₹+\d]/.test(line))
+            || unfinishedBullet;
+        if (prev && !isBullet && looksLikeContinuation && !RANGE_RE.test(line)) {
             // "pre-" + "dictive" -> "predictive"
             out[out.length - 1] = /[a-z]-$/.test(prev) ? `${prev.slice(0, -1)}${line}` : `${prev} ${line}`;
+        } else {
+            out.push(line);
+            prevIsBullet = isBullet;
         }
-        else out.push(line);
     }
     return out;
 }

@@ -99,6 +99,23 @@ function ExternalLink({ href, icon: Icon, children }) {
 }
 
 // Reorder / remove controls for an entry being edited
+// Lines starting with "-" or "•" show as bullets, other lines as paragraphs
+function DescriptionText({ text }) {
+    const lines = String(text).split('\n').map((l) => l.trim()).filter(Boolean);
+    const bullets = lines.filter((l) => /^[-•*]\s+/.test(l));
+    const paragraphs = lines.filter((l) => !/^[-•*]\s+/.test(l));
+    return (
+        <div className="mt-1 text-[14px] leading-relaxed text-[#4A4540]">
+            {paragraphs.map((l, i) => <p key={i} className="m-0">{l}</p>)}
+            {bullets.length > 0 && (
+                <ul className="m-0 mt-1 pl-5 list-disc space-y-0.5 marker:text-[#8A8580]">
+                    {bullets.map((b, i) => <li key={i}>{b.replace(/^[-•*]\s+/, '')}</li>)}
+                </ul>
+            )}
+        </div>
+    );
+}
+
 function EntryControls({ index, count, onMove, onRemove, label }) {
     const btn = 'w-9 h-9 inline-flex items-center justify-center bg-white border border-[#D8D4CC] hover:border-[#171717] cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed';
     return (
@@ -422,7 +439,7 @@ export default function ResumeProfile({ source, onSave, title, embedded = false,
                                             <span className="text-[16px] font-semibold text-[#171717]">{p.name}</span>
                                             {(p.startDate || p.current) && <span className="ds-mono ds-mono-muted shrink-0">{formatRange(p.startDate, p.endDate, p.current, 'Ongoing').toLowerCase()}</span>}
                                         </div>
-                                        {p.description && <p className="m-0 mt-1 text-[14px] leading-relaxed text-[#4A4540]">{p.description}</p>}
+                                        {p.description && <DescriptionText text={p.description} />}
                                         {p.tech.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{p.tech.map((t) => <span key={t} className="ds-tag !h-6 !text-[11px]">{t}</span>)}</div>}
                                         {(safeUrl(p.liveUrl) || safeUrl(p.repoUrl)) && (
                                             <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1">
