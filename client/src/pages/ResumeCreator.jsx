@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { certificationLabel } from '../lib/resumeProfile';
+import { certificationLabel, newId } from '../lib/resumeProfile';
 import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
 import { normalizeDesign, readPhoto } from '../lib/resumeDesign';
 import ResumeDocument from '../components/resume/ResumeDocument';
 import ResumePreview from '../components/resume/ResumePreview';
 import DesignPanel from '../components/resume/DesignPanel';
 import SectionsPanel from '../components/resume/SectionsPanel';
+import { ProjectsEditor, AchievementsEditor } from '../components/resume/ProjectsEditor';
 import { 
     User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
     Sparkles, Sparkle, Download, Save, Upload, X, 
@@ -167,7 +168,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             certifications,
             languages,
             summary,
-            { design, customSections, photo }
+            { design, customSections, photo, projects, achievements }
         );
 
         if (currentSnapshot !== initialSnapshotRef.current) {
@@ -176,7 +177,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         } else {
             setIsDirty(false);
         }
-    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo]);
+    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo, projects, achievements]);
 
     // Global keyboard shortcut (Ctrl+S / Cmd+S) to save resume from anywhere
     useEffect(() => {
@@ -188,7 +189,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo, user]);
+    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo, projects, achievements, user]);
 
     // Advanced Premium Features State
     // 1. ATS Score Checker
@@ -283,7 +284,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 [],
                 [],
                 '',
-                { design, customSections, photo }
+                { design, customSections, photo, projects, achievements }
             );
             setIsDirty(false);
         }
@@ -357,8 +358,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             });
         }
         setEducation(formattedEdu);
-        setProjects(Array.isArray(data.projects) ? data.projects : []);
-        setAchievements(Array.isArray(data.achievements) ? data.achievements : []);
+        const nextProjects = (Array.isArray(data.projects) ? data.projects : [])
+            .filter((p) => p && typeof p === 'object')
+            .map((p) => ({ ...p, id: p.id || newId(), tech: Array.isArray(p.tech) ? p.tech : [] }));
+        const nextAchievements = (Array.isArray(data.achievements) ? data.achievements : []).filter((a) => typeof a === 'string');
+        setProjects(nextProjects);
+        setAchievements(nextAchievements);
 
         // An imported file has no design: keep the current look and photo
         const nextCustom = keepLook ? customSections : (Array.isArray(data.customSections) ? data.customSections : []);
@@ -378,7 +383,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             newCerts,
             newLangs,
             newSummary,
-            { design: nextDesign, customSections: nextCustom, photo: nextPhoto }
+            { design: nextDesign, customSections: nextCustom, photo: nextPhoto, projects: nextProjects, achievements: nextAchievements }
         );
         setIsDirty(false);
     };
@@ -807,7 +812,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     certifications,
                     languages,
                     summary,
-                    { design, customSections, photo }
+                    { design, customSections, photo, projects, achievements }
                 );
                 setIsDirty(false);
                 setSaved(true);
@@ -1234,10 +1239,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             { id: 'personal', name: 'Personal' },
                             { id: 'summary', name: 'Summary' },
                             { id: 'experience', name: 'Experience' },
+                            { id: 'projects', name: 'Projects' },
                             { id: 'education', name: 'Education' },
                             { id: 'skills', name: 'Skills' },
                             { id: 'expertise', name: 'Expertise' },
                             { id: 'certifications', name: 'Certifications' },
+                            { id: 'achievements', name: 'Achievements' },
                             { id: 'languages', name: 'Languages' }
                         ].map((tab, i) => {
                             const isActive = activeTab === tab.id;
@@ -1761,6 +1768,14 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                     )}
                                 </div>
                             </div>
+                        )}
+
+                        {activeTab === 'projects' && (
+                            <ProjectsEditor projects={projects} onChange={setProjects} />
+                        )}
+
+                        {activeTab === 'achievements' && (
+                            <AchievementsEditor achievements={achievements} onChange={setAchievements} />
                         )}
 
                         {activeTab === 'certifications' && (
