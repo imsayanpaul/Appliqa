@@ -9,6 +9,13 @@ function RecommendedJobs({ user, resumeData }) {
     const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [savedJobs, setSavedJobs] = useState([]);
+    // One place for saved state, shared by the job cards and the detail panel
+    const handleToggleSave = (jobId, isSavedVal, dbId) => {
+        setSavedJobs(prev => {
+            const rest = prev.filter(sj => sj.jobId !== jobId);
+            return isSavedVal ? [...rest, { jobId, _id: dbId }] : rest;
+        });
+    };
     const [loading, setLoading] = useState(true);
     const [selectedJob, setSelectedJob] = useState(null);
     const activeReqRef = useRef(0);
@@ -123,13 +130,7 @@ function RecommendedJobs({ user, resumeData }) {
                                     onClick={() => setSelectedJob(job)}
                                     initialSaved={!!saved}
                                     initialSavedId={saved?._id}
-                                    onToggleSave={(jobId, isSavedVal, dbId) => {
-                                        if (isSavedVal) {
-                                            setSavedJobs(prev => [...prev, { jobId, _id: dbId }]);
-                                        } else {
-                                            setSavedJobs(prev => prev.filter(sj => sj.jobId !== jobId));
-                                        }
-                                    }}
+                                    onToggleSave={handleToggleSave}
                                 />
                             </li>
                         );
@@ -154,6 +155,9 @@ function RecommendedJobs({ user, resumeData }) {
                         job={selectedJob}
                         user={user}
                         resumeData={resumeData}
+                        initialSaved={savedJobs.some(sj => sj.jobId === selectedJob.id)}
+                        initialSavedId={savedJobs.find(sj => sj.jobId === selectedJob.id)?._id || null}
+                        onToggleSave={handleToggleSave}
                         onClose={() => setSelectedJob(null)}
                     />
                 </Suspense>

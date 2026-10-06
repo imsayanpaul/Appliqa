@@ -3,19 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { FiX, FiBookmark, FiFileText, FiCopy, FiCheck, FiMessageSquare, FiRefreshCw, FiArrowUpRight } from 'react-icons/fi';
 import { FileCheck } from 'lucide-react';
-import { saveJob, getSavedJobs, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
+import { getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
 import ATSScorer from './ATSScorer';
 import { CompanyMark } from './JobCard';
 import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
 import { formatSalary } from '../lib/format';
+import { useSaveJob } from '../lib/useSaveJob';
 
-function JobDetail({ job, user, resumeData, onClose }) {
+function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedId, onToggleSave }) {
     const navigate = useNavigate();
     const goToSignIn = () => { onClose?.(); navigate('/profile'); };
     const [matchData, setMatchData] = useState(null);
     const [loadingMatch, setLoadingMatch] = useState(false);
-    const [isSaved, setIsSaved] = useState(!!job._id);
-    const [savedJobId, setSavedJobId] = useState(job._id || null);
     const [showATS, setShowATS] = useState(false);
     useEscapeKey(onClose);
     const [coverLetter, setCoverLetter] = useState(job.coverLetter || '');
@@ -51,26 +50,23 @@ function JobDetail({ job, user, resumeData, onClose }) {
         }
     };
 
-    const handleSave = async () => {
-        if (!user) return alert('Sign in to save jobs to your tracker.');
-        try {
-            await saveJob({ 
-                ...job, 
-                matchScore: matchData?.score || 0,
-                matchDetails: matchData || null,
-                coverLetter: coverLetter || null,
-                recruiterDM: recruiterDM || null
-            });
-            setIsSaved(true);
-            // Try to find the saved job ID for cover letter persistence
-            try {
-                const resp = await getSavedJobs();
-                const match = resp.data.jobs?.find(j => j.jobId === job.id);
-                if (match) setSavedJobId(match._id);
-            } catch (_) {}
-        } catch (err) {
-            if (err.response?.status === 409) setIsSaved(true);
-        }
+    // Saved state is shared with the job card through the parent's list
+    const { saved: isSaved, savedId: savedJobId, toggle: toggleSave, error: saveError } = useSaveJob({
+        job,
+        user,
+        initialSaved: initialSaved ?? !!job._id,
+        initialSavedId: initialSavedId ?? job._id ?? null,
+        onChange: onToggleSave,
+        payload: () => ({
+            matchScore: matchData?.score || 0,
+            matchDetails: matchData || null,
+            coverLetter: coverLetter || null,
+            recruiterDM: recruiterDM || null,
+        }),
+    });
+
+    const handleSave = () => {
+        if (!toggleSave()) alert('Sign in to save jobs to your tracker.');
     };
 
     const handleGenerateCoverLetter = async () => {
@@ -370,11 +366,17 @@ function JobDetail({ job, user, resumeData, onClose }) {
                     <button
                         type="button"
                         onClick={handleSave}
-                        disabled={isSaved}
-                        className="ds-btn !min-h-[64px] !px-6 sm:!px-8 bg-[#F7F5F2] text-[#171717] hover:bg-white disabled:!opacity-100"
+                        aria-pressed={isSaved}
+                        title={isSaved ? 'Remove from your tracker' : 'Save to your tracker'}
+                        className="group/save ds-btn !min-h-[64px] !px-6 sm:!px-8 bg-[#F7F5F2] text-[#171717] hover:bg-white"
                     >
-                        {isSaved ? 'Saved to tracker' : 'Save job'}
-                        <FiBookmark size={18} fill={isSaved ? 'currentColor' : 'none'} />
+                        {isSaved ? (
+                            <>
+                                <span className="group-hover/save:hidden">Saved to tracker</span>
+                                <span className="hidden group-hover/save:inline">Remove from tracker</span>
+                            </>
+                        ) : saveError || 'Save job'}
+                        <FiBookmark size={18} fill={isSaved ? 'currentColor' : 'none'} className={isSaved ? 'text-[#CA3C0A]' : ''} />
                     </button>
                     {!user ? (
                         <button

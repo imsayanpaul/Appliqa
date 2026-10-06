@@ -416,6 +416,12 @@ function SavedJobs({ user, resumeData }) {
                         job={selectedJob}
                         user={user}
                         resumeData={resumeData}
+                        initialSaved
+                        initialSavedId={selectedJob._id}
+                        onToggleSave={(jobId, isSavedVal, dbId) => {
+                            if (!isSavedVal) setJobs(prev => prev.filter(j => j.jobId !== jobId && j._id !== selectedJob._id));
+                            else if (dbId) fetchSavedJobs();
+                        }}
                         onClose={() => setSelectedJob(null)}
                     />
                 )}

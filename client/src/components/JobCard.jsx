@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiBookmark, FiArrowUpRight } from 'react-icons/fi';
-import { saveJob, deleteSavedJob, getSavedJobs } from '../services/api';
+import { useSaveJob } from '../lib/useSaveJob';
 import { formatSalary } from '../lib/format';
 
 const timeAgo = (dateStr) => {
@@ -45,42 +45,11 @@ export function CompanyMark({ logo, company }) {
 
 function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = null, onToggleSave }) {
     const navigate = useNavigate();
-    const [isSaved, setIsSaved] = useState(initialSaved);
-    const [savedId, setSavedId] = useState(initialSavedId);
-    const [saving, setSaving] = useState(false);
+    const { saved: isSaved, toggle } = useSaveJob({ job, user, initialSaved, initialSavedId, onChange: onToggleSave });
 
-    useEffect(() => setIsSaved(initialSaved), [initialSaved]);
-    useEffect(() => setSavedId(initialSavedId), [initialSavedId]);
-
-    const handleSave = async (e) => {
+    const handleSave = (e) => {
         e.stopPropagation();
-        if (!user) return navigate('/profile');
-        if (saving) return;
-
-        setSaving(true);
-        try {
-            if (isSaved) {
-                let id = savedId;
-                if (!id) {
-                    const res = await getSavedJobs();
-                    id = (res.data.jobs || []).find(sj => sj.jobId === job.id)?._id;
-                }
-                if (id) await deleteSavedJob(id);
-                setIsSaved(false);
-                setSavedId(null);
-                onToggleSave?.(job.id, false, null);
-            } else {
-                const res = await saveJob(job);
-                const dbId = res.data?.savedJob?.id;
-                setIsSaved(true);
-                setSavedId(dbId);
-                onToggleSave?.(job.id, true, dbId);
-            }
-        } catch (err) {
-            console.error('Toggle save failed:', err);
-        } finally {
-            setSaving(false);
-        }
+        if (!toggle()) navigate('/profile');
     };
 
     const salary = formatSalary(job.salary);
@@ -109,7 +78,6 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
                         isSaved ? 'bg-[#CA3C0A] border-[#CA3C0A] text-white' : 'bg-transparent border-[#D8D4CC] text-[#171717] hover:border-[#171717]'
                     }`}
                     onClick={handleSave}
-                    disabled={saving}
                     aria-pressed={isSaved}
                     aria-label={isSaved ? `Remove ${job.title} from saved jobs` : `Save ${job.title}`}
                 >
