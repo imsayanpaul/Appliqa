@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiRefreshCw, FiArrowUpRight, FiArrowRight } from 'react-icons/fi';
 import { getCareerPath } from '../services/api';
 import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
+import { monthlyFromCTC } from '../lib/format';
 
 function CareerPath({ user, resumeData }) {
     const navigate = useNavigate();
@@ -175,12 +176,35 @@ function CareerPath({ user, resumeData }) {
                                                             <dd className="m-0 mt-1 text-[15px] font-medium">{path.timeline}</dd>
                                                         </div>
                                                     )}
-                                                    {path.salary_range && (
-                                                        <div>
-                                                            <dt className="ds-mono ds-mono-muted">salary</dt>
-                                                            <dd className="m-0 mt-1 text-[15px] font-medium">{path.salary_range}</dd>
-                                                        </div>
-                                                    )}
+                                                    {path.salary_range && (() => {
+                                                        const monthly = monthlyFromCTC(path.salary_range);
+                                                        const tipId = `ctc-tip-${i}`;
+                                                        return (
+                                                            <div>
+                                                                <dt className="ds-mono ds-mono-muted">ctc · per year</dt>
+                                                                <dd className="m-0 mt-1 text-[15px] font-medium">
+                                                                    {monthly ? (
+                                                                        <span
+                                                                            tabIndex={0}
+                                                                            aria-describedby={tipId}
+                                                                            className="group relative inline-block cursor-help border-0 border-b border-dashed border-[#8A8580] outline-none focus-visible:border-[#CA3C0A]"
+                                                                        >
+                                                                            {path.salary_range}
+                                                                            <span
+                                                                                id={tipId}
+                                                                                role="tooltip"
+                                                                                className="pointer-events-none absolute left-0 bottom-full mb-2 z-20 w-max max-w-[240px] bg-[#171717] text-white px-3 py-2 opacity-0 translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:translate-y-0 group-focus:opacity-100 group-focus:translate-y-0"
+                                                                            >
+                                                                                <span className="ds-mono !text-white/60 block">approx. monthly</span>
+                                                                                <span className="block mt-0.5 text-[15px] font-semibold">{monthly}</span>
+                                                                                <span className="block mt-0.5 text-[12px] text-white/60">gross, before tax and deductions</span>
+                                                                            </span>
+                                                                        </span>
+                                                                    ) : path.salary_range}
+                                                                </dd>
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </dl>
                                             )}
 
