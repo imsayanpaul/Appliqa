@@ -6,7 +6,7 @@ import { certificationLabel, newId } from '../lib/resumeProfile';
 import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, dataFromAnalysis, formatUpdated, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
 import { normalizeDesign, readPhoto } from '../lib/resumeDesign';
 import ResumeDocument from '../components/resume/ResumeDocument';
-import ResumePreview from '../components/resume/ResumePreview';
+import ResumePreview, { estimatePrintedPages } from '../components/resume/ResumePreview';
 import { analyzeResumeText, expandAnalysis } from '../lib/resumeAnalysis';
 import { extractPdfText } from '../lib/pdfText';
 import DesignPanel from '../components/resume/DesignPanel';
@@ -41,7 +41,6 @@ const FIT_LEVELS = [
     { marginY: 0.35, marginX: 0.45, nameSize: 20, photoSize: 70 },
     { bodySize: 9, headingSize: 9.5, sectionSize: 10.5, sectionGap: 6, blockGap: 3, itemGap: 0.5, titleGap: 2, lineHeight: 1.15 },
 ];
-const A4_HEIGHT_PX = (297 * 96) / 25.4;
 
 export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
     const navigate = useNavigate();
@@ -133,13 +132,11 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const [fitting, setFitting] = useState(false);
     const [canUndoFit, setCanUndoFit] = useState(false);
 
-    // Pages the preview will print to (same estimate the preview shows)
-    const printedPages = () => {
-        const doc = document.querySelector('.resume-creator-preview-panel .rd-screen');
-        if (!doc) return 1;
-        const margin = designRef.current.marginY * 96 * 2;
-        return Math.max(1, Math.ceil((doc.offsetHeight - margin - 2) / (A4_HEIGHT_PX - margin)));
-    };
+    // Pages the preview will print to (same estimate, with print slack, the preview shows)
+    const printedPages = () => estimatePrintedPages(
+        document.querySelector('.resume-creator-preview-panel .rd-screen'),
+        designRef.current.marginY,
+    ).pages;
 
     const fitToOnePage = async () => {
         if (fitting) return;

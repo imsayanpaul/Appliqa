@@ -16,6 +16,7 @@
 .rd *::after { box-sizing: border-box; }
 
 .rd-screen {
+  position: relative; /* children measure their offsetTop from here */
   width: 210mm;
   min-height: 297mm;
   padding: var(--rd-pad-y) var(--rd-pad-x);

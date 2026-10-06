@@ -4,6 +4,21 @@ import ResumeDocument from './ResumeDocument';
 const MM = 96 / 25.4; // css px per mm
 const PAGE_W = 210 * MM;
 const PAGE_H = 297 * MM;
+// Print layout can wrap a line or two differently from the screen, so "fits on
+// one page" keeps about two lines of room spare
+const SAFETY = 0.03;
+
+// Pages a rendered `.rd-screen` document prints to. Measures the content itself
+// (the page box has an A4 minimum height, which would hide how full it is).
+export function estimatePrintedPages(docEl, marginY) {
+    const kids = docEl ? [...docEl.children] : [];
+    if (!kids.length) return { pages: 1, fill: 0 };
+    const first = kids[0];
+    const last = kids[kids.length - 1];
+    const contentH = last.offsetTop + last.offsetHeight - first.offsetTop;
+    const usable = (PAGE_H - marginY * 96 * 2) * (1 - SAFETY);
+    return { pages: Math.max(1, Math.ceil(contentH / usable)), fill: contentH / usable };
+}
 
 // Scales the A4 page down to fit the panel and estimates how many pages it prints to
 export default function ResumePreview({ data, design, onFit, onUndoFit, fitting = false, canUndoFit = false }) {
@@ -11,17 +26,26 @@ export default function ResumePreview({ data, design, onFit, onUndoFit, fitting 
     const docRef = useRef(null);
     const [scale, setScale] = useState(1);
     const [docHeight, setDocHeight] = useState(PAGE_H);
+    const [estimate, setEstimate] = useState({ pages: 1, fill: 0 });
+
+    const measure = () => {
+        const doc = docRef.current;
+        if (!doc) return;
+        if (doc.offsetHeight !== docHeight) setDocHeight(doc.offsetHeight);
+        const next = estimatePrintedPages(doc.firstElementChild, design.marginY);
+        if (next.pages !== estimate.pages || Math.abs(next.fill - estimate.fill) > 0.01) setEstimate(next);
+    };
 
     useLayoutEffect(() => {
         const outer = outerRef.current;
         const doc = docRef.current;
         if (!outer || !doc) return;
-        const measure = () => {
+        const onResize = () => {
             setScale(Math.min(1, outer.clientWidth / PAGE_W));
             setDocHeight(doc.offsetHeight);
         };
-        measure();
-        const ro = new ResizeObserver(measure);
+        onResize();
+        const ro = new ResizeObserver(onResize);
         ro.observe(outer);
         ro.observe(doc);
         return () => ro.disconnect();
@@ -29,21 +53,21 @@ export default function ResumePreview({ data, design, onFit, onUndoFit, fitting 
 
     // Also measure after every render: resize events can arrive late (or not at all
     // in a background tab), which would leave a stale page count
-    useLayoutEffect(() => {
-        const h = docRef.current?.offsetHeight;
-        if (h && h !== docHeight) setDocHeight(h);
-    });
+    useLayoutEffect(measure);
 
-    // Printed pages repeat the top and bottom margin, so divide by the usable height
-    const margin = design.marginY * 96 * 2;
-    const pages = Math.max(1, Math.ceil((docHeight - margin - 2) / (PAGE_H - margin)));
+    const { pages, fill } = estimate;
 
     return (
         <div ref={outerRef} className="w-full">
             <div className="ds-mono ds-mono-muted m-0 mb-3 flex items-center justify-between gap-3">
                 <span>a4 preview · {Math.round(scale * 100)}%</span>
                 <span className="flex items-center gap-3">
-                    <span className={pages > 1 ? 'text-[#CA3C0A]' : ''}>≈ {pages} page{pages === 1 ? '' : 's'} when printed</span>
+                    <span
+                        className={pages > 1 ? 'text-[#CA3C0A]' : ''}
+                        title={pages === 1 ? `About ${Math.round(fill * 100)}% of the page is used` : undefined}
+                    >
+                        ≈ {pages} page{pages === 1 ? '' : 's'} when printed
+                    </span>
                     {canUndoFit && !fitting && (
                         <button type="button" onClick={onUndoFit} className="bg-transparent border-0 p-0 cursor-pointer ds-mono text-[#171717] underline underline-offset-2 hover:text-[#CA3C0A]">
                             undo fit

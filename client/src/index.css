@@ -5048,7 +5048,7 @@ input[type="number"] {
 /* Print CSS Stylesheet */
 @media print {
   @page {
-    margin: 16mm 20mm !important;
+    /* Margins come from the resume design (set by the resume builder) */
     @top-left {
       content: "";
     }
