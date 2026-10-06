@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiChevronDown, FiCalendar, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiChevronDown, FiCalendar, FiChevronRight, FiArrowUpRight } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Compass, Workflow, Route as RouteIcon, Bot, FileText, Shield } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 import Home from './pages/Home';
-import SearchResults from './pages/SearchResults';
-import SavedJobs from './pages/SavedJobs';
 // Resilient lazy loader that automatically recovers from stale Vite chunk hashes after new deployments
 const lazyWithRetry = (componentImport) =>
   lazy(async () => {
@@ -32,10 +30,14 @@ const Advisor = lazyWithRetry(() => import('./pages/Advisor'));
 const ResumeCreator = lazyWithRetry(() => import('./pages/ResumeCreator'));
 const Pricing = lazyWithRetry(() => import('./pages/Pricing'));
 const Vault = lazyWithRetry(() => import('./pages/Vault'));
+const SearchResults = lazyWithRetry(() => import('./pages/SearchResults'));
+const SavedJobs = lazyWithRetry(() => import('./pages/SavedJobs'));
 const Legal = lazyWithRetry(() => import('./pages/Legal'));
 
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
+import { Logo } from './components/ui/Logo';
+import { useEscapeKey } from './lib/useEscapeKey';
 import FeedbackWidget from './components/FeedbackWidget';
 import { supabase } from './services/supabase';
 import { getUserProfile, createOrUpdateUser } from './services/api';
@@ -184,32 +186,6 @@ function AppContent() {
         }
     }, [showOnboardingPrompt]);
     
-    // GitHub repository stats (Stars)
-    const [githubStats, setGithubStats] = useState({ stars: 0 });
-
-    useEffect(() => {
-        fetch('https://api.github.com/repos/imsayanpaul/Appliqa')
-            .then(res => res.json())
-            .then(data => {
-                setGithubStats({
-                    stars: data.stargazers_count ?? 0
-                });
-            })
-            .catch(err => console.error('Error fetching GitHub stats:', err));
-    }, []);
-
-    // GitHub Dropdown States
-    const [starDropdownOpen, setStarDropdownOpen] = useState(false);
-
-    useEffect(() => {
-        if (!starDropdownOpen) return;
-        const handleOutsideClick = () => {
-            setStarDropdownOpen(false);
-        };
-        window.addEventListener('click', handleOutsideClick);
-        return () => window.removeEventListener('click', handleOutsideClick);
-    }, [starDropdownOpen]);
-    
     // Custom Alert State
     const [customAlert, setCustomAlert] = useState({ show: false, message: '', title: 'Notification', type: 'info' });
 
@@ -254,54 +230,24 @@ function AppContent() {
     const [isOpen, setIsOpen] = useState(false);
     const toggleMenu = () => setIsOpen(!isOpen);
     const navItems = [
-        { 
-            name: 'Search', 
-            mobileTitle: 'Job Discovery', 
-            desc: 'Search 50k+ live verified listings',
-            path: '/', 
-            icon: Compass
-        },
-        { 
-            name: 'Saved', 
-            mobileTitle: 'Application Pipeline', 
-            desc: 'Track bookmarks, interviews & offers',
-            path: '/saved', 
-            icon: Workflow
-        },
-        { 
-            name: 'Career', 
-            mobileTitle: 'Career Roadmap', 
-            desc: 'Promotion ladders & salary benchmarks',
-            path: '/career', 
-            icon: RouteIcon
-        },
-        { 
-            name: 'Advisor', 
-            mobileTitle: 'AI Career Advisor', 
-            desc: 'Interactive mentor & mock prep',
-            path: '/advisor', 
-            icon: Bot
-        },
-        { 
-            name: 'Resume Builder', 
-            mobileTitle: 'Visual Resume Creator', 
-            desc: 'ATS score boost & tailored exports',
-            path: '/resume-creator', 
-            icon: FileText
-        },
-        { 
-            name: 'My Vault', 
-            mobileTitle: 'My Vault', 
-            desc: 'Candidate repository & documents',
-            path: '/vault', 
-            icon: Shield
-        }
+        { name: 'Search', desc: 'find and filter live jobs', path: '/' },
+        { name: 'Tracker', desc: 'saved, applied, interviewing', path: '/saved' },
+        { name: 'Career path', desc: 'roles, skills and salary steps', path: '/career' },
+        { name: 'Advisor', desc: 'ask an ai career coach', path: '/advisor' },
+        { name: 'Resume builder', desc: 'write and tailor your resume', path: '/resume-creator', tag: 'ai' },
     ];
+    const publicNavItems = [
+        { name: 'Search jobs', desc: 'find and filter live jobs', path: '/search' },
+        { name: 'Resume builder', desc: 'write and tailor your resume', path: '/resume-creator', tag: 'ai' },
+        { name: 'Advisor', desc: 'ask an ai career coach', path: '/advisor' },
+        { name: 'Pricing', desc: 'free to start', path: '/pricing' },
+    ];
+    const visibleNavItems = user ? navItems : publicNavItems;
+    useEscapeKey(() => setIsOpen(false), isOpen);
     const handleNavClick = (path) => {
         navigate(path);
         setIsOpen(false);
     };
-    const ctaText = session ? 'Profile' : 'Sign In';
 
     // Navbar expand/contract & show/hide state on scroll
     const [scrolled, setScrolled] = useState(false);
@@ -357,6 +303,7 @@ function AppContent() {
             '/resume-creator': 'Appliqa - AI Resume Builder',
             '/vault': 'Appliqa - My Vault',
             '/profile': 'Appliqa - Profile Settings',
+            '/pricing': 'Appliqa - Pricing',
             '/privacy': 'Appliqa - Privacy Policy',
             '/terms': 'Appliqa - Terms of Service',
             '/security': 'Appliqa - Security'
@@ -615,201 +562,134 @@ function AppContent() {
 
     return (
         <div style={{ position: 'relative', height: '100%', overflow: 'hidden' }}>
-            {/* Modern Squarish Full-Width Header Navbar */}
-            <header className={`app-navbar ${scrolled ? 'scrolled' : ''}`}>
+            <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[300] focus:bg-white focus:px-4 focus:py-2 focus:text-sm">Skip to content</a>
+
+            <header className="app-navbar">
                 <div className="navbar-container">
-                    {/* Brand Logo */}
-                    <div className="navbar-brand-container" role="link" tabIndex={0} aria-label="Appliqa home" onClick={() => handleNavClick('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavClick('/'); } }}>
-                        <motion.div
-                            className="logo-icon-motion"
-                            whileHover={{ scale: 1.03 }}
-                        >
-                            <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                viewBox="0 0 20831.25 5423.16" 
-                                width="84.5"
-                                height="22"
-                                style={{ display: 'block', height: '22px', width: '84.5px' }}
+                    <a
+                        href="/"
+                        className="nav-cell nav-brand"
+                        aria-label="Appliqa home"
+                        onClick={(e) => { e.preventDefault(); handleNavClick('/'); }}
+                    >
+                        <Logo height={22} />
+                    </a>
+
+                    <nav className="navbar-desktop-nav" aria-label="Primary">
+                        {visibleNavItems.map((item) => (
+                            <a
+                                key={item.path}
+                                href={item.path}
+                                aria-current={isActive(item.path) ? 'page' : undefined}
+                                className="nav-cell"
+                                onClick={(e) => { e.preventDefault(); handleNavClick(item.path); }}
                             >
-                                <g id="Layer_x0020_1">
-                                    <path fill="#0F172A" fillRule="nonzero" d="M1033.47 4275.76l109.2 -347.45 -728.14 -881.51 -414.54 1228.96 1033.47 0zm395.38 -1259.8l168.7 -537.88 369.03 -1179.54 30.99 0 348.44 1109.09 808.9 -536.54 -531.57 -1575.91 -1280.68 0 -831.24 2464.34 841.43 306.85 76 -50.41zm1122.52 45.97l293.36 934.66 87.8 279.16 1033.47 0 -669.29 -1984.23 -745.34 770.4z"/>
-                                    <polygon fill="#FF6600" points="373.75,2825.59 1367.31,3187.91 3907.91,1502.75 1411.99,4082.51 "/>
-                                    <path fill="#0F172A" fillRule="nonzero" d="M4403.03 5423.16l961.7 0 0 -1622.52 19.38 0c122.75,279.65 394.09,533.46 850.02,533.46 668.2,0 1207.2,-523.3 1207.2,-1551.45 0,-1065.99 -570.37,-1551.45 -1201.66,-1551.45 -477.16,0 -739.27,278.73 -855.56,556.53l-28.61 0 0 -517.76 -952.47 0 0 4153.2zm942.32 -2642.36c0,-493.77 203.97,-798.34 556.53,-798.34 356.25,0 552.84,311.95 552.84,798.34 0,487.31 -196.59,803.87 -552.84,803.87 -352.56,0 -556.53,-314.72 -556.53,-803.87z"/>
-                                    <path fill="#0F172A" fillRule="nonzero" d="M7946.18 5423.16l961.7 0 0 -1622.52 19.38 0c122.75,279.65 394.09,533.46 850.02,533.46 668.2,0 1207.2,-523.3 1207.2,-1551.45 0,-1065.99 -570.37,-1551.45 -1201.66,-1551.45 -477.16,0 -739.27,278.73 -855.56,556.53l-28.61 0 0 -517.76 -952.47 0 0 4153.2zm942.32 -2642.36c0,-493.77 203.97,-798.34 556.53,-798.34 356.25,0 552.84,311.95 552.84,798.34 0,487.31 -196.59,803.87 -552.84,803.87 -352.56,0 -556.53,-314.72 -556.53,-803.87z"/>
-                                    <polygon fill="#0F172A" points="12451.01,263.04 11489.32,263.04 11489.32,4290.72 12451.01,4290.72 "/>
-                                    <path fill="#0F172A" fillRule="nonzero" d="M13060.15 4290.72l961.7 0 0 -3020.76 -961.7 0 0 3020.76zm481.77 -3372.4c273.19,0 493.77,-206.74 493.77,-460.54 0,-253.81 -220.58,-457.77 -493.77,-457.77 -271.34,0 -493.77,203.97 -493.77,457.77 0,253.81 222.43,460.54 493.77,460.54z"/>
-                                    <path fill="#FF6600" fillRule="nonzero" d="M16603.29 5423.16l961.7 0 0 -4153.2 -951.54 0 0 517.76 -29.53 0c-114.44,-277.8 -377.48,-556.53 -853.72,-556.53 -631.29,0 -1203.51,485.46 -1203.51,1551.45 0,1028.15 540.84,1551.45 1208.12,1551.45 455.93,0 727.27,-253.81 849.1,-533.46l19.38 0 0 1622.52zm-534.38 -1838.48c-356.25,0 -554.68,-316.56 -554.68,-803.87 0,-486.39 196.59,-798.34 554.68,-798.34 351.64,0 556.53,304.57 556.53,798.34 0,489.16 -206.74,803.87 -556.53,803.87z"/>
-                                    <path fill="#FF6600" fillRule="nonzero" d="M19025.99 4341.48c420.86,0 711.58,-162.44 876.79,-471.62l24 0 0 420.86 904.47 0 0 -2052.6c0,-639.6 -568.53,-1006.92 -1337.33,-1006.92 -812.18,0 -1272.72,408.86 -1349.33,958.93l886.94 31.38c41.53,-191.97 201.2,-310.1 454.08,-310.1 236.27,0 385.79,113.52 385.79,316.56l0 10.15c0,184.59 -200.28,223.35 -716.2,268.57 -610.98,51.69 -1122.29,277.8 -1122.29,946.01 0,598.06 414.4,888.79 993.08,888.79zm297.18 -628.52c-222.43,0 -380.25,-106.14 -380.25,-307.34 0,-194.74 154.13,-312.87 427.32,-353.48 179.05,-25.84 398.71,-65.53 506.69,-121.83l0 287.03c0,294.42 -247.35,495.62 -553.76,495.62z"/>
-                                </g>
-                            </svg>
-                        </motion.div>
-                    </div>
+                                {item.name}
+                                {item.tag && <span className="nav-tag">{item.tag}</span>}
+                            </a>
+                        ))}
+                    </nav>
+                    <div className="nav-spacer" aria-hidden="true" />
 
-                    {/* Desktop Navigation - Segmented Island */}
-                    {user && (
-                        <nav className="navbar-desktop-nav">
-                            {navItems.map((item) => {
-                                const active = isActive(item.path);
-                                const isResume = item.name === 'Resume Builder';
-                                return (
-                                    <span
-                                        key={item.name}
-                                        onClick={() => handleNavClick(item.path)}
-                                        className={`navbar-link-item ${active ? 'active' : ''}`}
-                                    >
-                                        {active && <span className="navbar-active-dot" />}
-                                        <span>{item.name}</span>
-                                        {isResume && <span className="navbar-nav-badge">AI</span>}
-                                    </span>
-                                );
-                            })}
-                        </nav>
-                    )}
-
-                    {/* Right Actions: Profile CTA & Mobile Toggle */}
-                    <div className="navbar-right-actions">
+                    <div className="nav-right">
                         {session ? (
-                            <>
-                                {/* Desktop Profile Badge */}
-                                <div className="navbar-desktop-cta">
-                                    <button
-                                        onClick={() => handleNavClick('/profile')}
-                                        className={`navbar-profile-badge ${isActive('/profile') ? 'active' : ''}`}
-                                        title="Open Profile & Settings"
-                                    >
-                                        <div className="navbar-profile-avatar">
-                                            {(user?.name?.trim()?.charAt(0) || session?.user?.email?.charAt(0) || 'P').toUpperCase()}
-                                        </div>
-                                        <span className="navbar-profile-name">
-                                            {user?.name?.trim() ? user.name.trim().split(' ')[0] : 'Profile'}
-                                        </span>
-                                        <FiChevronRight size={13} className="navbar-profile-arrow" />
-                                    </button>
-                                </div>
-
-                                {/* Mobile Menu Button (Only when logged in) */}
-                                <button 
-                                    className="navbar-mobile-toggle" 
-                                    onClick={toggleMenu}
-                                    aria-label="Toggle navigation menu"
-                                >
-                                    <Menu size={22} />
-                                </button>
-                            </>
-                        ) : (
-                            <button
-                                onClick={() => handleNavClick('/profile')}
-                                className={`navbar-signin-btn ${isActive('/profile') ? 'active' : ''}`}
+                            <a
+                                href="/profile"
+                                aria-current={isActive('/profile') ? 'page' : undefined}
+                                className="nav-cell nav-hide-mobile"
+                                onClick={(e) => { e.preventDefault(); handleNavClick('/profile'); }}
                             >
-                                <FiUser size={13} />
-                                <span>Sign In</span>
-                            </button>
+                                <span className="nav-avatar" aria-hidden="true">
+                                    {(user?.name?.trim()?.charAt(0) || session?.user?.email?.charAt(0) || 'P').toUpperCase()}
+                                </span>
+                                {user?.name?.trim() ? user.name.trim().split(' ')[0] : 'Profile'}
+                            </a>
+                        ) : (
+                            <>
+                                <a
+                                    href="/profile"
+                                    className="nav-cell nav-hide-mobile"
+                                    onClick={(e) => { e.preventDefault(); handleNavClick('/profile'); }}
+                                >
+                                    Sign in
+                                </a>
+                                <a
+                                    href="/profile"
+                                    className="nav-cell nav-cta nav-hide-mobile"
+                                    onClick={(e) => { e.preventDefault(); handleNavClick('/profile'); }}
+                                >
+                                    Get started
+                                    <FiArrowUpRight size={16} aria-hidden="true" />
+                                </a>
+                            </>
                         )}
+                        <button
+                            type="button"
+                            className="navbar-mobile-toggle"
+                            onClick={toggleMenu}
+                            aria-label="Open menu"
+                            aria-expanded={isOpen}
+                            aria-controls="mobile-menu"
+                        >
+                            <Menu size={20} />
+                        </button>
                     </div>
                 </div>
             </header>
 
-            {/* Full-Screen Mobile Menu Drawer (Rendered outside header to guarantee isolation & solid background) */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
+                        id="mobile-menu"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Menu"
                         className="navbar-mobile-overlay"
-                        initial={{ opacity: 0, x: '100%' }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: '100%' }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}
                     >
-                        {/* Drawer Header with Logo & Close Button */}
                         <div className="navbar-mobile-header">
-                            <div className="navbar-brand-container" role="link" tabIndex={0} aria-label="Appliqa home" onClick={() => handleNavClick('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavClick('/'); } }} style={{ cursor: 'pointer' }}>
-                                <svg 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    viewBox="0 0 20831.25 5423.16" 
-                                    width="84.5"
-                                    height="22"
-                                    style={{ display: 'block', height: '22px', width: '84.5px' }}
-                                >
-                                    <g id="Layer_x0020_1">
-                                        <path fill="#0F172A" fillRule="nonzero" d="M1033.47 4275.76l109.2 -347.45 -728.14 -881.51 -414.54 1228.96 1033.47 0zm395.38 -1259.8l168.7 -537.88 369.03 -1179.54 30.99 0 348.44 1109.09 808.9 -536.54 -531.57 -1575.91 -1280.68 0 -831.24 2464.34 841.43 306.85 76 -50.41zm1122.52 45.97l293.36 934.66 87.8 279.16 1033.47 0 -669.29 -1984.23 -745.34 770.4z"/>
-                                        <polygon fill="#FF6600" points="373.75,2825.59 1367.31,3187.91 3907.91,1502.75 1411.99,4082.51 "/>
-                                        <path fill="#0F172A" fillRule="nonzero" d="M4403.03 5423.16l961.7 0 0 -1622.52 19.38 0c122.75,279.65 394.09,533.46 850.02,533.46 668.2,0 1207.2,-523.3 1207.2,-1551.45 0,-1065.99 -570.37,-1551.45 -1201.66,-1551.45 -477.16,0 -739.27,278.73 -855.56,556.53l-28.61 0 0 -517.76 -952.47 0 0 4153.2zm942.32 -2642.36c0,-493.77 203.97,-798.34 556.53,-798.34 356.25,0 552.84,311.95 552.84,798.34 0,487.31 -196.59,803.87 -552.84,803.87 -352.56,0 -556.53,-314.72 -556.53,-803.87z"/>
-                                        <path fill="#0F172A" fillRule="nonzero" d="M7946.18 5423.16l961.7 0 0 -1622.52 19.38 0c122.75,279.65 394.09,533.46 850.02,533.46 668.2,0 1207.2,-523.3 1207.2,-1551.45 0,-1065.99 -570.37,-1551.45 -1201.66,-1551.45 -477.16,0 -739.27,278.73 -855.56,556.53l-28.61 0 0 -517.76 -952.47 0 0 4153.2zm942.32 -2642.36c0,-493.77 203.97,-798.34 556.53,-798.34 356.25,0 552.84,311.95 552.84,798.34 0,487.31 -196.59,803.87 -552.84,803.87 -352.56,0 -556.53,-314.72 -556.53,-803.87z"/>
-                                        <polygon fill="#0F172A" points="12451.01,263.04 11489.32,263.04 11489.32,4290.72 12451.01,4290.72 "/>
-                                        <path fill="#0F172A" fillRule="nonzero" d="M13060.15 4290.72l961.7 0 0 -3020.76 -961.7 0 0 3020.76zm481.77 -3372.4c273.19,0 493.77,-206.74 493.77,-460.54 0,-253.81 -220.58,-457.77 -493.77,-457.77 -271.34,0 -493.77,203.97 -493.77,457.77 0,253.81 222.43,460.54 493.77,460.54z"/>
-                                        <path fill="#FF6600" fillRule="nonzero" d="M16603.29 5423.16l961.7 0 0 -4153.2 -951.54 0 0 517.76 -29.53 0c-114.44,-277.8 -377.48,-556.53 -853.72,-556.53 -631.29,0 -1203.51,485.46 -1203.51,1551.45 0,1028.15 540.84,1551.45 1208.12,1551.45 455.93,0 727.27,-253.81 849.1,-533.46l19.38 0 0 1622.52zm-534.38 -1838.48c-356.25,0 -554.68,-316.56 -554.68,-803.87 0,-486.39 196.59,-798.34 554.68,-798.34 351.64,0 556.53,304.57 556.53,798.34 0,489.16 -206.74,803.87 -556.53,803.87z"/>
-                                        <path fill="#FF6600" fillRule="nonzero" d="M19025.99 4341.48c420.86,0 711.58,-162.44 876.79,-471.62l24 0 0 420.86 904.47 0 0 -2052.6c0,-639.6 -568.53,-1006.92 -1337.33,-1006.92 -812.18,0 -1272.72,408.86 -1349.33,958.93l886.94 31.38c41.53,-191.97 201.2,-310.1 454.08,-310.1 236.27,0 385.79,113.52 385.79,316.56l0 10.15c0,184.59 -200.28,223.35 -716.2,268.57 -610.98,51.69 -1122.29,277.8 -1122.29,946.01 0,598.06 414.4,888.79 993.08,888.79zm297.18 -628.52c-222.43,0 -380.25,-106.14 -380.25,-307.34 0,-194.74 154.13,-312.87 427.32,-353.48 179.05,-25.84 398.71,-65.53 506.69,-121.83l0 287.03c0,294.42 -247.35,495.62 -553.76,495.62z"/>
-                                    </g>
-                                </svg>
-                            </div>
-                            <button
-                                className="navbar-mobile-close"
-                                onClick={toggleMenu}
-                                aria-label="Close navigation menu"
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-
-                        {/* Drawer Navigation Links */}
-                        <div className="navbar-mobile-body">
-                            <div className="navbar-mobile-section-label">
-                                <span>Platform Navigation</span>
-                            </div>
-
-                            <div className="navbar-mobile-card-list">
-                                {navItems.map((item, idx) => {
-                                    const Icon = item.icon;
-                                    const active = isActive(item.path);
-                                    return (
-                                        <motion.div
-                                            key={item.name}
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: idx * 0.04, duration: 0.2 }}
-                                            className={`navbar-mobile-card ${active ? 'active' : ''}`}
-                                            onClick={() => handleNavClick(item.path)}
-                                        >
-                                            <div className="navbar-mobile-icon-box">
-                                                <Icon size={19} strokeWidth={1.8} />
-                                            </div>
-                                            <div className="navbar-mobile-card-content">
-                                                <div className="navbar-mobile-card-title-row">
-                                                    <span className="navbar-mobile-card-title">{item.mobileTitle}</span>
-                                                    {item.badge && <span className="navbar-nav-badge">{item.badge}</span>}
-                                                </div>
-                                                <span className="navbar-mobile-card-desc">{item.desc}</span>
-                                            </div>
-                                            <FiChevronRight size={16} className="navbar-mobile-card-arrow" />
-                                        </motion.div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Drawer Bottom Actions */}
-                        <div className="navbar-mobile-footer">
-                            <button
-                                className="navbar-cta-btn"
-                                style={{ width: '100%', padding: '12px', justifyContent: 'center' }}
-                                onClick={() => handleNavClick('/profile')}
-                            >
-                                {ctaText}
-                            </button>
                             <a
-                                href="https://github.com/imsayanpaul/Appliqa"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 py-2 text-xs font-semibold text-[#8A8580] hover:text-[#171717] transition-colors"
+                                href="/"
+                                className="nav-cell nav-brand"
+                                aria-label="Appliqa home"
+                                onClick={(e) => { e.preventDefault(); handleNavClick('/'); }}
                             >
-                                <FiStar size={14} />
-                                <span>Star on GitHub ({githubStats.stars})</span>
+                                <Logo height={22} />
                             </a>
+                            <button type="button" className="navbar-mobile-toggle" style={{ display: 'flex' }} onClick={toggleMenu} aria-label="Close menu">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <nav className="navbar-mobile-body" aria-label="Mobile">
+                            {visibleNavItems.map((item) => (
+                                <button
+                                    key={item.path}
+                                    type="button"
+                                    className="nav-drawer-link"
+                                    aria-current={isActive(item.path) ? 'page' : undefined}
+                                    onClick={() => handleNavClick(item.path)}
+                                >
+                                    <span className="nav-drawer-title">{item.name}</span>
+                                    <span className="nav-drawer-desc">{item.desc}</span>
+                                </button>
+                            ))}
+                        </nav>
+
+                        <div className="navbar-mobile-footer">
+                            <button type="button" className="ds-btn ds-btn-accent" onClick={() => handleNavClick('/profile')}>
+                                {session ? 'Your profile' : 'Get started'}
+                                <FiArrowUpRight size={18} className="ds-btn-arrow" aria-hidden="true" />
+                            </button>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            <main ref={mainRef} onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px' }}>
+            <main id="main-content" tabIndex={-1} ref={mainRef} onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px' }}>
                 <div ref={contentRef} style={{ width: '100%', minHeight: '100%' }}>
                     <Suspense fallback={<PageSkeleton />}>
                         <Routes>
@@ -850,7 +730,7 @@ function AppContent() {
                                 <Profile user={user} session={session} authResolved={authResolved} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
                             } />
                         </Routes>
-                        {location.pathname === '/' && <Footer />}
+                        {['/', '/pricing', '/checkout', '/privacy', '/terms', '/security'].includes(location.pathname) && <Footer />}
                     </Suspense>
                 </div>
             </main>

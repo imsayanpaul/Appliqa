@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCheck, FiZap, FiArrowRight, FiShield, FiStar, FiHelpCircle } from 'react-icons/fi';
-import Footer from '../components/ui/Footer';
+import { FiCheck, FiArrowUpRight, FiArrowRight } from 'react-icons/fi';
 
 const plans = [
     {
@@ -63,20 +62,17 @@ const plans = [
     }
 ];
 
-export default function Pricing({ user, session }) {
+const BILLING_TABS = [
+    { annual: false, label: 'Monthly' },
+    { annual: true, label: 'Annual', note: 'save 20%' },
+];
+
+export default function Pricing() {
     const navigate = useNavigate();
     const [annual, setAnnual] = useState(false);
 
-    const handleSelectPlan = (planId) => {
-        if (session) {
-            navigate('/profile');
-        } else {
-            navigate('/profile');
-        }
-    };
-
     return (
-        <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717] flex flex-col justify-between">
+        <div className="bg-[#F7F5F2] text-[#171717]">
             {/* Schema.org Product / Offer Structured Data */}
             <script type="application/ld+json" dangerouslySetInnerHTML={{
                 __html: JSON.stringify({
@@ -84,10 +80,7 @@ export default function Pricing({ user, session }) {
                     "@type": "Product",
                     "name": "Appliqa Pro Career & Job Search Platform",
                     "description": "AI-powered job search platform and ATS resume optimization subscription plans.",
-                    "brand": {
-                        "@type": "Brand",
-                        "name": "Appliqa"
-                    },
+                    "brand": { "@type": "Brand", "name": "Appliqa" },
                     "offers": {
                         "@type": "AggregateOffer",
                         "priceCurrency": "USD",
@@ -106,132 +99,108 @@ export default function Pricing({ user, session }) {
                 })
             }} />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-10 pb-20 w-full">
-                {/* Header Section */}
-                <div className="text-center max-w-3xl mx-auto mb-12">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0E8] border border-[#CA3C0A]/20 text-[#CA3C0A] text-xs font-bold uppercase tracking-wider mb-4">
-                        <FiZap size={12} />
-                        <span>Predictable Career Investment</span>
-                    </div>
-                    <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-[#171717] leading-tight mb-4">
-                        Transparent Plans for High-Impact Careers.
-                    </h1>
-                    <p className="text-base sm:text-lg text-[#66615C] font-normal leading-relaxed">
-                        Outsmart automated ATS filters, master technical interviews, and secure top-of-market compensation packages with AI-assisted career tooling.
+            <section className="ds-frame ds-rule-b">
+                <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+                    <span className="ds-mono">plans / billing</span>
+                    <span className="ds-mono flex items-center gap-2">free to start <span className="ds-square" /></span>
+                </div>
+                <div className="ds-cell !pt-16 sm:!pt-28 !pb-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+                    <h1 className="ds-slash m-0 lg:col-span-7" style={{ fontSize: 'clamp(48px, 7vw, 104px)' }}>pricing</h1>
+                    <p className="ds-lede m-0 lg:col-span-5 !text-[#4A4540]">
+                        Start free. Upgrade when you want unlimited audits, cover letters and interview prep.
                     </p>
-
-                    {/* Billing Toggle */}
-                    <div className="mt-8 inline-flex items-center bg-white border border-[#D8D4CC] p-1.5 rounded-full shadow-xs">
-                        <button
-                            type="button"
-                            onClick={() => setAnnual(false)}
-                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border-none cursor-pointer ${!annual ? 'bg-[#171717] text-white shadow-xs' : 'bg-transparent text-[#66615C] hover:text-[#171717]'}`}
-                        >
-                            Monthly Billing
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setAnnual(true)}
-                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 ${annual ? 'bg-[#171717] text-white shadow-xs' : 'bg-transparent text-[#66615C] hover:text-[#171717]'}`}
-                        >
-                            <span>Annual Billing</span>
-                            <span className="bg-[#CA3C0A] text-white text-[10px] font-black px-2 py-0.5 rounded-full">Save 20%</span>
-                        </button>
-                    </div>
                 </div>
 
-                {/* Pricing Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto items-stretch">
-                    {plans.map((plan) => {
-                        const price = annual ? plan.priceYearly : plan.priceMonthly;
+                <div role="radiogroup" aria-label="Billing period" className="flex">
+                    {BILLING_TABS.map((tab) => {
+                        const selected = annual === tab.annual;
                         return (
-                            <div
-                                key={plan.id}
-                                className={`relative rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all ${
-                                    plan.popular
-                                        ? 'bg-[#171717] text-white shadow-2xl border-2 border-[#CA3C0A] scale-[1.02]'
-                                        : 'bg-white text-[#171717] border border-[#D8D4CC] shadow-sm hover:shadow-md'
-                                }`}
+                            <button
+                                key={tab.label}
+                                type="button"
+                                role="radio"
+                                aria-checked={selected}
+                                onClick={() => setAnnual(tab.annual)}
+                                className={`h-16 w-1/2 sm:w-60 px-6 flex items-center justify-between gap-3 text-[15px] font-medium cursor-pointer border-0 border-t border-r border-[#D8D4CC] ${selected ? 'bg-white text-[#171717]' : 'bg-[#EFECE6] text-[#4A4540] hover:bg-white'}`}
                             >
-                                {plan.popular && (
-                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#CA3C0A] to-[#FF8C42] text-white text-[11px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md">
-                                        ★ Most Popular Choice
-                                    </div>
-                                )}
-
-                                <div>
-                                    <div className="flex items-center justify-between gap-2 mb-3">
-                                        <h2 className="text-xl font-bold tracking-tight">{plan.name}</h2>
-                                        <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${plan.popular ? 'bg-white/15 text-white' : 'bg-[#ECE8E1] text-[#66615C]'}`}>
-                                            {plan.badge}
-                                        </span>
-                                    </div>
-
-                                    <p className={`text-xs sm:text-sm mb-6 ${plan.popular ? 'text-white/80' : 'text-[#66615C]'}`}>
-                                        {plan.description}
-                                    </p>
-
-                                    <div className="flex items-baseline gap-1 mb-6 pb-6 border-b border-neutral-200/40">
-                                        <span className="text-4xl sm:text-5xl font-black tracking-tight">${price}</span>
-                                        <span className={`text-xs font-semibold ${plan.popular ? 'text-white/60' : 'text-[#66615C]'}`}>
-                                            {price === 0 ? 'forever' : '/ month'}
-                                        </span>
-                                    </div>
-
-                                    <div className="space-y-3 mb-8">
-                                        <p className={`text-xs font-bold uppercase tracking-wider ${plan.popular ? 'text-white/60' : 'text-[#8A8580]'}`}>
-                                            Included Features:
-                                        </p>
-                                        {plan.features.map((feat) => (
-                                            <div key={feat} className="flex items-start gap-2.5 text-xs sm:text-sm">
-                                                <FiCheck className={`shrink-0 mt-0.5 ${plan.popular ? 'text-[#CA3C0A]' : 'text-[#171717]'}`} size={16} />
-                                                <span className={plan.popular ? 'text-white/90' : 'text-[#171717]'}>{feat}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleSelectPlan(plan.id)}
-                                        className={`w-full py-3 px-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border-none cursor-pointer ${
-                                            plan.popular
-                                                ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white shadow-lg shadow-[#CA3C0A]/30'
-                                                : 'bg-[#171717] hover:bg-neutral-800 text-white'
-                                        }`}
-                                    >
-                                        <span>{plan.cta}</span>
-                                        <FiArrowRight size={14} />
-                                    </button>
-                                </div>
-                            </div>
+                                <span className="flex items-baseline gap-2">
+                                    {tab.label}
+                                    {tab.note && <span className="ds-mono text-[#CA3C0A]">{tab.note}</span>}
+                                </span>
+                                <span
+                                    aria-hidden="true"
+                                    className={`w-3 h-3 rounded-full border ${selected ? 'bg-[#CA3C0A] border-[#CA3C0A]' : 'border-[#6F6A65]'}`}
+                                />
+                            </button>
                         );
                     })}
                 </div>
+            </section>
 
-                {/* Trust & Guarantee Banner */}
-                <div className="mt-14 max-w-3xl mx-auto bg-white border border-[#D8D4CC] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center shrink-0">
-                            <FiShield size={20} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-[#171717]">100% Risk-Free Guarantee</p>
-                            <p className="text-xs text-[#66615C]">Upgrade, downgrade, or cancel your subscription at any time without fees.</p>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => navigate('/search')}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-[#FAF8F5] border border-[#D8D4CC] text-[#171717] hover:border-[#171717] cursor-pointer whitespace-nowrap"
-                    >
-                        Explore Free Search
-                    </button>
+            <section className="ds-frame ds-rule-b">
+                <ul className="ds-gridlines grid-cols-1 md:grid-cols-3 list-none m-0 p-0">
+                    {plans.map((plan) => {
+                        const price = annual ? plan.priceYearly : plan.priceMonthly;
+                        return (
+                            <li key={plan.id} className={`flex flex-col ${plan.popular ? '!bg-white' : ''}`}>
+                                <div className="ds-cell flex flex-col">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <h2 className="m-0 text-[28px] font-medium tracking-[-0.025em] leading-none">
+                                            {plan.name.toLowerCase()}<span className="text-[#CA3C0A]">/</span>
+                                        </h2>
+                                        <span className={`ds-badge shrink-0 ${plan.popular ? '!bg-[#CA3C0A] !text-white' : '!bg-[#EFECE6] !text-[#4A4540]'}`}>
+                                            {plan.badge}
+                                        </span>
+                                    </div>
+                                    <p className="ds-body mt-4 mb-0 min-h-[72px]">{plan.description}</p>
+
+                                    <div className="mt-10 mb-8 flex items-baseline gap-2">
+                                        <span className="font-semibold tracking-[-0.04em] leading-none" style={{ fontSize: 'clamp(48px, 5vw, 72px)' }}>
+                                            {price === 0 ? 'free' : `$${price}`}
+                                        </span>
+                                        {price !== 0 && <span className="ds-mono ds-mono-muted">/ month{annual ? ', billed yearly' : ''}</span>}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/profile')}
+                                        className={`ds-btn w-full ${plan.popular ? 'ds-btn-accent' : 'ds-btn-ink'}`}
+                                    >
+                                        {plan.cta}
+                                        <FiArrowUpRight size={18} className="ds-btn-arrow" />
+                                    </button>
+                                </div>
+
+                                <div className="ds-cell flex-1 border-0 border-t border-[#D8D4CC]">
+                                    <p className="ds-mono ds-mono-muted m-0 mb-4">included</p>
+                                    <ul className="list-none m-0 p-0 space-y-3">
+                                        {plan.features.map((feat) => (
+                                            <li key={feat} className="flex items-start gap-3 text-[15px] leading-snug">
+                                                <FiCheck className="shrink-0 mt-0.5 text-[#CA3C0A]" size={16} aria-hidden="true" />
+                                                <span>{feat}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </section>
+
+            <section className="ds-frame ds-rule-b grid grid-cols-1 md:grid-cols-12">
+                <div className="md:col-span-8 ds-cell md:border-0 md:border-r border-[#D8D4CC]">
+                    <p className="ds-mono ds-mono-muted m-0 mb-2">no lock-in</p>
+                    <p className="m-0 text-[20px] font-medium tracking-[-0.015em]">Upgrade, downgrade or cancel at any time, with no fees.</p>
                 </div>
-            </div>
-
-            <Footer />
+                <button
+                    type="button"
+                    onClick={() => navigate('/search')}
+                    className="md:col-span-4 ds-btn !min-h-[96px] !px-8 bg-transparent text-[#171717] hover:bg-white border-0 border-t md:border-t-0 border-[#D8D4CC]"
+                >
+                    Try search without an account <FiArrowRight size={18} className="ds-btn-arrow" />
+                </button>
+            </section>
         </div>
     );
 }

@@ -634,24 +634,30 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                     </div>
                 </div>
 
-                {/* Right Side: Full-Bleed Editorial Fluid Artwork in Appliqa Palette */}
+                {/* Right side: what an account unlocks */}
                 <div className="auth-split-right">
-                    <picture>
-                        <source srcSet="/auth-art.webp" type="image/webp" />
-                        <img 
-                            src="/auth-art.jpg" 
-                            alt="Appliqa Editorial Fluid Artwork" 
-                            className="w-full h-full object-cover object-center block select-none pointer-events-none"
-                            loading="eager"
-                            decoding="async"
-                        />
-                    </picture>
-                    
-                    {/* Subtle Overlay Badge / Carousel Indicators at bottom-right */}
-                    <div className="absolute bottom-8 right-8 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
-                        <div className="w-5 h-1 rounded-full bg-white"></div>
-                        <div className="w-1.5 h-1 rounded-full bg-white/40"></div>
-                        <div className="w-1.5 h-1 rounded-full bg-white/40"></div>
+                    <div className="h-full flex flex-col text-white">
+                        <div className="h-14 px-8 flex items-center justify-between border-0 border-b border-white/15">
+                            <span className="ds-mono text-white/60">your account</span>
+                            <span className="ds-mono text-white/60 flex items-center gap-2">free <span className="ds-square" /></span>
+                        </div>
+                        <ol className="list-none m-0 p-0 flex-1 flex flex-col justify-center">
+                            {[
+                                ["Upload your resume once", "Every search and score is matched against it."],
+                                ["Save jobs to a tracker", "Move them from saved to applied to offer."],
+                                ["Generate applications", "Cover letters and recruiter messages per job."],
+                                ["Plan your next step", "Career paths, skill gaps and interview prep."],
+                            ].map(([title, body], i) => (
+                                <li key={title} className="px-8 py-6 border-0 border-t border-white/15 last:border-b">
+                                    <span className="ds-mono text-[#FF6A33]">0{i + 1}</span>
+                                    <p className="m-0 mt-2 text-[22px] font-medium tracking-[-0.015em]">{title}</p>
+                                    <p className="m-0 mt-1 text-[15px] text-white/60">{body}</p>
+                                </li>
+                            ))}
+                        </ol>
+                        <p aria-hidden="true" className="ds-display !text-white m-0 px-8 pb-6 select-none whitespace-nowrap overflow-hidden" style={{ fontSize: "calc((min(50vw, 720px) - 64px) / 5.14)" }}>
+                            Appliqa<span className="text-[#FF6A33]">.</span>
+                        </p>
                     </div>
                 </div>
             </div>

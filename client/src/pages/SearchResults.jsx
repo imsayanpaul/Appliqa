@@ -112,46 +112,44 @@ function SearchResults({ user, resumeData }) {
     };
 
     return (
-        <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717] pb-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8">
-                <h1 className="sr-only">Job Search Results — Appliqa</h1>
-                {/* Search Bar - Omnibar */}
-                <div className="w-full max-w-3xl mx-auto mb-6">
-                    <form onSubmit={handleSearch} className="w-full bg-white rounded-2xl p-2.5 flex items-center gap-2 shadow-lg border border-neutral-200/80">
-                        <div className="flex-1 flex items-center gap-2.5 pl-3">
-                            <FiSearch className="text-[#66615C]" size={18} />
-                            <input
-                                type="text"
-                                placeholder={aiMode ? 'Describe your dream tech role with natural language...' : 'Job title, skills, or target company...'}
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                className="w-full bg-transparent border-none outline-none text-[#171717] text-sm placeholder-[#66615C] font-medium"
-                            />
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => setAiMode(!aiMode)}
-                            className={`px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border-none cursor-pointer whitespace-nowrap ${
-                                aiMode ? 'bg-[#FFF0E8] text-[#CA3C0A]' : 'bg-neutral-100 text-[#66615C] hover:text-[#171717]'
-                            }`}
-                            title="Toggle AI Smart Search"
-                        >
-                            <FiZap size={13} className={aiMode ? 'text-[#CA3C0A]' : 'text-[#66615C]'} />
-                            <span>AI Search</span>
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-4 sm:px-6 py-2.5 rounded-xl bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold flex items-center gap-1.5 transition-all border-none cursor-pointer shadow-md shadow-[#CA3C0A]/20 whitespace-nowrap"
-                        >
-                            <span>{loading ? '...' : 'Search'}</span>
-                            <FiArrowRight size={14} />
-                        </button>
-                    </form>
+        <div className="bg-[#F7F5F2] min-h-screen text-[#171717] pb-24">
+            <section className="ds-frame ds-rule-b">
+                <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+                    <span className="ds-mono truncate">search{query ? ` / ${query.toLowerCase()}` : ''}</span>
+                    <span className="ds-mono ds-mono-muted shrink-0 flex items-center gap-2" aria-live="polite">
+                        {loading ? 'searching…' : `${jobs.length} results`}
+                        <span className={`ds-square ${loading ? 'animate-pulse' : ''}`} />
+                    </span>
                 </div>
 
-                {/* Filters Row */}
-                <div className="flex items-center justify-center gap-2.5 flex-wrap max-w-4xl mx-auto mb-10">
+                <div className="ds-cell">
+                    <h1 className="sr-only">Job search</h1>
+                    <form onSubmit={handleSearch} role="search">
+                        <label htmlFor="job-search" className="ds-mono ds-mono-muted block mb-2">
+                            {aiMode ? 'describe the job you want' : 'job title, skill or company'}
+                        </label>
+                        <div className="ds-search">
+                            <FiSearch className="self-center ml-4 text-[#6F6A65] shrink-0" size={18} aria-hidden="true" />
+                            <input
+                                id="job-search"
+                                type="search"
+                                autoComplete="off"
+                                placeholder={aiMode ? 'Remote React role, mid-level, fintech' : 'e.g. Product designer'}
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+                            <button type="button" className="ds-toggle" aria-pressed={aiMode} onClick={() => setAiMode(!aiMode)}>
+                                <span className="ds-toggle-box" aria-hidden="true" /><span>ai<span className="hidden sm:inline"> search</span></span>
+                            </button>
+                            <button type="submit" disabled={loading} className="ds-btn ds-btn-accent !min-h-0 !px-6">
+                                <span className="hidden sm:inline">Search</span>
+                                <FiArrowRight size={16} aria-hidden="true" />
+                            </button>
+                        </div>
+                    </form>
+
+                    <div className="mt-4 flex items-center gap-2 flex-wrap">
+                        <span className="ds-mono ds-mono-muted mr-1">filter</span>
                     <Dropdown
                         options={[
                             { value: "", label: "All Types" },
@@ -179,14 +177,14 @@ function SearchResults({ user, resumeData }) {
                     />
 
                     <button
-                        className={`filter-chip ${filters.remote === 'true' ? 'active' : ''}`}
+                        type="button" aria-pressed={filters.remote === 'true'} className={`ds-chip ${filters.remote === 'true' ? '!bg-[#171717] !text-white !border-[#171717]' : ''}`}
                         onClick={() => handleFilterChange('remote', filters.remote === 'true' ? '' : 'true')}
                     >
-                        Remote Only
+                        Remote only
                     </button>
 
                     <button
-                        className={`filter-chip ${filters.employmentType === 'INTERN' ? 'active' : ''}`}
+                        type="button" aria-pressed={filters.employmentType === 'INTERN'} className={`ds-chip ${filters.employmentType === 'INTERN' ? '!bg-[#171717] !text-white !border-[#171717]' : ''}`}
                         onClick={() => handleFilterChange('employmentType', filters.employmentType === 'INTERN' ? '' : 'INTERN')}
                     >
                         Internships
@@ -225,115 +223,89 @@ function SearchResults({ user, resumeData }) {
                         disabled={!filters.country}
                         placeholder={filters.country ? 'All Cities' : 'Select country first'}
                     />
-                </div>
-
-                {/* Results Header */}
-                <div className="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-neutral-200/80">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#CA3C0A] animate-pulse" />
-                        <span className="text-sm font-bold text-[#171717]">
-                            {loading ? 'Searching opportunities...' : `${jobs.length} Opportunities Found ${query ? `for "${query}"` : ''}`}
-                        </span>
                     </div>
                 </div>
+            </section>
 
+            <section className="ds-frame ds-rule-b" aria-busy={loading}>
                 {error && (
-                    <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm mb-6 text-center">
-                        <FiZap size={18} className="mb-1 inline-block" /> <br/>
+                    <div role="alert" className="ds-cell ds-rule-b bg-[#FEF2F2] text-[#991B1B] text-[15px]">
                         {error}
                     </div>
                 )}
 
-                {/* Grid of Job Cards */}
                 {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 animate-pulse">
+                    <div className="ds-gridlines grid-cols-1 md:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
                         {[1, 2, 3, 4, 5, 6].map(i => (
-                            <div key={i} className="bg-white rounded-2xl p-6 border border-[#D8D4CC] shadow-xs space-y-4 flex flex-col justify-between min-h-[230px]">
-                                <div className="space-y-3">
-                                    <div className="flex items-start justify-between">
-                                        <div className="w-12 h-12 rounded-xl bg-neutral-200/80 shrink-0" />
-                                        <div className="h-5 w-16 bg-neutral-200/60 rounded-md" />
-                                    </div>
-                                    <div className="space-y-2 pt-1">
-                                        <div className="h-5 w-4/5 bg-neutral-200/80 rounded-md" />
-                                        <div className="h-3.5 w-1/2 bg-neutral-200/50 rounded" />
-                                    </div>
-                                    <div className="flex flex-wrap gap-2 pt-2">
-                                        <div className="h-6 w-20 bg-neutral-200/50 rounded-md" />
-                                        <div className="h-6 w-24 bg-neutral-200/50 rounded-md" />
-                                        <div className="h-6 w-16 bg-neutral-200/50 rounded-md" />
+                            <div key={i} className="p-6 min-h-[230px] flex flex-col animate-pulse">
+                                <div className="flex gap-4">
+                                    <div className="w-11 h-11 bg-[#E7E3DC]" />
+                                    <div className="flex-1 space-y-2 pt-1">
+                                        <div className="h-4 w-4/5 bg-[#E7E3DC]" />
+                                        <div className="h-3 w-1/3 bg-[#EFECE6]" />
                                     </div>
                                 </div>
-                                <div className="pt-4 border-t border-neutral-100 flex items-center justify-between">
-                                    <div className="h-4 w-28 bg-neutral-200/60 rounded" />
-                                    <div className="h-8 w-24 bg-neutral-200/80 rounded-lg" />
-                                </div>
+                                <div className="h-3 w-1/2 bg-[#EFECE6] mt-6" />
+                                <div className="h-3 w-full bg-[#EFECE6] mt-4" />
+                                <div className="h-3 w-3/4 bg-[#EFECE6] mt-2" />
+                                <div className="h-4 w-1/3 bg-[#E7E3DC] mt-auto" />
                             </div>
                         ))}
                     </div>
                 ) : jobs.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <ul className="ds-gridlines grid-cols-1 md:grid-cols-2 lg:grid-cols-3 list-none m-0 p-0">
                         {jobs.map((job, i) => {
-                            const isSaved = savedJobs.some(sj => sj.jobId === job.id);
-                            const savedId = savedJobs.find(sj => sj.jobId === job.id)?._id;
+                            const saved = savedJobs.find(sj => sj.jobId === job.id);
                             return (
-                                <JobCard
-                                    key={job.id || i}
-                                    job={job}
-                                    user={user}
-                                    onClick={() => setSelectedJob(job)}
-                                    initialSaved={isSaved}
-                                    initialSavedId={savedId}
-                                    onToggleSave={(jobId, isSavedVal, dbId) => {
-                                        if (isSavedVal) {
-                                            setSavedJobs(prev => [...prev, { jobId, _id: dbId }]);
-                                        } else {
-                                            setSavedJobs(prev => prev.filter(sj => sj.jobId !== jobId));
-                                        }
-                                    }}
-                                />
+                                <li key={job.id || i}>
+                                    <JobCard
+                                        job={job}
+                                        user={user}
+                                        onClick={() => setSelectedJob(job)}
+                                        initialSaved={!!saved}
+                                        initialSavedId={saved?._id}
+                                        onToggleSave={(jobId, isSavedVal, dbId) => {
+                                            if (isSavedVal) {
+                                                setSavedJobs(prev => [...prev, { jobId, _id: dbId }]);
+                                            } else {
+                                                setSavedJobs(prev => prev.filter(sj => sj.jobId !== jobId));
+                                            }
+                                        }}
+                                    />
+                                </li>
                             );
                         })}
-                    </div>
-                ) : query ? (
-                    <EmptyState 
-                        icon={FiSearch} 
-                        title="No opportunities found"
-                        description="Try broadening your keywords or adjusting filter parameters." 
-                    />
+                    </ul>
                 ) : (
-                    <EmptyState 
-                        icon={FiBriefcase} 
-                        title="Explore tech careers"
-                        description="Enter a skill, role title, or activate AI Search to find verified opportunities." 
-                    />
-                )}
-
-                {/* Load More Button */}
-                {jobs.length >= 10 && (
-                    <div className="flex justify-center items-center mt-12 mb-6">
-                        {loadingMore ? (
-                            <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-[#D8D4CC] shadow-sm text-xs font-mono text-[#171717]">
-                                <span className="w-3.5 h-3.5 rounded-full border-2 border-neutral-200 border-t-[#CA3C0A] animate-spin shrink-0" />
-                                <span className="tracking-wider">FETCHING MORE ROLES...</span>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => {
-                                    const nextPage = page + 1;
-                                    setPage(nextPage);
-                                    fetchJobs(query, filters, nextPage, true);
-                                }}
-                                className="h-10 px-6 rounded-md bg-[#FAF8F5] hover:bg-[#171717] text-[#171717] hover:text-white border border-[#D8D4CC] hover:border-[#171717] text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm group"
-                            >
-                                <span>Load More Roles</span>
-                                <FiArrowRight size={13} className="text-[#CA3C0A] group-hover:text-white transition-colors" />
-                            </button>
-                        )}
+                    <div className="ds-cell !py-20 text-center">
+                        <p className="ds-mono ds-mono-muted m-0 mb-3">{query ? 'no results' : 'start here'}</p>
+                        <p className="m-0 text-[24px] font-medium tracking-[-0.02em]">
+                            {query ? 'No jobs matched that search.' : 'Search for a role, skill or company.'}
+                        </p>
+                        <p className="ds-body mt-2 mb-0">
+                            {query ? 'Try fewer keywords, or remove a filter.' : 'Turn on AI search to describe the job in your own words.'}
+                        </p>
                     </div>
                 )}
 
-                {/* Job Detail Modal */}
+                {jobs.length >= 10 && !loading && (
+                    <button
+                        type="button"
+                        disabled={loadingMore}
+                        onClick={() => {
+                            const nextPage = page + 1;
+                            setPage(nextPage);
+                            fetchJobs(query, filters, nextPage, true);
+                        }}
+                        className="ds-btn w-full !min-h-[72px] !px-8 bg-transparent text-[#171717] hover:bg-white border-0 border-t border-[#D8D4CC]"
+                    >
+                        {loadingMore ? 'Loading more…' : 'Load more jobs'}
+                        <FiArrowRight size={18} className="ds-btn-arrow" aria-hidden="true" />
+                    </button>
+                )}
+            </section>
+
+            {/* Job Detail Modal */}
                 {selectedJob && (
                     <JobDetail
                         job={selectedJob}
@@ -342,7 +314,6 @@ function SearchResults({ user, resumeData }) {
                         onClose={() => setSelectedJob(null)}
                     />
                 )}
-            </div>
         </div>
     );
 }

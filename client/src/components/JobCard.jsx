@@ -1,55 +1,80 @@
 import { useState, useEffect } from 'react';
-import { FiMapPin, FiClock, FiBookmark, FiDollarSign, FiArrowRight, FiHome, FiBriefcase, FiCheckCircle } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiBookmark, FiArrowUpRight } from 'react-icons/fi';
 import { saveJob, deleteSavedJob, getSavedJobs } from '../services/api';
-import { Card } from './ui/Card';
+import { formatSalary } from '../lib/format';
+
+const timeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+    if (Number.isNaN(days)) return '';
+    if (days <= 0) return 'today';
+    if (days === 1) return 'yesterday';
+    if (days < 7) return `${days}d ago`;
+    if (days < 30) return `${Math.floor(days / 7)}w ago`;
+    return `${Math.floor(days / 30)}mo ago`;
+};
+
+const snippet = (html, max = 170) => {
+    const text = (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
+};
+
+function CompanyMark({ logo, company }) {
+    const [failed, setFailed] = useState(false);
+    const initial = (company || '?').trim().charAt(0).toUpperCase();
+    return (
+        <div className="w-11 h-11 shrink-0 border border-[#D8D4CC] bg-white flex items-center justify-center overflow-hidden">
+            {logo && !failed ? (
+                <img
+                    src={logo}
+                    alt=""
+                    width="44"
+                    height="44"
+                    loading="lazy"
+                    decoding="async"
+                    onError={() => setFailed(true)}
+                    className="w-full h-full object-contain p-1.5"
+                />
+            ) : (
+                <span className="text-[15px] font-semibold text-[#171717]" aria-hidden="true">{initial}</span>
+            )}
+        </div>
+    );
+}
 
 function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = null, onToggleSave }) {
+    const navigate = useNavigate();
     const [isSaved, setIsSaved] = useState(initialSaved);
     const [savedId, setSavedId] = useState(initialSavedId);
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        setIsSaved(initialSaved);
-    }, [initialSaved]);
-
-    useEffect(() => {
-        setSavedId(initialSavedId);
-    }, [initialSavedId]);
+    useEffect(() => setIsSaved(initialSaved), [initialSaved]);
+    useEffect(() => setSavedId(initialSavedId), [initialSavedId]);
 
     const handleSave = async (e) => {
         e.stopPropagation();
-        if (!user) {
-            alert('Please set up your profile first to save jobs');
-            return;
-        }
+        if (!user) return navigate('/profile');
         if (saving) return;
 
         setSaving(true);
         try {
             if (isSaved) {
-                // Unsave
-                if (savedId) {
-                    await deleteSavedJob(savedId);
-                    setIsSaved(false);
-                    setSavedId(null);
-                    if (onToggleSave) onToggleSave(job.id, false, null);
-                } else {
+                let id = savedId;
+                if (!id) {
                     const res = await getSavedJobs();
-                    const matching = (res.data.jobs || []).find(sj => sj.jobId === job.id);
-                    if (matching) {
-                        await deleteSavedJob(matching._id);
-                    }
-                    setIsSaved(false);
-                    setSavedId(null);
-                    if (onToggleSave) onToggleSave(job.id, false, null);
+                    id = (res.data.jobs || []).find(sj => sj.jobId === job.id)?._id;
                 }
+                if (id) await deleteSavedJob(id);
+                setIsSaved(false);
+                setSavedId(null);
+                onToggleSave?.(job.id, false, null);
             } else {
-                // Save
                 const res = await saveJob(job);
                 const dbId = res.data?.savedJob?.id;
                 setIsSaved(true);
                 setSavedId(dbId);
-                if (onToggleSave) onToggleSave(job.id, true, dbId);
+                onToggleSave?.(job.id, true, dbId);
             }
         } catch (err) {
             console.error('Toggle save failed:', err);
@@ -58,138 +83,58 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
         }
     };
 
-    const timeAgo = (dateStr) => {
-        if (!dateStr) return '';
-        const diff = Date.now() - new Date(dateStr).getTime();
-        const days = Math.floor(diff / 86400000);
-        if (days === 0) return 'Today';
-        if (days === 1) return 'Yesterday';
-        if (days < 7) return `${days}d ago`;
-        if (days < 30) return `${Math.floor(days / 7)}w ago`;
-        return `${Math.floor(days / 30)}mo ago`;
-    };
-
-    const stripHtml = (html) => {
-        if (!html) return '';
-        return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    };
-
-    const hasSalary = job.salary && job.salary !== 'Not specified';
+    const salary = formatSalary(job.salary);
+    const meta = [job.location, job.remote ? 'Remote' : null, job.employmentType?.toLowerCase().replace(/_/g, '-')].filter(Boolean);
+    const posted = timeAgo(job.datePosted);
 
     return (
-        <div 
-            onClick={onClick}
-            className="group relative bg-white rounded-lg p-5 border border-[#D8D4CC] hover:border-[#171717] transition-all duration-200 cursor-pointer flex flex-col justify-between"
-            style={{ width: '100%', boxSizing: 'border-box', boxShadow: 'none' }}
-        >
-            <div>
-                {/* Header section: Logo, Title, and Bookmark */}
-                <div className="flex gap-4 items-start justify-between w-full mb-3.5">
-                    <div className="flex gap-3 items-start flex-1 min-w-0">
-                        {/* Modern Logo container */}
-                        <div className="w-11 h-11 rounded-md border border-[#E0DCD6] bg-[#F7F5F2] p-1.5 flex items-center justify-center overflow-hidden flex-shrink-0">
-                            {job.companyLogo ? (
-                                <img src={job.companyLogo} alt="" className="w-full h-full object-contain object-center rounded-sm" />
-                            ) : (
-                                <div className="w-full h-full rounded-sm bg-[#FFF0E8] flex items-center justify-center text-[#CA3C0A] font-black text-sm">
-                                    {(job.company || '?')[0].toUpperCase()}
-                                </div>
-                            )}
-                        </div>
-                        {/* Title & Company */}
-                        <div className="flex-1 min-w-0">
-                            <h3 className="text-base font-bold text-[#171717] tracking-tight leading-snug group-hover:text-[#CA3C0A] transition-colors duration-200 line-clamp-1" title={job.title}>
-                                {job.title}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs text-[#66615C] font-semibold truncate">
-                                    {job.company}
-                                </span>
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.2 rounded">
-                                    <FiCheckCircle size={10} /> Verified
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Bookmark Button */}
-                    <button
-                        className={`w-8 h-8 rounded-md border border-neutral-200 bg-[#F7F5F2] hover:bg-[#FFF0E8] cursor-pointer transition-all flex items-center justify-center flex-shrink-0 ${
-                            isSaved ? 'text-[#CA3C0A] bg-[#FFF0E8] border-[#CA3C0A]/30' : 'text-[#8A8580] hover:text-[#CA3C0A]'
-                        }`}
-                        onClick={handleSave}
-                        title={isSaved ? 'Saved' : 'Save job'}
-                        style={{ boxShadow: 'none' }}
-                    >
-                        <FiBookmark size={14} fill={isSaved ? 'currentColor' : 'none'} className="transition-transform duration-200 active:scale-90" />
-                    </button>
+        <article className="group relative h-full flex flex-col bg-[#F7F5F2] hover:bg-white transition-colors duration-150 p-6">
+            <div className="flex items-start gap-4">
+                <CompanyMark logo={job.companyLogo} company={job.company} />
+                <div className="flex-1 min-w-0">
+                    <h3 className="m-0 text-[17px] font-semibold leading-snug tracking-[-0.01em] text-[#171717]">
+                        <button
+                            type="button"
+                            onClick={onClick}
+                            className="text-left bg-transparent border-none p-0 cursor-pointer text-inherit line-clamp-2 group-hover:text-[#CA3C0A] after:absolute after:inset-0 after:content-['']"
+                        >
+                            {job.title}
+                        </button>
+                    </h3>
+                    <p className="m-0 mt-1 text-[14px] text-[#4A4540] truncate">{job.company}</p>
                 </div>
-
-                {/* Sleek Pill Badges Row */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-3.5 select-none">
-                    {job.location && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#F7F5F2] text-[#171717] font-medium border border-neutral-200">
-                            <FiMapPin size={11} className="text-[#8A8580]" /> {job.location}
-                        </span>
-                    )}
-                    {job.remote && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#FFF0E8] text-[#CA3C0A] font-bold border border-[rgba(202,60,10,0.2)]">
-                            <FiHome size={11} /> Remote
-                        </span>
-                    )}
-                    {job.employmentType && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#F7F5F2] text-[#66615C] font-medium border border-neutral-200">
-                            <FiBriefcase size={11} className="text-[#8A8580]" /> {job.employmentType}
-                        </span>
-                    )}
-                    {hasSalary && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold border border-emerald-200/60">
-                            <FiDollarSign size={11} /> {job.salary}
-                        </span>
-                    )}
-                    {job.datePosted && (
-                        <span className="inline-flex items-center gap-1 text-xs text-[#8A8580] ml-auto font-medium">
-                            <FiClock size={11} /> {timeAgo(job.datePosted)}
-                        </span>
-                    )}
-                </div>
-
-                {/* Clean 2-Line Description Snippet */}
-                <p className="text-xs text-[#66615C] leading-relaxed line-clamp-2 overflow-hidden mb-5 font-normal">
-                    {stripHtml(job.description)?.substring(0, 180)}...
-                </p>
+                <button
+                    type="button"
+                    className={`relative z-10 w-9 h-9 shrink-0 flex items-center justify-center border cursor-pointer transition-colors ${
+                        isSaved ? 'bg-[#CA3C0A] border-[#CA3C0A] text-white' : 'bg-transparent border-[#D8D4CC] text-[#171717] hover:border-[#171717]'
+                    }`}
+                    onClick={handleSave}
+                    disabled={saving}
+                    aria-pressed={isSaved}
+                    aria-label={isSaved ? `Remove ${job.title} from saved jobs` : `Save ${job.title}`}
+                >
+                    <FiBookmark size={15} fill={isSaved ? 'currentColor' : 'none'} />
+                </button>
             </div>
 
-            {/* Footer with Skills and Action */}
-            <div className="pt-4 border-t border-neutral-100 flex items-center justify-between w-full select-none mt-auto">
-                <div className="flex gap-1.5 items-center flex-1 min-w-0 mr-2">
-                    {job.requiredSkills && job.requiredSkills.length > 0 ? (
-                        <>
-                            {job.requiredSkills.slice(0, 2).map((skill, i) => (
-                                <span key={i} className="text-[11px] px-2.5 py-0.5 rounded-md border border-[rgba(202,60,10,0.2)] bg-[#FFF0E8] text-[#171717] font-semibold truncate max-w-[110px]" title={skill}>
-                                    {skill}
-                                </span>
-                            ))}
-                            {job.requiredSkills.length > 2 && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-neutral-100 text-[#66615C] font-bold flex-shrink-0">
-                                    +{job.requiredSkills.length - 2}
-                                </span>
-                            )}
-                        </>
-                    ) : (
-                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#F7F5F2] text-[#66615C] font-medium">
-                            Full Tech Stack
-                        </span>
-                    )}
-                </div>
+            {meta.length > 0 && (
+                <p className="ds-mono ds-mono-muted mt-5 mb-0 truncate">{meta.join(' · ')}</p>
+            )}
 
-                {/* Details Trigger Button */}
-                <div className="text-xs text-[#171717] font-bold flex items-center gap-1 transition-all duration-200 group-hover:text-[#CA3C0A] group-hover:translate-x-0.5 ease-out">
-                    <span>View Role</span>
-                    <FiArrowRight size={13} className="text-[#CA3C0A]" />
-                </div>
+            {job.description && (
+                <p className="mt-3 mb-0 text-[14px] leading-relaxed text-[#4A4540] line-clamp-2">{snippet(job.description)}</p>
+            )}
+
+            <div className="mt-auto pt-6 flex items-center justify-between gap-3">
+                <span className="text-[14px] font-semibold text-[#171717] truncate">
+                    {salary || <span className="ds-mono ds-mono-muted font-normal">salary not listed</span>}
+                </span>
+                <span className="ds-mono ds-mono-muted shrink-0 flex items-center gap-2">
+                    {posted}
+                    <FiArrowUpRight size={15} className="text-[#171717] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+                </span>
             </div>
-        </div>
+        </article>
     );
 }
 

@@ -10,7 +10,7 @@ const ContactButton = ({ category, children }) => (
     <button
         type="button"
         onClick={() => openFeedback(category)}
-        className="font-semibold text-[#CA3C0A] underline underline-offset-2 hover:text-[#B73609]"
+        className="font-semibold text-[#CA3C0A] underline underline-offset-2 hover:text-[#B73609] bg-transparent border-none p-0 cursor-pointer text-[inherit]"
     >
         {children}
     </button>
@@ -18,7 +18,7 @@ const ContactButton = ({ category, children }) => (
 
 const Section = ({ title, children }) => (
     <section className="space-y-3">
-        <h2 className="text-lg font-bold text-[#171717] tracking-tight">{title}</h2>
+        <h2 className="text-[22px] font-semibold text-[#171717] tracking-[-0.015em] m-0">{title}</h2>
         <div className="space-y-3 text-[15px] leading-relaxed text-[#4A4540]">{children}</div>
     </section>
 );
@@ -58,7 +58,7 @@ const Privacy = () => (
                 <><strong>Google Gemini:</strong> AI features. Your resume text, profile details, job descriptions, and chat messages are sent to Gemini to generate results.</>,
                 <><strong>JSearch (via RapidAPI):</strong> job listings. Your search terms and location filters are sent to fetch results.</>,
                 <><strong>Vercel:</strong> website hosting.</>,
-                <><strong>Google Fonts:</strong> loads the site’s typeface. Your browser contacts Google to download it.</>,
+                <><strong>Render:</strong> hosting for our API server.</>,
             ]} />
             <p>To save cost and time, AI results may be cached on our servers using a fingerprint of the input, so identical requests return the same answer.</p>
         </Section>
@@ -175,9 +175,9 @@ const Security = () => (
 );
 
 const PAGES = {
-    '/privacy': { title: 'Privacy Policy', eyebrow: 'YOUR DATA', intro: 'What Appliqa collects, why, and the choices you have.', Body: Privacy },
-    '/terms': { title: 'Terms of Service', eyebrow: 'THE RULES', intro: 'The agreement between you and Appliqa when you use the service.', Body: Terms },
-    '/security': { title: 'Security', eyebrow: 'TRUST', intro: 'How we keep your account and career data safe.', Body: Security },
+    '/privacy': { title: 'Privacy policy', slug: 'privacy', intro: 'What Appliqa collects, why, and the choices you have.', Body: Privacy },
+    '/terms': { title: 'Terms of service', slug: 'terms', intro: 'The agreement between you and Appliqa when you use the service.', Body: Terms },
+    '/security': { title: 'Security', slug: 'security', intro: 'How we keep your account and career data safe.', Body: Security },
 };
 
 export default function Legal() {
@@ -187,37 +187,41 @@ export default function Legal() {
     const { Body } = page;
 
     return (
-        <div className="w-full min-h-[calc(100vh-64px)] bg-[#FAF8F5] py-12 px-4 sm:px-6 lg:px-8">
-            <article className="max-w-3xl mx-auto bg-white rounded-2xl border border-[#D8D4CC] p-6 sm:p-10 space-y-8">
-                <nav aria-label="Legal pages" className="flex flex-wrap gap-2">
-                    {Object.entries(PAGES).map(([path, p]) => (
-                        <button
-                            key={path}
-                            type="button"
-                            onClick={() => navigate(path)}
-                            aria-current={path === pathname ? 'page' : undefined}
-                            className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors ${
-                                path === pathname
-                                    ? 'bg-[#171717] text-white border-[#171717]'
-                                    : 'bg-white text-[#4A4540] border-[#D8D4CC] hover:border-[#171717]'
-                            }`}
-                        >
-                            {p.title}
-                        </button>
-                    ))}
+        <div className="bg-[#F7F5F2] text-[#171717]">
+            <section className="ds-frame ds-rule-b">
+                <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+                    <span className="ds-mono">legal / {page.slug}</span>
+                    <span className="ds-mono ds-mono-muted">updated {LAST_UPDATED.toLowerCase()}</span>
+                </div>
+                <div className="ds-cell !pt-14 sm:!pt-24 !pb-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+                    <h1 className="ds-slash m-0 lg:col-span-7" style={{ fontSize: 'clamp(44px, 6vw, 88px)' }}>{page.slug}</h1>
+                    <p className="ds-lede m-0 lg:col-span-5 !text-[#4A4540]">{page.intro}</p>
+                </div>
+                <nav aria-label="Legal pages" className="flex overflow-x-auto">
+                    {Object.entries(PAGES).map(([path, p]) => {
+                        const current = path === pathname;
+                        return (
+                            <a
+                                key={path}
+                                href={path}
+                                onClick={(e) => { e.preventDefault(); navigate(path); }}
+                                aria-current={current ? 'page' : undefined}
+                                className={`h-14 px-6 shrink-0 flex items-center gap-3 text-[15px] font-medium no-underline border-0 border-t border-r border-[#D8D4CC] ${current ? 'bg-white text-[#171717]' : 'bg-[#EFECE6] text-[#4A4540] hover:bg-white'}`}
+                            >
+                                {p.title}
+                                <span aria-hidden="true" className={`w-2.5 h-2.5 rounded-full border ${current ? 'bg-[#CA3C0A] border-[#CA3C0A]' : 'border-[#6F6A65]'}`} />
+                            </a>
+                        );
+                    })}
                 </nav>
+            </section>
 
-                <header className="space-y-2 border-b border-[#EFECE6] pb-6">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block">
-                        {page.eyebrow}
-                    </span>
-                    <h1 className="text-3xl font-black text-[#171717] tracking-tight m-0">{page.title}</h1>
-                    <p className="text-[15px] text-[#66615C]">{page.intro}</p>
-                    <p className="text-xs text-[#6F6A65]">Last updated {LAST_UPDATED}</p>
-                </header>
-
-                <Body />
-            </article>
+            <section className="ds-frame ds-rule-b grid grid-cols-1 lg:grid-cols-12">
+                <div className="hidden lg:block lg:col-span-4 border-0 border-r border-[#D8D4CC]" />
+                <article className="lg:col-span-8 ds-cell !py-12 sm:!py-16 space-y-10 max-w-3xl">
+                    <Body />
+                </article>
+            </section>
         </div>
     );
 }

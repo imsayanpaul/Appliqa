@@ -1,180 +1,202 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    FiSearch, FiZap, FiUpload, FiArrowRight, FiFileText, FiBriefcase,
-    FiClock, FiTrendingUp, FiGlobe, FiMessageSquare, FiShield, FiCheckCircle,
-    FiStar, FiMapPin, FiLayers, FiSend, FiTarget, FiAward, FiX
-} from 'react-icons/fi';
+import { FiSearch, FiArrowUpRight, FiArrowRight, FiX, FiCheck, FiMinus } from 'react-icons/fi';
 const ResumeUpload = lazy(() => import('../components/ResumeUpload'));
 import RecommendedJobs from '../components/RecommendedJobs';
 import { smartSearch, getSearchHistory, deleteSearchHistory, clearAllSearchHistory, getSuggestedRoles } from '../services/api';
 
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Hero } from '../components/ui/animated-hero';
+const STEPS = [
+    {
+        title: 'Scan your resume',
+        body: 'Upload a PDF. We pull out your skills, experience and education, then score it against the roles you want.',
+        cta: 'Scan a resume',
+        target: 'scan',
+    },
+    {
+        title: 'Find matching jobs',
+        body: 'Search live listings from LinkedIn, Indeed and Glassdoor, or describe the job you want in plain English.',
+        cta: 'Search jobs',
+        target: 'search',
+    },
+    {
+        title: 'Tailor the application',
+        body: 'Generate a cover letter and a short recruiter message written for that specific posting.',
+        cta: 'Open resume builder',
+        target: '/resume-creator',
+    },
+    {
+        title: 'Prepare and track',
+        body: 'Practice likely interview questions, then move each job from saved to applied to offer.',
+        cta: 'Open tracker',
+        target: '/saved',
+    },
+];
 
-function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
+const FEATURES = [
+    { title: 'Job search', body: 'Live listings with filters for location, remote, job type and date posted.' },
+    { title: 'Plain-English search', body: 'Type “remote React role, mid-level” and we turn it into a structured search.' },
+    { title: 'Resume scanner', body: 'Extracts skills, experience and education from your PDF in the browser.' },
+    { title: 'Match score', body: 'See how well your resume fits a job, and which keywords are missing.' },
+    { title: 'Cover letters', body: 'A first draft written for the job and company, ready for you to edit.' },
+    { title: 'Interview prep', body: 'Questions, model answers and talking points generated from the job post.' },
+    { title: 'Career path', body: 'Likely next roles, the skills to get there and typical salary steps.' },
+    { title: 'Application tracker', body: 'Every saved job in one board, from saved to offer.' },
+];
+
+const REPORT_ROWS = [
+    { keyword: 'react', resume: true, job: true },
+    { keyword: 'typescript', resume: true, job: true },
+    { keyword: 'graphql', resume: false, job: true },
+    { keyword: 'jest / testing', resume: true, job: true },
+    { keyword: 'aws', resume: false, job: true },
+];
+
+const DEFAULT_ROLES = ['React Developer', 'Python Engineer', 'Data Scientist', 'UI/UX Designer', 'DevOps Engineer', 'Full Stack', 'Machine Learning'];
+
+function ExampleReport() {
+    const score = 74;
+    return (
+        <div className="relative h-full bg-[#171717] text-white flex flex-col" aria-label="Example ATS report">
+            <div className="flex items-center justify-between px-6 sm:px-8 h-14 border-b border-white/15">
+                <span className="ds-mono text-white/70">example report</span>
+                <span className="ds-mono text-white/70 flex items-center gap-2">
+                    <span className="ds-square" /> ats audit
+                </span>
+            </div>
+
+            <div className="px-6 sm:px-8 pt-8 pb-6 border-b border-white/15">
+                <p className="ds-mono text-white/60 mb-3">frontend engineer · fintech · remote</p>
+                <div className="flex items-end gap-3">
+                    <span className="font-[900] leading-none tracking-[-0.04em]" style={{ fontSize: 'clamp(64px, 8vw, 112px)', fontStretch: '125%' }}>
+                        {score}
+                    </span>
+                    <span className="ds-mono text-white/60 pb-3">/100 match</span>
+                </div>
+                <div className="mt-5 h-2 bg-white/10" role="img" aria-label={`${score} out of 100`}>
+                    <div className="h-full bg-[#CA3C0A] report-bar" style={{ width: `${score}%` }} />
+                </div>
+            </div>
+
+            <table className="w-full text-left">
+                <thead>
+                    <tr className="ds-mono text-white/50">
+                        <th className="font-normal px-6 sm:px-8 py-3">keyword</th>
+                        <th className="font-normal py-3 w-24">resume</th>
+                        <th className="font-normal py-3 pr-6 sm:pr-8 w-24">job post</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {REPORT_ROWS.map((row) => (
+                        <tr key={row.keyword} className="border-t border-white/10">
+                            <td className="px-6 sm:px-8 py-3 text-[15px]">
+                                {row.keyword}
+                                {!row.resume && <span className="ml-3 ds-mono text-[#FF8A5B]">missing</span>}
+                            </td>
+                            <td className="py-3">
+                                {row.resume ? <FiCheck aria-label="yes" /> : <FiMinus className="text-white/40" aria-label="no" />}
+                            </td>
+                            <td className="py-3 pr-6 sm:pr-8"><FiCheck aria-label="yes" /></td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            <div className="mt-auto px-6 sm:px-8 py-5 border-t border-white/15">
+                <p className="ds-mono text-white/50 mb-1">suggested fix</p>
+                <p className="text-[15px] text-white/90 leading-snug">
+                    Add a bullet showing where you built or consumed a GraphQL API, with the result.
+                </p>
+            </div>
+        </div>
+    );
+}
+
+function Home({ user, resumeData, onResumeAnalyzed }) {
     const navigate = useNavigate();
     const [query, setQuery] = useState('');
     const [aiMode, setAiMode] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [recentSearches, setRecentSearches] = useState([]);
-    const [activeStep, setActiveStep] = useState(0);
-    const [selectedTab, setSelectedTab] = useState('job-seekers');
-    const [suggestedRoles, setSuggestedRoles] = useState([
-        'React Developer', 'Python Engineer', 'Data Scientist', 'UI/UX Designer',
-        'DevOps Engineer', 'Full Stack', 'Machine Learning'
-    ]);
+    const [suggestedRoles, setSuggestedRoles] = useState(DEFAULT_ROLES);
 
-    const stepData = [
-        {
-            tabLabel: '1. Scan & Audit Resume',
-            number: '1/4',
-            title: 'Scan Resume & Fix Keyword Gaps',
-            description: 'Upload your CV to instantly calculate your ATS keyword match score against live job algorithms, spot missing technical skills, and receive metric-boosted bullet point rewrites.',
-            buttonText: 'Start Resume Scan →',
-            action: () => scrollToResumeScanner(),
-            candidate: {
-                name: 'Alex Rivers',
-                role: 'Senior Full-Stack Engineer',
-                skills: ['React / Next.js', 'Node.js', 'System Design', 'Docker'],
-                badge: '96% ATS Compatibility'
-            }
-        },
-        {
-            tabLabel: '2. Smart Role Matching',
-            number: '2/4',
-            title: 'Match With Verified High-Paying Roles',
-            description: 'Search with conversational prompts like "Remote founding React engineer over $140k" and receive verified roles scored directly against your verified skill profile.',
-            buttonText: 'Explore Matched Roles →',
-            action: () => handleExploreMatchedRoles(),
-            candidate: {
-                name: 'Sofia Martinez',
-                role: 'AI Product Specialist',
-                skills: ['LLM Orchestration', 'Prompt Engineering', 'Product Strategy', 'Python'],
-                badge: '98% Profile Match'
-            }
-        },
-        {
-            tabLabel: '3. Tailored Applications',
-            number: '3/4',
-            title: 'Auto-Generate Bespoke Letters & DMs',
-            description: 'One click produces tailored cover letters matched to the exact tone and requirements of the job posting alongside high-converting LinkedIn introduction notes for hiring managers.',
-            buttonText: 'Open Application Creator →',
-            action: () => navigate('/resume-creator'),
-            candidate: {
-                name: 'Elena Rostova',
-                role: 'Lead UI/UX Designer',
-                skills: ['Design Systems', 'Figma', 'User Research', 'Interaction Design'],
-                badge: 'Tailored Letters Ready'
-            }
-        },
-        {
-            tabLabel: '4. Interview & Offers',
-            number: '4/4',
-            title: 'Ace STAR Interviews & Track Offers',
-            description: 'Practice with tailored behavioral and technical mock questions generated specifically for your saved jobs, master STAR talking points, and track your application pipeline to offer.',
-            buttonText: 'Launch Career Advisor →',
-            action: () => navigate('/advisor'),
-            candidate: {
-                name: 'Marcus Chen',
-                role: 'Cloud Solutions Architect',
-                skills: ['Kubernetes', 'AWS Solutions', 'Terraform', 'CI/CD Pipelines'],
-                badge: 'Offer Received · $195k'
-            }
+    // Search is the next page most visitors open: fetch its code while idle
+    useEffect(() => {
+        const prefetch = () => import('./SearchResults');
+        if ('requestIdleCallback' in window) {
+            const id = window.requestIdleCallback(prefetch, { timeout: 4000 });
+            return () => window.cancelIdleCallback(id);
         }
-    ];
+        const t = setTimeout(prefetch, 2000);
+        return () => clearTimeout(t);
+    }, []);
 
-    // Fetch suggested roles from database
     useEffect(() => {
         getSuggestedRoles()
             .then(res => {
-                if (res.data && res.data.success && res.data.roles) {
-                    setSuggestedRoles(res.data.roles);
-                }
+                if (res.data?.success && res.data.roles?.length) setSuggestedRoles(res.data.roles);
             })
             .catch(err => console.error('Failed to fetch suggested roles:', err));
     }, []);
 
-    // Fetch search history (API for logged-in user, localStorage for guests)
+    // Search history: API for signed-in users, localStorage for guests
     useEffect(() => {
-        const fetchHistory = async () => {
-            const unique = [];
+        const dedupe = (list) => {
             const seen = new Set();
-
-            if (user) {
-                try {
-                    const res = await getSearchHistory();
-                    for (const item of (res.data?.history || [])) {
-                        const q = item.query?.trim();
-                        if (q && !seen.has(q.toLowerCase())) {
-                            seen.add(q.toLowerCase());
-                            unique.push(q);
-                        }
-                        if (unique.length >= 8) break;
-                    }
-                    setRecentSearches(unique);
-                    return;
-                } catch (err) {
-                    console.error('Failed to fetch search history from API:', err);
+            const out = [];
+            for (const q of list) {
+                const clean = q?.trim();
+                if (clean && !seen.has(clean.toLowerCase())) {
+                    seen.add(clean.toLowerCase());
+                    out.push(clean);
                 }
-            } else {
-                try {
-                    const localHistory = JSON.parse(localStorage.getItem('appliqa_recent_searches') || '[]');
-                    for (const q of localHistory) {
-                        const clean = q?.trim();
-                        if (clean && !seen.has(clean.toLowerCase())) {
-                            seen.add(clean.toLowerCase());
-                            unique.push(clean);
-                        }
-                        if (unique.length >= 8) break;
-                    }
-                    setRecentSearches(unique);
-                } catch { }
+                if (out.length >= 8) break;
             }
+            return out;
         };
 
-        fetchHistory();
+        if (user) {
+            getSearchHistory()
+                .then(res => setRecentSearches(dedupe((res.data?.history || []).map(h => h.query))))
+                .catch(err => console.error('Failed to fetch search history from API:', err));
+        } else {
+            try {
+                setRecentSearches(dedupe(JSON.parse(localStorage.getItem('appliqa_recent_searches') || '[]')));
+            } catch { }
+        }
     }, [user]);
 
-    const handleDeleteSearch = async (e, queryToDelete) => {
-        e.stopPropagation();
+    const handleDeleteSearch = async (queryToDelete) => {
         const target = queryToDelete?.trim().toLowerCase();
         setRecentSearches(prev => prev.filter(q => q.trim().toLowerCase() !== target));
         try {
             const current = JSON.parse(localStorage.getItem('appliqa_recent_searches') || '[]');
-            const updated = current.filter(q => q.trim().toLowerCase() !== target);
-            localStorage.setItem('appliqa_recent_searches', JSON.stringify(updated));
-            await deleteSearchHistory(queryToDelete);
+            localStorage.setItem('appliqa_recent_searches', JSON.stringify(current.filter(q => q.trim().toLowerCase() !== target)));
+            if (user) await deleteSearchHistory(queryToDelete);
         } catch (err) {
             console.error('Failed to delete search history item:', err);
         }
     };
 
-    const handleClearAllSearches = async (e) => {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+    const handleClearAllSearches = async () => {
         setRecentSearches([]);
         try {
             localStorage.removeItem('appliqa_recent_searches');
             sessionStorage.removeItem('appliqa_search_history');
-            await clearAllSearchHistory();
+            if (user) await clearAllSearchHistory();
         } catch (err) {
             console.error('Failed to clear all search history:', err);
         }
     };
 
+    const goSearch = (q) => navigate(`/search?query=${encodeURIComponent(q)}`);
+
     const handleSearch = async (e) => {
-        if (e) e.preventDefault();
+        e?.preventDefault();
         const trimmed = query.trim();
         if (!trimmed) return;
         setError(null);
 
-        // Update local history cache
         try {
             const current = JSON.parse(localStorage.getItem('appliqa_recent_searches') || '[]');
             const updated = [trimmed, ...current.filter(q => q.toLowerCase() !== trimmed.toLowerCase())].slice(0, 8);
@@ -182,539 +204,268 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
             setRecentSearches(updated);
         } catch { }
 
-        if (aiMode) {
-            setLoading(true);
-            try {
-                const res = await smartSearch(trimmed, resumeData);
-                const params = res.data.searchParams;
-                const searchParams = new URLSearchParams({
-                    query: params.query,
-                    location: params.location || '',
-                    remote: params.remote ? 'true' : '',
-                    employmentType: params.employmentType || ''
-                });
-                navigate(`/search?${searchParams}`);
-            } catch (err) {
-                if (err?.response?.status === 429) {
-                    setError("API limit reached. Please try normal search or upgrade your rapidAPI JSearch plan.");
-                    setLoading(false);
-                    return;
-                }
-                navigate(`/search?query=${encodeURIComponent(trimmed)}`);
-            } finally {
-                setLoading(false);
+        if (!aiMode) return goSearch(trimmed);
+
+        setLoading(true);
+        try {
+            const res = await smartSearch(trimmed, resumeData);
+            const params = res.data.searchParams;
+            navigate(`/search?${new URLSearchParams({
+                query: params.query,
+                location: params.location || '',
+                remote: params.remote ? 'true' : '',
+                employmentType: params.employmentType || ''
+            })}`);
+        } catch (err) {
+            if (err?.response?.status === 429) {
+                setError('AI search is busy right now. Turn off AI search to search normally, or try again in a minute.');
+                return;
             }
-        } else {
-            navigate(`/search?query=${encodeURIComponent(trimmed)}`);
+            goSearch(trimmed);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleExploreMatchedRoles = () => {
-        const targetQuery = user?.preferences?.desiredRole || resumeData?.suggestedRoles?.[0] || 'Software Engineer';
-        const params = new URLSearchParams({ query: targetQuery });
-        if (user?.preferences?.location) params.append('location', user.preferences.location);
-        if (user?.preferences?.country) params.append('country', user.preferences.country);
-        navigate(`/search?${params.toString()}`);
-    };
-
-    const scrollToResumeScanner = () => {
-        const el = document.getElementById('resume-intelligence-section');
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
+    const handleStep = (target) => {
+        if (target === 'search') {
+            const role = user?.preferences?.desiredRole || resumeData?.suggestedRoles?.[0];
+            return role ? goSearch(role) : navigate('/search');
         }
+        if (target === 'scan') {
+            if (!user) return navigate('/profile');
+            return document.getElementById('resume-scan')?.scrollIntoView({ behavior: 'smooth' });
+        }
+        navigate(target);
     };
 
-    const currentStep = stepData[activeStep];
+    const searchForm = (
+        <div>
+            <form onSubmit={handleSearch} role="search">
+                <label htmlFor="home-search" className="ds-mono ds-mono-muted block mb-2">
+                    {aiMode ? 'describe the job you want' : 'job title, skill or company'}
+                </label>
+                <div className="ds-search">
+                    <FiSearch className="self-center ml-4 text-[#6F6A65] shrink-0" size={18} aria-hidden="true" />
+                    <input
+                        id="home-search"
+                        type="search"
+                        autoComplete="off"
+                        placeholder={aiMode ? 'Remote React role, mid-level, fintech' : 'e.g. Product designer'}
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                    />
+                    <button type="button" className="ds-toggle" aria-pressed={aiMode} onClick={() => setAiMode(!aiMode)}>
+                        <span className="ds-toggle-box" aria-hidden="true" /><span>ai<span className="hidden sm:inline"> search</span></span>
+                    </button>
+                    <button type="submit" disabled={loading || !query.trim()} className="ds-btn ds-btn-ink !min-h-0 !px-5" aria-label="Search">
+                        {loading ? <span className="ds-mono text-white">…</span> : <FiArrowRight size={18} />}
+                    </button>
+                </div>
+            </form>
+            {error && <p role="alert" className="mt-3 text-sm text-[#B91C1C]">{error}</p>}
 
-    const renderPipelineSection = () => (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8 sm:pt-14 mb-24">
-            <div className="text-center max-w-3xl mx-auto mb-10">
+            {recentSearches.length > 0 && (
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <span className="ds-mono ds-mono-muted mr-1">recent</span>
+                    {recentSearches.slice(0, 4).map((q) => (
+                        <span key={q} className="ds-chip !pr-1 !cursor-default">
+                            <button type="button" className="bg-transparent border-none p-0 cursor-pointer text-inherit" onClick={() => { setQuery(q); goSearch(q); }}>
+                                {q}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleDeleteSearch(q)}
+                                className="w-6 h-6 inline-flex items-center justify-center bg-transparent border-none cursor-pointer text-[#6F6A65] hover:text-[#171717]"
+                                aria-label={`Remove ${q} from recent searches`}
+                            >
+                                <FiX size={12} />
+                            </button>
+                        </span>
+                    ))}
+                    <button type="button" onClick={handleClearAllSearches} className="ds-mono ds-mono-muted underline underline-offset-2 bg-transparent border-none cursor-pointer">
+                        clear
+                    </button>
+                </div>
+            )}
 
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#171717] leading-tight">
-                    Accelerate Your Career in Four Intelligent Steps
-                </h2>
-                <p className="mt-3 text-base sm:text-lg text-[#66615C] leading-relaxed font-normal max-w-2xl mx-auto">
-                    From algorithmic resume audit to offer negotiation, Appliqa automates and guides every stage of your job search pipeline.
-                </p>
-            </div>
-
-            {/* Switcher Tabs / Step Indicators */}
-            <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
-                {stepData.map((step, idx) => (
-                    <button
-                        key={idx}
-                        onClick={() => setActiveStep(idx)}
-                        className={`px-5 py-2.5 rounded-xl text-xs font-bold border-none cursor-pointer transition-all ${activeStep === idx ? 'bg-[#171717] text-white shadow-md' : 'bg-white text-[#66615C] hover:text-[#171717] border border-neutral-200/80 shadow-2xs'
-                            }`}
-                    >
-                        {step.tabLabel}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="ds-mono ds-mono-muted mr-1">trending</span>
+                {suggestedRoles.slice(0, 6).map((tag, idx) => (
+                    <button key={tag} type="button" className="ds-chip" onClick={() => goSearch(tag)}>
+                        <span className="ds-chip-rank">{String(idx + 1).padStart(2, '0')}</span>
+                        {tag}
                     </button>
                 ))}
             </div>
+        </div>
+    );
 
-            {/* Layered Showcase Card with Burnt Orange Shelf */}
-            <div className="relative">
-                <div className="relative z-10 rounded-3xl bg-[#171717] p-8 sm:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-10 overflow-hidden shadow-2xl">
-                    <div className="flex-1 max-w-lg">
-                        <span className="text-2xl sm:text-3xl font-mono font-black text-[#CA3C0A] tracking-widest block mb-4">
-                            {currentStep.number}
-                        </span>
-                        <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
-                            {currentStep.title}
-                        </h3>
-                        <p className="text-sm sm:text-base text-neutral-300 leading-relaxed font-normal mb-6">
-                            {currentStep.description}
-                        </p>
+    const howItWorks = (
+        <section aria-labelledby="how-heading" className="ds-frame ds-rule-b">
+            <div className="ds-cell ds-rule-b flex flex-wrap items-end justify-between gap-4 !pt-16 sm:!pt-24">
+                <h2 id="how-heading" className="ds-slash m-0">how-it-works</h2>
+                <p className="ds-mono ds-mono-muted m-0">four steps, one place</p>
+            </div>
+            <ol className="ds-gridlines grid-cols-1 md:grid-cols-2 xl:grid-cols-4 list-none m-0 p-0">
+                {STEPS.map((step, i) => (
+                    <li key={step.title} className="ds-cell ds-cell-hover flex flex-col min-h-[300px]">
+                        <span className="ds-mono text-[#CA3C0A]">0{i + 1}</span>
+                        <h3 className="mt-10 mb-3 text-[26px] font-semibold tracking-[-0.02em] leading-tight">{step.title}</h3>
+                        <p className="ds-body m-0">{step.body}</p>
                         <button
-                            onClick={currentStep.action}
-                            className="px-6 py-3 rounded-xl bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold transition-all border-none cursor-pointer shadow-lg shadow-[#CA3C0A]/20"
+                            type="button"
+                            onClick={() => handleStep(step.target)}
+                            className="mt-auto pt-8 self-start inline-flex items-center gap-2 text-[15px] font-semibold text-[#171717] bg-transparent border-none cursor-pointer p-0 hover:text-[#CA3C0A] group"
                         >
-                            {currentStep.buttonText}
+                            {step.cta}
+                            <FiArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </button>
-                    </div>
-
-                    {/* Floating Profile / Candidate Preview Card */}
-                    <div className="w-full md:w-auto flex-shrink-0">
-                        <div className="rounded-2xl bg-white p-7 text-[#171717] shadow-2xl max-w-sm w-full border border-neutral-100">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="w-14 h-14 rounded-full bg-[#FFF0E8] border border-[rgba(202,60,10,0.3)] flex items-center justify-center text-[#CA3C0A] font-black text-xl">
-                                    AP
-                                </div>
-                                <div>
-                                    <span className="text-[10px] text-[#66615C] uppercase tracking-wider block font-semibold">Verified Candidate</span>
-                                    <h4 className="text-lg font-bold text-[#171717]">{currentStep.candidate.name}</h4>
-                                    <p className="text-xs text-[#66615C]">{currentStep.candidate.role}</p>
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 mb-5">
-                                {currentStep.candidate.skills.map((skill, i) => (
-                                    <span key={i} className="px-2.5 py-1 rounded-lg bg-[#FFF0E8] text-[#CA3C0A] text-xs font-semibold border border-[rgba(202,60,10,0.2)]">
-                                        {skill}
-                                    </span>
-                                ))}
-                            </div>
-                            <div className="pt-4 border-t border-neutral-100 flex items-center justify-between text-xs">
-                                <span className="text-[#66615C] font-medium">ATS Optimization</span>
-                                <span className="text-[#059669] font-bold">{currentStep.candidate.badge}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Orange Baseline Shadow Shelf */}
-                <div className="absolute -bottom-3 left-4 right-4 h-6 rounded-2xl bg-[#CA3C0A] z-0" />
-                <div className="absolute -bottom-6 left-8 right-8 h-6 rounded-2xl bg-[#B73609]/30 -z-10" />
-            </div>
+                    </li>
+                ))}
+            </ol>
         </section>
     );
 
-    const renderFeatureGridAndCta = () => (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mb-24">
-            <div className="text-center max-w-3xl mx-auto mb-12">
-
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[#171717] leading-tight">
-                    Discover the Ultimate Platform for Finding & Optimizing Opportunities
-                </h2>
-                <p className="mt-3 text-base sm:text-lg text-[#66615C] leading-relaxed font-normal max-w-2xl mx-auto">
-                    Revolutionizing the way you match skills, bypass automated filters, and land high-paying roles.
-                </p>
+    const features = (
+        <section aria-labelledby="features-heading" className="ds-frame ds-rule-b">
+            <div className="ds-cell ds-rule-b flex flex-wrap items-end justify-between gap-4 !pt-16 sm:!pt-24">
+                <h2 id="features-heading" className="ds-slash m-0">features</h2>
+                <p className="ds-mono ds-mono-muted m-0">everything included free to start</p>
             </div>
-
-            {/* 8-Card Grid in Clean White with Divider Borders */}
-            <div className="grid grid-cols-1 md:grid-cols-2 rounded-2xl overflow-hidden border border-neutral-200/80 bg-white shadow-xs mb-8">
-                {/* Item 1: Wide Range of Opportunities */}
-                <div className="p-8 sm:p-10 border-b md:border-r border-neutral-200/80 hover:bg-[#FFF0E8]/20 transition-colors flex items-start gap-5 sm:gap-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-[#171717]">
-                        <FiGlobe size={36} strokeWidth={1.75} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#171717] mb-2 leading-snug">
-                            Wide Range of Verified Roles
-                        </h3>
-                        <p className="text-sm text-[#66615C] leading-relaxed font-normal">
-                            Access diverse tech and remote job listings across global industries, tailored directly to your verified skills and salary expectations.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 2: Recruiter Outreach */}
-                <div className="p-8 sm:p-10 border-b border-neutral-200/80 hover:bg-[#FFF0E8]/20 transition-colors flex items-start gap-5 sm:gap-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-[#171717]">
-                        <FiMessageSquare size={36} strokeWidth={1.75} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#171717] mb-2 leading-snug">
-                            Recruiter DMs & Outreach
-                        </h3>
-                        <p className="text-sm text-[#66615C] leading-relaxed font-normal">
-                            Connect directly with hiring managers using AI-crafted LinkedIn cold introduction notes and personalized follow-ups.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 3: ATS Keyword Scanner & Fixer */}
-                <div className="p-8 sm:p-10 border-b md:border-r border-neutral-200/80 hover:bg-[#FFF0E8]/20 transition-colors flex items-start gap-5 sm:gap-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-[#171717]">
-                        <FiTarget size={36} strokeWidth={1.75} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#171717] mb-2 leading-snug">
-                            ATS Keyword Scanner & Fixer
-                        </h3>
-                        <p className="text-sm text-[#66615C] leading-relaxed font-normal">
-                            Compare your resume against target job postings. Uncover missing hard skills, software proficiencies, and formatting penalties.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 4: AI Resume Builder & Enhancer */}
-                <div className="p-8 sm:p-10 border-b border-neutral-200/80 hover:bg-[#FFF0E8]/20 transition-colors flex items-start gap-5 sm:gap-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-[#171717]">
-                        <FiFileText size={36} strokeWidth={1.75} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#171717] mb-2 leading-snug">
-                            AI Resume Builder & Enhancer
-                        </h3>
-                        <p className="text-sm text-[#66615C] leading-relaxed font-normal">
-                            Build modern, ATS-proof PDF resumes with AI-generated executive summaries, bullet enhancers, and clean formatting.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 5: Tailored Cover Letters */}
-                <div className="p-8 sm:p-10 border-b md:border-r border-neutral-200/80 hover:bg-[#FFF0E8]/20 transition-colors flex items-start gap-5 sm:gap-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-[#171717]">
-                        <FiSend size={36} strokeWidth={1.75} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#171717] mb-2 leading-snug">
-                            Tailored Cover Letter Generator
-                        </h3>
-                        <p className="text-sm text-[#66615C] leading-relaxed font-normal">
-                            Instantly generate bespoke cover letters that match the tone, required tech stack, and culture of any target company.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 6: STAR-Method Interview Prep Coach */}
-                <div className="p-8 sm:p-10 border-b border-neutral-200/80 hover:bg-[#FFF0E8]/20 transition-colors flex items-start gap-5 sm:gap-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-[#171717]">
-                        <FiAward size={36} strokeWidth={1.75} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#171717] mb-2 leading-snug">
-                            STAR Interview Prep Coach
-                        </h3>
-                        <p className="text-sm text-[#66615C] leading-relaxed font-normal">
-                            Practice with tailored technical and behavioral mock interview questions with structured STAR-method talking points.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 7: Interactive Career Path Visualizer */}
-                <div className="p-8 sm:p-10 border-b md:border-b-0 md:border-r border-neutral-200/80 hover:bg-[#FFF0E8]/20 transition-colors flex items-start gap-5 sm:gap-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-[#171717]">
-                        <FiTrendingUp size={36} strokeWidth={1.75} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#171717] mb-2 leading-snug">
-                            Career Path Visualizer
-                        </h3>
-                        <p className="text-sm text-[#66615C] leading-relaxed font-normal">
-                            Map your career trajectory from Junior to Senior to Architect with verified skill benchmarks and compensation ladders.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Item 8: Smart Application Pipeline Tracker */}
-                <div className="p-8 sm:p-10 hover:bg-[#FFF0E8]/20 transition-colors flex items-start gap-5 sm:gap-6">
-                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center text-[#171717]">
-                        <FiBriefcase size={36} strokeWidth={1.75} />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#171717] mb-2 leading-snug">
-                            Smart Application Tracker
-                        </h3>
-                        <p className="text-sm text-[#66615C] leading-relaxed font-normal">
-                            Organize, bookmark, and track application stages seamlessly from Saved, Applied, Interview, to Offer in real-time.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Split CTA Banner */}
-            <div className="grid grid-cols-1 md:grid-cols-12 rounded-2xl overflow-hidden shadow-xl border border-neutral-200/80">
-                <div className="md:col-span-6 bg-[#171717] p-8 sm:p-12 text-white flex flex-col justify-between">
-                    <div>
-                        <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-4">
-                            Ready to Fast-Track Your Career Breakthrough?
-                        </h3>
-                        <p className="text-sm sm:text-base text-neutral-300 leading-relaxed font-normal mb-8">
-                            Join thousands of engineers, designers, and tech leaders using Appliqa to optimize applications, bypass ATS filters, and secure top-tier offers.
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => navigate('/profile')}
-                        className="w-fit px-6 py-3 rounded-xl bg-white text-[#171717] hover:bg-neutral-100 text-xs font-bold transition-all border-none cursor-pointer"
-                    >
-                        {user ? 'Edit Your Profile →' : 'Create Your Free Profile →'}
-                    </button>
-                </div>
-                <div className="md:col-span-6 min-h-[260px] bg-[#EFECE6] relative overflow-hidden">
-                    <picture>
-                        <source srcSet="/workspace-desk.webp" type="image/webp" />
-                        <img
-                            src="/workspace-desk.jpg"
-                            alt="Modern Workspace Desk"
-                            className="w-full h-full object-cover object-center"
-                            loading="lazy"
-                            decoding="async"
-                            width="1200"
-                            height="800"
-                        />
-                    </picture>
-                </div>
-            </div>
+            <ul className="ds-gridlines grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 list-none m-0 p-0">
+                {FEATURES.map((f, i) => (
+                    <li key={f.title} className="ds-cell ds-cell-hover min-h-[200px]">
+                        <span className="ds-mono ds-mono-muted">{String(i + 1).padStart(2, '0')}</span>
+                        <h3 className="mt-8 mb-2 text-[20px] font-semibold tracking-[-0.015em]">{f.title}</h3>
+                        <p className="ds-body m-0">{f.body}</p>
+                    </li>
+                ))}
+            </ul>
         </section>
     );
 
-    // Dedicated Get Started Landing Page before sign-in
+    // ---- Signed-out landing ----
     if (!user) {
         return (
-            <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717]">
-                <Suspense fallback={
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--text-muted)' }}>
-                        <div className="spinner primary-spinner"></div>
+            <div className="bg-[#F7F5F2] text-[#171717]">
+                <section className="ds-frame ds-rule-b overflow-hidden">
+                    <p aria-hidden="true" className="ds-display m-0 px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 select-none ds-rise whitespace-nowrap" style={{ fontSize: 'calc((min(100vw, 1440px) - 80px) / 5.14)' }}>
+                        Appliqa<span className="text-[#CA3C0A]">.</span>
+                    </p>
+                </section>
+
+                <section className="ds-frame ds-rule-b grid grid-cols-1 lg:grid-cols-12">
+                    <div className="lg:col-span-7 order-2 lg:order-1 lg:border-r border-[#D8D4CC] min-h-[520px] ds-rise ds-rise-2">
+                        <ExampleReport />
                     </div>
-                }>
-                    <Hero />
-                </Suspense>
 
-                {/* ── 4-Stage Career Pipeline ── */}
-                {renderPipelineSection()}
+                    <div className="lg:col-span-5 order-1 lg:order-2 flex flex-col">
+                        <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+                            <span className="ds-mono">ai job search / resume audit</span>
+                            <span className="ds-mono hidden sm:flex items-center gap-2">free to start <span className="ds-square" /></span>
+                        </div>
+                        <div className="ds-cell ds-rule-b ds-rise ds-rise-1">
+                            <h1 className="ds-lede m-0 !font-medium" style={{ fontSize: 'clamp(26px, 2.6vw, 36px)', lineHeight: 1.15 }}>
+                                Find the right job, get your resume past the filters, and write the application, all in one place.
+                            </h1>
+                        </div>
+                        <div className="ds-cell ds-rule-b flex-1">{searchForm}</div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2">
+                            <button type="button" className="ds-btn ds-btn-accent !min-h-[64px] sm:!min-h-[72px] !px-6 sm:!px-8" onClick={() => navigate('/profile')}>
+                                Create free account <FiArrowUpRight size={18} className="ds-btn-arrow" />
+                            </button>
+                            <button type="button" className="ds-btn !min-h-[64px] sm:!min-h-[72px] !px-6 sm:!px-8 bg-transparent text-[#171717] hover:bg-white border-0 border-t sm:border-t-0 sm:border-l border-[#D8D4CC]" onClick={() => navigate('/search')}>
+                                Browse jobs <FiArrowRight size={18} className="ds-btn-arrow" />
+                            </button>
+                        </div>
+                    </div>
+                </section>
 
-                {/* ── 8-Feature Grid & Split CTA ── */}
-                {renderFeatureGridAndCta()}
+                {howItWorks}
+                {features}
+
+                <section className="ds-frame grid grid-cols-1 lg:grid-cols-12">
+                    <div className="lg:col-span-7 ds-cell !py-16 sm:!py-24 lg:border-r border-[#D8D4CC]">
+                        <h2 className="ds-slash m-0">start-now</h2>
+                        <p className="ds-lede mt-6 mb-0 max-w-xl">
+                            Upload your resume once. Every search, score and cover letter after that is built around it.
+                        </p>
+                    </div>
+                    <div className="lg:col-span-5 flex flex-col justify-end border-t lg:border-t-0 border-[#D8D4CC]">
+                        <button type="button" className="ds-btn ds-btn-accent !min-h-[88px] !px-8 !text-lg" onClick={() => navigate('/profile')}>
+                            Create free account <FiArrowUpRight size={20} className="ds-btn-arrow" />
+                        </button>
+                        <button type="button" className="ds-btn !min-h-[72px] !px-8 bg-transparent text-[#171717] hover:bg-white ds-rule-t" onClick={() => navigate('/pricing')}>
+                            See pricing <FiArrowRight size={18} className="ds-btn-arrow" />
+                        </button>
+                    </div>
+                </section>
             </div>
         );
     }
 
+    // ---- Signed-in home ----
+    const firstName = user?.name?.trim()?.split(' ')[0];
+    const shortcuts = [
+        { label: 'Resume builder', desc: 'write and tailor', path: '/resume-creator' },
+        { label: 'Tracker', desc: 'saved to offer', path: '/saved' },
+        { label: 'Career path', desc: 'next roles and skills', path: '/career' },
+        { label: 'Advisor', desc: 'ask a career question', path: '/advisor' },
+    ];
+
     return (
-        <div className="fade-in bg-[#F7F5F2] min-h-screen text-[#171717]">
-            {/* ── Mobile & Tablet Layout: Clean Wrapped Pills (Centered, Zero Cutoff) ── */}
-            <div className="lg:hidden w-full pt-1.5 pb-1 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto flex flex-col items-center justify-center text-center" style={{ minHeight: '68px', contain: 'layout style' }}>
-                <div className="flex items-center justify-center gap-1.5 mb-1.5 px-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-pulse shrink-0" />
-                    <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#66615C]">Trending Searches</span>
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-                    {suggestedRoles.map((tag, idx) => {
-                        const isTop3 = idx < 3;
-                        const rank = idx + 1;
-                        return (
-                            <button
-                                key={tag}
-                                type="button"
-                                className="inline-flex items-center px-2.5 py-1 sm:py-1.5 rounded-md text-[11px] sm:text-xs font-semibold bg-white border border-[#D8D4CC] text-[#171717] active:scale-95 shadow-[0_1px_2px_rgba(0,0,0,0.03)] cursor-pointer"
-                                onClick={() => navigate(`/search?query=${encodeURIComponent(tag)}`)}
-                            >
-                                {isTop3 && (
-                                    <span
-                                        className={`inline-flex items-center justify-center text-[8.5px] sm:text-[9px] font-black mr-1 sm:mr-1.5 px-1.5 py-0.5 rounded-[3px] leading-none shrink-0 ${
-                                            rank === 1
-                                                ? 'bg-[#CA3C0A] text-white'
-                                                : 'bg-[#ECE8E1] text-[#171717]'
-                                        }`}
-                                    >
-                                        #{rank}
-                                    </span>
-                                )}
-                                <span>{tag}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* ── Desktop Layout: Centered Squarish Glass Dock (1024px+) ── */}
-            <div className="hidden lg:flex w-full pt-4 pb-1 px-6 max-w-7xl mx-auto items-center justify-center" style={{ minHeight: '48px', contain: 'layout style' }}>
-                <div className="inline-flex items-center flex-wrap justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-white/95 backdrop-blur-md border border-[#D8D4CC] shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#171717] mr-1 flex-shrink-0">
-                        <span className="w-2 h-2 rounded-full bg-[#CA3C0A] animate-pulse" />
-                        <span className="tracking-wide text-[11.5px] uppercase font-bold text-[#66615C]">Trending:</span>
+        <div className="bg-[#F7F5F2] text-[#171717]">
+            <section className="ds-frame ds-rule-b grid grid-cols-1 lg:grid-cols-12">
+                <div className="lg:col-span-8 lg:border-r border-[#D8D4CC] flex flex-col">
+                    <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+                        <span className="ds-mono">{firstName ? `welcome back, ${firstName.toLowerCase()}` : 'welcome back'}</span>
+                        {resumeData?.fileName ? (
+                            <span className="ds-mono ds-mono-muted hidden sm:flex items-center gap-2 truncate">resume on file <span className="ds-square" /></span>
+                        ) : (
+                            <a href="#resume-scan" className="ds-mono text-[#CA3C0A] hidden sm:inline">add your resume →</a>
+                        )}
                     </div>
-                    {suggestedRoles.map((tag, idx) => {
-                        const isTop3 = idx < 3;
-                        const rank = idx + 1;
-                        return (
-                            <button
-                                key={tag}
-                                type="button"
-                                className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold active:scale-95 transition-all cursor-pointer shadow-none group ${
-                                    isTop3
-                                        ? 'bg-white text-[#171717] border border-[#D8D4CC] hover:border-[#171717] hover:bg-[#171717] hover:text-white'
-                                        : 'bg-[#FAF8F5] text-[#171717] border border-[#D8D4CC] hover:bg-[#171717] hover:text-white'
-                                }`}
-                                onClick={() => navigate(`/search?query=${encodeURIComponent(tag)}`)}
-                            >
-                                {isTop3 && (
-                                    <span
-                                        className={`inline-flex items-center justify-center text-[9.5px] font-black mr-1.5 px-1.5 py-0.5 rounded-[3px] leading-none transition-colors ${
-                                            rank === 1
-                                                ? 'bg-[#CA3C0A] text-white group-hover:bg-white group-hover:text-[#CA3C0A]'
-                                                : 'bg-[#ECE8E1] text-[#171717] group-hover:bg-white/20 group-hover:text-white'
-                                        }`}
-                                    >
-                                        #{rank}
-                                    </span>
-                                )}
-                                <span>{tag}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            <section className="w-full pt-1.5 sm:pt-3 pb-8 sm:pb-12 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 lg:min-h-[520px]">
-                    <div className="lg:col-span-7 bg-[#CA3C0A] p-5 sm:p-10 md:p-14 text-white flex flex-col justify-between relative h-full">
-                        <div>
-                            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] mb-2 sm:mb-6">
-                                Outsmart the ATS.<br />
-                                Land Dream Roles.<br />
-                                All in One Place.
-                            </h1>
-                            <p className="text-xs sm:text-base md:text-lg text-white/90 font-normal leading-normal sm:leading-relaxed mb-3.5 sm:mb-8 max-w-xl">
-                                Bypass automated application filters, lock in 90%+ keyword optimization, and auto-generate bespoke cover letters alongside tailored recruiter outreach notes.
-                            </p>
-                        </div>
-
-                        <div className="w-full">
-                            <form onSubmit={handleSearch} className="w-full flex flex-col sm:flex-row items-stretch sm:items-center bg-white rounded-2xl p-2.5 sm:p-1.5 shadow-xl border border-white/20 transition-all focus-within:ring-2 focus-within:ring-white gap-2 sm:gap-0">
-                                <div className="flex items-center pl-2 sm:pl-3.5 pr-2 flex-1 min-w-0 pb-1 sm:pb-0 border-b border-neutral-100 sm:border-none">
-                                    <FiSearch className="text-neutral-400 mr-2.5 shrink-0" size={18} />
-                                    <input
-                                        type="text"
-                                        className="w-full bg-transparent border-none outline-none text-xs sm:text-sm text-neutral-800 placeholder-neutral-400 font-medium py-1 sm:py-0"
-                                        placeholder={aiMode ? 'Try: "Remote React engineer paying over $140k"' : 'Search job titles, required skills, or company...'}
-                                        value={query}
-                                        onChange={(e) => setQuery(e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
-                                    <button
-                                        type="button"
-                                        onClick={() => setAiMode(!aiMode)}
-                                        className={`flex-1 sm:flex-initial justify-center px-3 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${aiMode
-                                                ? 'bg-[#FFF0E8] text-[#CA3C0A]'
-                                                : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                                            }`}
-                                        title="Toggle AI Smart Search"
-                                    >
-                                        <FiZap size={13} className={aiMode ? 'text-[#CA3C0A]' : 'text-neutral-500'} />
-                                        <span>AI Search</span>
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="flex-1 sm:flex-initial justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-neutral-900 text-white text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 shadow-md disabled:opacity-50 whitespace-nowrap"
-                                    >
-                                        <span>{loading ? '...' : 'Search'}</span>
-                                        <FiArrowRight size={13} />
-                                    </button>
-                                </div>
-                            </form>
-
-                            {/* Recent Searches (if available) */}
-                            {recentSearches.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-2 text-xs text-white/90 w-full mt-3.5 pt-0.5">
-                                    <span className="flex items-center gap-1 font-bold text-white shrink-0">
-                                        <FiClock size={12} />
-                                        <span>Recent:</span>
-                                    </span>
-                                    <div className="flex flex-wrap items-center gap-1.5">
-                                        {recentSearches.slice(0, 3).map((q) => (
-                                            <span
-                                                key={q}
-                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/20 hover:bg-black/30 backdrop-blur-sm text-white text-xs font-medium cursor-pointer transition-all border border-white/15 group shrink-0"
-                                                onClick={() => {
-                                                    setQuery(q);
-                                                    navigate(`/search?query=${encodeURIComponent(q)}`);
-                                                }}
-                                            >
-                                                <span>{q}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => handleDeleteSearch(e, q)}
-                                                    className="hover:text-white/40 p-0.5 bg-transparent border-none cursor-pointer flex items-center text-white/70 group-hover:text-white"
-                                                    title="Remove from history"
-                                                >
-                                                    <FiX size={11} />
-                                                </button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={handleClearAllSearches}
-                                        className="text-[11px] text-white/80 hover:text-white underline cursor-pointer bg-transparent border-none shrink-0"
-                                        title="Clear all search history"
-                                    >
-                                        Clear all
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="lg:col-span-5 bg-[#EFECE6] relative min-h-[340px] lg:min-h-full overflow-hidden">
-                        <picture>
-                            <source srcSet="/hero-portrait.webp" type="image/webp" />
-                            <img
-                                src="/hero-portrait.jpg"
-                                alt="Professional Tech Candidate"
-                                className="w-full h-full object-cover object-center"
-                                loading="eager"
-                                fetchPriority="high"
-                                decoding="async"
-                                width="1200"
-                                height="896"
-                            />
-                        </picture>
+                    <div className="ds-cell !py-10 sm:!py-14 flex-1">
+                        <h1 className="m-0 mb-8 font-semibold tracking-[-0.03em] leading-[1.02]" style={{ fontSize: 'clamp(36px, 4.4vw, 64px)' }}>
+                            What job are you<br className="hidden sm:block" /> looking for?
+                        </h1>
+                        {searchForm}
                     </div>
                 </div>
+
+                <nav aria-label="Shortcuts" className="lg:col-span-4 ds-gridlines grid-cols-2 lg:grid-cols-1 border-t lg:border-t-0 border-[#D8D4CC]">
+                    {shortcuts.map((s) => (
+                        <button
+                            key={s.path}
+                            type="button"
+                            onClick={() => navigate(s.path)}
+                            className="ds-cell ds-cell-hover text-left border-0 cursor-pointer flex items-start justify-between gap-4 group"
+                        >
+                            <span>
+                                <span className="block text-[20px] font-semibold tracking-[-0.015em] text-[#171717]">{s.label}</span>
+                                <span className="ds-mono ds-mono-muted block mt-1">{s.desc}</span>
+                            </span>
+                            <FiArrowUpRight size={20} className="text-[#171717] shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </button>
+                    ))}
+                </nav>
             </section>
 
-            {renderPipelineSection()}
-
-            {renderFeatureGridAndCta()}
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+            <section className="ds-frame ds-rule-b">
                 <RecommendedJobs user={user} resumeData={resumeData} />
-            </div>
+            </section>
 
-            {/* ── SECTION 5: Resume Intelligence Scanner Suite ── */}
-            <section id="resume-intelligence-section" className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mb-24">
-                <div className="mb-6 flex justify-between items-center flex-wrap gap-4">
-                    <div>
-                        <p className="text-xs tracking-widest uppercase mb-1 font-bold text-[#CA3C0A]">[ Deep LLM & OCR Engine ]</p>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#171717]">
-                            Resume Intelligence & ATS Audit
-                        </h2>
-                    </div>
+            <section id="resume-scan" aria-labelledby="scan-heading" className="ds-frame ds-rule-b scroll-mt-20">
+                <div className="ds-cell ds-rule-b flex flex-wrap items-end justify-between gap-4 !pt-14">
+                    <h2 id="scan-heading" className="ds-slash m-0">resume-scan</h2>
+                    <p className="ds-mono ds-mono-muted m-0">pdf or image · read in your browser</p>
                 </div>
-                <Suspense fallback={
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', background: 'rgba(255, 255, 255, 0.02)', border: '1px dashed rgba(255, 255, 255, 0.08)', borderRadius: '12px', color: 'var(--text-muted)' }}>
-                        <div className="spinner primary-spinner"></div>
-                    </div>
-                }>
-                    <ResumeUpload
-                        onResumeAnalyzed={onResumeAnalyzed}
-                        existingData={resumeData}
-                        user={user}
-                    />
-                </Suspense>
+                <div className="ds-cell">
+                    <Suspense fallback={<div className="h-[220px] border border-dashed border-[#D8D4CC]" />}>
+                        <ResumeUpload onResumeAnalyzed={onResumeAnalyzed} existingData={resumeData} user={user} />
+                    </Suspense>
+                </div>
             </section>
         </div>
     );
