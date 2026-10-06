@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { certificationLabel, newId } from '../lib/resumeProfile';
-import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
+import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, dataFromAnalysis, formatUpdated, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
 import { normalizeDesign, readPhoto } from '../lib/resumeDesign';
 import ResumeDocument from '../components/resume/ResumeDocument';
 import ResumePreview from '../components/resume/ResumePreview';
@@ -949,6 +949,34 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         summary: summary?.trim() ? 1 : 0, experience: experience.length, projects: projects.length, education: education.length,
         skills: skills.length, expertise: expertise.length, certifications: certifications.length, achievements: achievements.length, languages: languages.length,
     };
+
+    // Copy another saved resume (or the last uploaded file) into the editor.
+    // The current design and photo stay; nothing is saved until Save.
+    const importFrom = (data, label) => {
+        if (!data) return;
+        if (isDirty && !window.confirm(`Replace what's in the editor with “${label}”? Your unsaved changes will be lost.`)) return;
+        loadFromResumeData(data, { keepLook: true });
+        if (Array.isArray(data.customSections) && data.customSections.length) updateCustomSections(data.customSections);
+        initialSnapshotRef.current = '__imported__';
+        setShowUploadModal(false);
+        setNotice(`Copied from “${label}”. Check each section, then save.`);
+    };
+    const importSources = [
+        ...collection.profiles
+            .filter((p) => p.id !== activeResume?.id)
+            .map((p) => ({
+                key: p.id,
+                label: p.name,
+                meta: [p.id === collection.primaryId ? 'primary' : '', formatUpdated(p.updatedAt), `${p.data?.skills?.length || 0} skills`].filter(Boolean).join(' · '),
+                load: () => importFrom(p.data, p.name),
+            })),
+        ...(resumeData?.fileName ? [{
+            key: 'upload',
+            label: resumeData.fileName,
+            meta: 'last uploaded file',
+            load: () => importFrom(dataFromAnalysis(resumeData), resumeData.fileName),
+        }] : []),
+    ];
 
     const handlePhoto = async (e) => {
         const file = e.target.files?.[0];
@@ -2213,10 +2241,41 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 </label>
                                 {uploadError && <p role="alert" className="m-0 mt-4 text-[15px] text-[#991B1B]">{uploadError}</p>}
                             </section>
+                            {importSources.length > 0 && (
+                                <section className="ds-sheet-section" aria-labelledby="import-saved-title">
+                                    <p id="import-saved-title" className="ds-mono ds-mono-muted m-0 mb-3">or copy from a saved resume</p>
+                                    <ul className="list-none m-0 p-0 border border-[#D8D4CC] bg-white">
+                                        {importSources.map((src) => (
+                                            <li key={src.key} className="border-0 border-t first:border-t-0 border-[#D8D4CC]">
+                                                <button
+                                                    type="button"
+                                                    onClick={src.load}
+                                                    disabled={uploading}
+                                                    className="group w-full px-4 py-3.5 flex items-center justify-between gap-4 text-left bg-transparent hover:bg-[#F7F5F2] border-0 cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                                                >
+                                                    <span className="min-w-0 flex items-center gap-3">
+                                                        <span className="w-9 h-9 shrink-0 inline-flex items-center justify-center border border-[#D8D4CC] bg-[#F7F5F2]" aria-hidden="true">
+                                                            {src.key === 'upload' ? <Upload size={15} /> : <FileText size={15} />}
+                                                        </span>
+                                                        <span className="min-w-0">
+                                                            <span className="block text-[15px] font-semibold text-[#171717] truncate">{src.label}</span>
+                                                            <span className="ds-mono ds-mono-muted block mt-0.5">{src.meta}</span>
+                                                        </span>
+                                                    </span>
+                                                    <span className="shrink-0 inline-flex items-center gap-1.5 text-[14px] font-medium text-[#171717] group-hover:text-[#CA3C0A]">
+                                                        Use this <ArrowRight size={15} />
+                                                    </span>
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+                            )}
                             <section className="ds-sheet-section border-b-0">
                                 <p className="ds-mono ds-mono-muted m-0 mb-2">good to know</p>
                                 <ul className="ds-list">
                                     <li>This replaces what’s in the editor, not your saved resumes. Nothing is saved until you click Save.</li>
+                                    <li>Copying from a saved resume keeps your current design and photo.</li>
                                     <li>To keep the current version too, use Save as → Save as new resume after importing.</li>
                                 </ul>
                             </section>
