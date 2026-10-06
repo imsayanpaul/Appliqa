@@ -40,7 +40,8 @@ function SearchResults({ user, resumeData }) {
         country: searchParams.get('country') || user?.preferences?.country || '',
         employmentType: searchParams.get('employmentType') || '',
         datePosted: searchParams.get('datePosted') || '',
-        remote: searchParams.get('remote') || ''
+        remote: searchParams.get('remote') || '',
+        experience: searchParams.get('experience') || ''
     });
 
     useEffect(() => {
@@ -90,7 +91,8 @@ function SearchResults({ user, resumeData }) {
                 const res = await smartSearch(query, resumeData);
                 const params = res.data.searchParams;
                 const newFilters = {
-                    location: params.location || '',
+                    ...filters,
+                    location: params.location || filters.location || '',
                     employmentType: params.employmentType || '',
                     remote: params.remote ? 'true' : '',
                     datePosted: ''
@@ -188,6 +190,14 @@ function SearchResults({ user, resumeData }) {
                         onClick={() => handleFilterChange('employmentType', filters.employmentType === 'INTERN' ? '' : 'INTERN')}
                     >
                         Internships
+                    </button>
+
+                    <button
+                        type="button" aria-pressed={filters.experience === 'fresher'} className={`ds-chip ${filters.experience === 'fresher' ? '!bg-[#171717] !text-white !border-[#171717]' : ''}`}
+                        onClick={() => handleFilterChange('experience', filters.experience === 'fresher' ? '' : 'fresher')}
+                        title="Entry-level roles for freshers and recent graduates"
+                    >
+                        Freshers
                     </button>
 
                     <Dropdown

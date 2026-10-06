@@ -63,6 +63,25 @@ function isValidSearchQuery(q, resultsCount) {
   return true;
 }
 
+// JSearch searches one country's index (default "us"), so map the picker to ISO codes
+const COUNTRY_CODES = {
+  'india': 'in', 'united states': 'us', 'usa': 'us', 'united kingdom': 'gb', 'uk': 'gb', 'canada': 'ca',
+  'germany': 'de', 'australia': 'au', 'singapore': 'sg', 'uae': 'ae', 'united arab emirates': 'ae',
+  'netherlands': 'nl', 'japan': 'jp'
+};
+
+const SENIOR_TITLE = /\b(senior|sr\.?|lead|principal|staff|head|director|manager|architect|vp)\b/i;
+const INTERN_TITLE = /\b(intern|internship|trainee|apprentice)/i;
+
+// JSearch treats these filters loosely, so tighten the page of results
+const isInternship = (job) => /intern/i.test(job.employmentType || '') || INTERN_TITLE.test(job.title || '');
+const matchesFilters = (job, { remote, employmentType, experience }) => {
+  if (remote === 'true' && !job.remote) return false;
+  if (employmentType === 'INTERN' && (!isInternship(job) || SENIOR_TITLE.test(job.title || ''))) return false;
+  if (experience === 'fresher' && SENIOR_TITLE.test(job.title || '')) return false;
+  return true;
+};
+
 // Each uncached search spends RapidAPI quota
 const searchLimiter = rateLimit({ name: 'jobs-search', windowMs: 60 * 1000, maxAuthed: 40, maxAnon: 15 });
 
@@ -77,12 +96,18 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       employmentType = '',
       datePosted = '',
       remote = '',
+      experience = '',
       radius = ''
     } = req.query;
 
     const userId = req.user?.id; // From optional auth middleware
 
     let searchQuery = query;
+    const countryCode = COUNTRY_CODES[String(country).trim().toLowerCase()] || '';
+    // "Fresher" is how Indian listings say entry level; it beats the API's experience filter
+    if (experience === 'fresher') {
+      searchQuery += countryCode === 'in' ? ' fresher' : ' entry level';
+    }
     if (location && country) {
       searchQuery += ` in ${location}, ${country}`;
     } else if (country) {
@@ -98,8 +123,10 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       date_posted: datePosted || 'all'
     });
 
+    if (countryCode) params.append('country', countryCode);
     if (employmentType) params.append('employment_types', employmentType);
-    if (remote === 'true') params.append('remote_jobs_only', 'true');
+    // remote_jobs_only was retired by JSearch and is silently ignored
+    if (remote === 'true') params.append('work_from_home', 'true');
     if (radius) params.append('radius', radius);
 
     const cacheKey = params.toString();
@@ -199,7 +226,8 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       requiredExperience: job.job_required_experience || {}
     }));
 
-    const result = { jobs, totalResults: data.data?.length || 0, page: parseInt(page) };
+    const filtered = jobs.filter((job) => matchesFilters(job, { remote, employmentType, experience }));
+    const result = { jobs: filtered, totalResults: filtered.length, page: parseInt(page) };
     setCache(cacheKey, result);
     // Return the response immediately to the user to minimize latency
     res.json({ success: true, ...result });
@@ -211,7 +239,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       (async () => {
         try {
           const cleanQuery = query.trim().replace(/\s+/g, ' ');
-          if (isValidSearchQuery(cleanQuery, jobs.length)) {
+          if (isValidSearchQuery(cleanQuery, filtered.length)) {
             const { error: historyError } = await supabase.from('search_history').insert({
               user_id: userId,
               query: cleanQuery,
@@ -219,7 +247,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
               filter_employment_type: employmentType,
               filter_date_posted: datePosted,
               filter_remote: remote === 'true',
-              results_count: jobs.length
+              results_count: filtered.length
             });
             if (historyError) {
               console.error('Failed to save search history to Supabase:', historyError);
@@ -232,10 +260,10 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
     }
 
     // 2. Save to Supabase Caching Layer in the background
-    if (jobs.length > 0) {
+    if (filtered.length > 0) {
       (async () => {
         try {
-          const jobCacheRows = jobs.map(j => ({
+          const jobCacheRows = filtered.map(j => ({
             id: j.id,
             title: j.title,
             company: j.company || '',
@@ -261,7 +289,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
             console.error('Failed to upsert jobs into job_cache:', upsertJobsError);
           } else {
             // Save query mapping
-            const jobIds = jobs.map(j => j.id);
+            const jobIds = filtered.map(j => j.id);
             const { error: upsertSearchError } = await supabase
               .from('search_cache')
               .upsert({
