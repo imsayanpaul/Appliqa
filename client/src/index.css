@@ -5065,11 +5065,7 @@ input[type="number"] {
       content: "";
     }
     @bottom-right {
-      content: "Page " counter(page);
-      font-size: 10.5px;
-      font-weight: 500;
-      color: #2163CA;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      content: ""; /* the resume builder adds "Page X of Y" for multi-page resumes */
     }
   }
 

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { certificationLabel, newId } from '../lib/resumeProfile';
 import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, dataFromAnalysis, formatUpdated, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
-import { normalizeDesign, readPhoto } from '../lib/resumeDesign';
+import { normalizeDesign, readPhoto, fontStack } from '../lib/resumeDesign';
 import ResumeDocument from '../components/resume/ResumeDocument';
 import ResumePreview, { estimatePrintedPages } from '../components/resume/ResumePreview';
 import { analyzeResumeText, expandAnalysis } from '../lib/resumeAnalysis';
@@ -137,6 +137,15 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         document.querySelector('.resume-creator-preview-panel .rd-screen'),
         designRef.current.marginY,
     ).pages;
+
+    // Page numbers only for resumes that print to more than one page. Checked
+    // right before printing, so Ctrl+P works as well as the Download button.
+    const [printPages, setPrintPages] = useState(1);
+    useEffect(() => {
+        const onBeforePrint = () => flushSync(() => setPrintPages(printedPages()));
+        window.addEventListener('beforeprint', onBeforePrint);
+        return () => window.removeEventListener('beforeprint', onBeforePrint);
+    }, []);
 
     const fitToOnePage = async () => {
         if (fitting) return;
@@ -2223,7 +2232,9 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
             {/* Print-only copy: page margins come from the design settings */}
             <div className="print-only-resume-container hidden">
-                <style>{`@media print { @page { margin: ${design.marginY}in ${design.marginX}in !important; } }`}</style>
+                <style>{`@media print { @page { margin: ${design.marginY}in ${design.marginX}in !important; ${printPages > 1
+                    ? `@bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 8pt; color: ${design.accent}; font-family: ${fontStack(design.font)}; }`
+                    : ''} } }`}</style>
                 <ResumeDocument data={docData} design={design} print />
             </div>
 
