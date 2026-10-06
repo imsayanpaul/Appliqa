@@ -5,9 +5,14 @@ require('dotenv').config({ path: '../.env' });
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Behind a hosting proxy, use the X-Forwarded-For client IP (needed for per-IP rate limiting)
+app.set('trust proxy', 1);
+
 // Middleware
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+// CORS_ORIGINS: comma-separated allowlist (e.g. https://www.appliqa.xyz). Unset = allow all.
+const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+app.use(cors(allowedOrigins.length ? { origin: allowedOrigins } : undefined));
+app.use(express.json({ limit: '2mb' }));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -77,6 +82,13 @@ const cleanupCache = async () => {
 
     const { error: jobErr } = await deleteQuery;
     if (jobErr) throw jobErr;
+
+    // 3. Delete expired rate limit windows (table may not exist if the migration isn't applied)
+    const { error: rateErr } = await supabase
+      .from('rate_limits')
+      .delete()
+      .lt('reset_at', new Date().toISOString());
+    if (rateErr && rateErr.code !== '42P01' && rateErr.code !== 'PGRST205') throw rateErr;
 
     console.log('🧹 [Cleanup] Database cache pruning completed successfully.');
   } catch (err) {

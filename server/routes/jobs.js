@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../lib/supabase');
 const requireAuth = require('../middleware/auth');
+const { optionalAuth } = require('../middleware/auth');
+const rateLimit = require('../middleware/rateLimit');
+const { sendServerError } = require('../lib/errors');
 
 const JSEARCH_BASE = 'https://jsearch.p.rapidapi.com';
 
@@ -60,21 +63,11 @@ function isValidSearchQuery(q, resultsCount) {
   return true;
 }
 
-// Optional auth middleware — attaches user if token is valid, but doesn't block
-const optionalAuth = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1];
-      const { data: { user } } = await supabase.auth.getUser(token);
-      if (user) req.user = user;
-    }
-  } catch (_) {}
-  next();
-};
+// Each uncached search spends RapidAPI quota
+const searchLimiter = rateLimit({ name: 'jobs-search', windowMs: 60 * 1000, maxAuthed: 40, maxAnon: 15 });
 
 // Search jobs via JSearch API
-router.get('/search', optionalAuth, async (req, res) => {
+router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
   try {
     const {
       query = 'developer',
@@ -287,8 +280,7 @@ router.get('/search', optionalAuth, async (req, res) => {
       })();
     }
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'Internal server error', message: error.message });
+    sendServerError(res, error, 'Job search failed');
   }
 });
 
@@ -327,7 +319,7 @@ router.post('/save', requireAuth, async (req, res) => {
 
     res.json({ success: true, savedJob });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to save job');
   }
 });
 
@@ -366,7 +358,7 @@ router.get('/saved', requireAuth, async (req, res) => {
 
     res.json({ success: true, jobs: formattedJobs });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to load saved jobs');
   }
 });
 
@@ -395,7 +387,7 @@ router.patch('/saved/:id', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true, job });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to update saved job');
   }
 });
 
@@ -419,7 +411,7 @@ router.patch('/saved/:id/status', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true, job });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to update job status');
   }
 });
 
@@ -440,7 +432,7 @@ router.patch('/saved/:id/cover-letter', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true, job });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to save cover letter');
   }
 });
 
@@ -461,7 +453,7 @@ router.patch('/saved/:id/recruiter-dm', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true, job });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to save recruiter DM');
   }
 });
 
@@ -477,7 +469,7 @@ router.delete('/saved/:id', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to delete saved job');
   }
 });
 
@@ -498,7 +490,7 @@ router.patch('/saved/:id/interview-prep', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true, job });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to save interview prep');
   }
 });
 

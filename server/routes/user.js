@@ -2,6 +2,66 @@ const express = require('express');
 const router = express.Router();
 const { supabase } = require('../lib/supabase');
 const requireAuth = require('../middleware/auth');
+const { sendServerError } = require('../lib/errors');
+
+// Transform database row (snake_case) to the nested camelCase shape the frontend expects
+const formatProfile = (user) => ({
+  _id: user.id,
+  name: user.name,
+  email: user.email,
+  phone: user.phone || '',
+  dob: user.dob || '',
+  educationStatus: user.education_status || '',
+  collegeCourse: user.college_course || '',
+  expectedGraduationYear: user.expected_graduation_year || '',
+  jobSearchUrgency: user.job_search_urgency || '',
+  openToInternationalRemote: !!user.open_to_international_remote,
+  preferredCurrency: user.preferred_currency || '',
+  portfolioGithub: user.portfolio_github || '',
+  portfolioBehance: user.portfolio_behance || '',
+  portfolioLinkedin: user.portfolio_linkedin || '',
+  portfolioWebsite: user.portfolio_website || '',
+  currentSalary: user.current_salary !== null && user.current_salary !== undefined ? user.current_salary : '',
+  targetSalary: user.target_salary !== null && user.target_salary !== undefined ? user.target_salary : '',
+  willingToRelocate: user.willing_to_relocate !== null && user.willing_to_relocate !== undefined ? !!user.willing_to_relocate : false,
+  targetCities: user.target_cities || '',
+  skillsToLearn: user.skills_to_learn || '',
+  openToBootcamps: user.open_to_bootcamps !== null && user.open_to_bootcamps !== undefined ? !!user.open_to_bootcamps : false,
+  preferredTools: user.preferred_tools || '',
+  preferredTechStack: user.preferred_tech_stack || '',
+  certifications: user.certifications || '',
+  skillsProficiency: user.skills_proficiency || '',
+  resumesOptimizedCount: user.resumes_optimized_count || 0,
+  coverLettersGeneratedCount: user.cover_letters_generated_count || 0,
+  recruiterDmsSentCount: user.recruiter_dms_sent_count || 0,
+  preferences: {
+    desiredRole: user.desired_role || '',
+    country: user.country || '',
+    location: user.location || '',
+    experienceLevel: user.experience_level || '',
+    salaryMin: user.salary_min || 0,
+    salaryMax: user.salary_max || 0,
+    jobType: user.job_type || '',
+    remote: user.remote || false,
+    skills: user.skills || []
+  },
+  builderData: user.builder_data || null,
+  resumeData: {
+    fileName: user.resume_file_name || '',
+    fileSize: user.resume_file_size || '',
+    skills: user.resume_skills || [],
+    experience: user.resume_experience || [],
+    education: user.resume_education || [],
+    summary: user.resume_summary || '',
+    suggestedRoles: user.resume_suggested_roles || [],
+    experienceLevel: user.resume_experience_level || '',
+    rawText: user.resume_raw_text || '',
+    uploadedAt: user.resume_uploaded_at,
+    expertise: user.resume_expertise || [],
+    certifications: user.resume_certifications || [],
+    languages: user.resume_languages || []
+  }
+});
 
 // Create or update user profile
 router.post('/profile', requireAuth, async (req, res) => {
@@ -111,68 +171,11 @@ router.post('/profile', requireAuth, async (req, res) => {
     if (error) throw error;
 
     // Transform to the same nested shape that GET /profile returns
-    const formattedUser = {
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone || '',
-      dob: user.dob || '',
-      educationStatus: user.education_status || '',
-      collegeCourse: user.college_course || '',
-      expectedGraduationYear: user.expected_graduation_year || '',
-      jobSearchUrgency: user.job_search_urgency || '',
-      openToInternationalRemote: !!user.open_to_international_remote,
-      preferredCurrency: user.preferred_currency || '',
-      portfolioGithub: user.portfolio_github || '',
-      portfolioBehance: user.portfolio_behance || '',
-      portfolioLinkedin: user.portfolio_linkedin || '',
-      portfolioWebsite: user.portfolio_website || '',
-      currentSalary: user.current_salary !== null && user.current_salary !== undefined ? user.current_salary : '',
-      targetSalary: user.target_salary !== null && user.target_salary !== undefined ? user.target_salary : '',
-      willingToRelocate: user.willing_to_relocate !== null && user.willing_to_relocate !== undefined ? !!user.willing_to_relocate : false,
-      targetCities: user.target_cities || '',
-      skillsToLearn: user.skills_to_learn || '',
-      openToBootcamps: user.open_to_bootcamps !== null && user.open_to_bootcamps !== undefined ? !!user.open_to_bootcamps : false,
-      preferredTools: user.preferred_tools || '',
-      preferredTechStack: user.preferred_tech_stack || '',
-      certifications: user.certifications || '',
-      skillsProficiency: user.skills_proficiency || '',
-      resumesOptimizedCount: user.resumes_optimized_count || 0,
-      coverLettersGeneratedCount: user.cover_letters_generated_count || 0,
-      recruiterDmsSentCount: user.recruiter_dms_sent_count || 0,
-      preferences: {
-        desiredRole: user.desired_role || '',
-        country: user.country || '',
-        location: user.location || '',
-        experienceLevel: user.experience_level || '',
-        salaryMin: user.salary_min || 0,
-        salaryMax: user.salary_max || 0,
-        jobType: user.job_type || '',
-        remote: user.remote || false,
-        skills: user.skills || []
-      },
-      builderData: user.builder_data || null,
-      resumeData: {
-        fileName: user.resume_file_name || '',
-        fileSize: user.resume_file_size || '',
-        skills: user.resume_skills || [],
-        experience: user.resume_experience || [],
-        education: user.resume_education || [],
-        summary: user.resume_summary || '',
-        suggestedRoles: user.resume_suggested_roles || [],
-        experienceLevel: user.resume_experience_level || '',
-        rawText: user.resume_raw_text || '',
-        uploadedAt: user.resume_uploaded_at,
-        expertise: user.resume_expertise || [],
-        certifications: user.resume_certifications || [],
-        languages: user.resume_languages || []
-      }
-    };
+    const formattedUser = formatProfile(user);
 
     res.json({ success: true, user: formattedUser });
   } catch (error) {
-    console.error('Profile update error:', error);
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to update profile');
   }
 });
 
@@ -211,8 +214,7 @@ router.post('/increment-stat', requireAuth, async (req, res) => {
 
     res.json({ success: true, stat, newValue: updated[stat] });
   } catch (error) {
-    console.error('Increment stat error:', error);
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to update stat');
   }
 });
 
@@ -269,67 +271,11 @@ router.get('/profile', requireAuth, async (req, res) => {
     }
 
     // Transform database shape back to nested JSON for frontend
-    const formattedUser = {
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone || '',
-      dob: user.dob || '',
-      educationStatus: user.education_status || '',
-      collegeCourse: user.college_course || '',
-      expectedGraduationYear: user.expected_graduation_year || '',
-      jobSearchUrgency: user.job_search_urgency || '',
-      openToInternationalRemote: !!user.open_to_international_remote,
-      preferredCurrency: user.preferred_currency || '',
-      portfolioGithub: user.portfolio_github || '',
-      portfolioBehance: user.portfolio_behance || '',
-      portfolioLinkedin: user.portfolio_linkedin || '',
-      portfolioWebsite: user.portfolio_website || '',
-      currentSalary: user.current_salary !== null && user.current_salary !== undefined ? user.current_salary : '',
-      targetSalary: user.target_salary !== null && user.target_salary !== undefined ? user.target_salary : '',
-      willingToRelocate: user.willing_to_relocate !== null && user.willing_to_relocate !== undefined ? !!user.willing_to_relocate : false,
-      targetCities: user.target_cities || '',
-      skillsToLearn: user.skills_to_learn || '',
-      openToBootcamps: user.open_to_bootcamps !== null && user.open_to_bootcamps !== undefined ? !!user.open_to_bootcamps : false,
-      preferredTools: user.preferred_tools || '',
-      preferredTechStack: user.preferred_tech_stack || '',
-      certifications: user.certifications || '',
-      skillsProficiency: user.skills_proficiency || '',
-      resumesOptimizedCount: user.resumes_optimized_count || 0,
-      coverLettersGeneratedCount: user.cover_letters_generated_count || 0,
-      recruiterDmsSentCount: user.recruiter_dms_sent_count || 0,
-      preferences: {
-        desiredRole: user.desired_role || '',
-        country: user.country || '',
-        location: user.location || '',
-        experienceLevel: user.experience_level || '',
-        salaryMin: user.salary_min || 0,
-        salaryMax: user.salary_max || 0,
-        jobType: user.job_type || '',
-        remote: user.remote || false,
-        skills: user.skills || []
-      },
-      builderData: user.builder_data || null,
-      resumeData: {
-        fileName: user.resume_file_name || '',
-        fileSize: user.resume_file_size || '',
-        skills: user.resume_skills || [],
-        experience: user.resume_experience || [],
-        education: user.resume_education || [],
-        summary: user.resume_summary || '',
-        suggestedRoles: user.resume_suggested_roles || [],
-        experienceLevel: user.resume_experience_level || '',
-        rawText: user.resume_raw_text || '',
-        uploadedAt: user.resume_uploaded_at,
-        expertise: user.resume_expertise || [],
-        certifications: user.resume_certifications || [],
-        languages: user.resume_languages || []
-      }
-    };
+    const formattedUser = formatProfile(user);
 
     res.json({ success: true, user: formattedUser });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to load profile');
   }
 });
 
@@ -361,7 +307,7 @@ router.get('/history', requireAuth, async (req, res) => {
 
     res.json({ success: true, history: formattedHistory });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to load search history');
   }
 });
 
@@ -377,7 +323,8 @@ router.delete('/history', requireAuth, async (req, res) => {
       .eq('user_id', req.user.id);
 
     if (!clearAll && query) {
-      const cleanQuery = query.trim();
+      // Escape LIKE wildcards so only the exact (case-insensitive) query is deleted
+      const cleanQuery = query.trim().replace(/[\\%_]/g, '\\$&');
       supabaseQuery = supabaseQuery.ilike('query', cleanQuery);
     }
 
@@ -385,7 +332,7 @@ router.delete('/history', requireAuth, async (req, res) => {
     if (error) throw error;
     res.json({ success: true, clearedAll: clearAll });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    sendServerError(res, error, 'Failed to delete search history');
   }
 });
 

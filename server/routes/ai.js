@@ -3,6 +3,13 @@ const router = express.Router();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { supabase } = require('../lib/supabase');
 const crypto = require('crypto');
+const { optionalAuth } = require('../middleware/auth');
+const rateLimit = require('../middleware/rateLimit');
+const { sendServerError } = require('../lib/errors');
+
+// Every route here spends Gemini quota, so all of them are rate limited.
+// Signed-in users get a higher ceiling than anonymous visitors.
+router.use(optionalAuth, rateLimit({ name: 'ai', windowMs: 60 * 1000, maxAuthed: 30, maxAnon: 8 }));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -195,10 +202,7 @@ ${resumeText}`;
 
     res.json({ success: true, analysis });
   } catch (error) {
-    console.error("Resume analysis error:", error);
-    res
-      .status(500)
-      .json({ error: "AI analysis failed", message: error.message });
+    sendServerError(res, error, "AI analysis failed");
   }
 });
 
@@ -254,8 +258,7 @@ User request: "${naturalQuery}"${contextPrompt}`;
 
     res.json({ success: true, searchParams: parsed });
   } catch (error) {
-    console.error("Smart search error:", error);
-    res.status(500).json({ error: "AI search failed", message: error.message });
+    sendServerError(res, error, "AI search failed");
   }
 });
 
@@ -366,10 +369,7 @@ Job Description: ${jobDescription?.substring(0, 2000)}`;
 
     res.json({ success: true, match: parsed });
   } catch (error) {
-    console.error("Match score error:", error);
-    res
-      .status(500)
-      .json({ error: "AI matching failed", message: error.message });
+    sendServerError(res, error, "AI matching failed");
   }
 });
 
@@ -445,13 +445,7 @@ Job Description (excerpt): ${jobDescription?.substring(0, 2000)}`;
 
     res.json({ success: true, coverLetter });
   } catch (error) {
-    console.error("Cover letter generation error:", error);
-    res
-      .status(500)
-      .json({
-        error: "AI cover letter generation failed",
-        message: error.message,
-      });
+    sendServerError(res, error, "AI cover letter generation failed");
   }
 });
 
@@ -533,13 +527,7 @@ Current Skills: ${skills}`;
 
     res.json({ success: true, careerPath: parsed });
   } catch (error) {
-    console.error("Career path error:", error);
-    res
-      .status(500)
-      .json({
-        error: "AI career path generation failed",
-        message: error.message,
-      });
+    sendServerError(res, error, "AI career path generation failed");
   }
 });
 
@@ -617,13 +605,7 @@ Company: ${jobCompany || "the company"}`;
 
     res.json({ success: true, recruiterDM: dmText });
   } catch (error) {
-    console.error("Recruiter DM generation error:", error);
-    res
-      .status(500)
-      .json({
-        error: "AI recruiter DM generation failed",
-        message: error.message,
-      });
+    sendServerError(res, error, "AI recruiter DM generation failed");
   }
 });
 
@@ -706,11 +688,7 @@ Job Description: ${jobDescription?.substring(0, 3000)}`;
 
     res.json({ success: true, interviewPrep: parsed });
   } catch (error) {
-    console.error("Interview prep error:", error);
-    res.status(500).json({
-      error: "AI interview prep generation failed",
-      message: error.message,
-    });
+    sendServerError(res, error, "AI interview prep generation failed");
   }
 });
 
@@ -825,11 +803,7 @@ ${resumeText.substring(0, 5000)}`;
 
     res.json({ success: true, atsResult: parsed });
   } catch (error) {
-    console.error("ATS Scorer error:", error);
-    res.status(500).json({
-      error: "ATS analysis failed",
-      message: error.message,
-    });
+    sendServerError(res, error, "ATS analysis failed");
   }
 });
 
@@ -912,11 +886,7 @@ Style Guide:
 
     res.json({ success: true, response: responseText });
   } catch (error) {
-    console.error("AI Career Advisor error:", error);
-    res.status(500).json({
-      error: "AI Career Advisor failed",
-      message: error.message,
-    });
+    sendServerError(res, error, "AI Career Advisor failed");
   }
 });
 
@@ -1002,8 +972,7 @@ router.post("/enhance-bullet", async (req, res) => {
     }
     res.json({ success: true, variations: parsed.variations });
   } catch (error) {
-    console.error("Bullet enhancement error:", error);
-    res.status(500).json({ error: "Bullet enhancement failed", message: error.message });
+    sendServerError(res, error, "Bullet enhancement failed");
   }
 });
 
@@ -1042,8 +1011,7 @@ router.post("/suggest-skills", async (req, res) => {
     }
     res.json({ success: true, suggestedSkills: parsed.suggestedSkills });
   } catch (error) {
-    console.error("Suggest skills error:", error);
-    res.status(500).json({ error: "Failed to suggest skills", message: error.message });
+    sendServerError(res, error, "Failed to suggest skills");
   }
 });
 
@@ -1111,8 +1079,7 @@ router.post("/tailor-resume", async (req, res) => {
     }
     res.json({ success: true, tailoredData: parsed });
   } catch (error) {
-    console.error("Resume tailoring error:", error);
-    res.status(500).json({ error: "Failed to tailor resume", message: error.message });
+    sendServerError(res, error, "Failed to tailor resume");
   }
 });
 
@@ -1187,8 +1154,7 @@ router.post("/achievement-finder", async (req, res) => {
 
     res.json({ success: true, chatResult: parsed });
   } catch (error) {
-    console.error("Achievement finder error:", error);
-    res.status(500).json({ error: "Achievement finder chat failed", message: error.message });
+    sendServerError(res, error, "Achievement finder chat failed");
   }
 });
 
