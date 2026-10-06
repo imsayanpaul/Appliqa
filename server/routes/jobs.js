@@ -140,7 +140,9 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       (async () => {
         try {
           const cleanQuery = query.trim().replace(/\s+/g, ' ');
-          if (!isValidSearchQuery(cleanQuery, resultsCount)) return;
+          // Personal history keeps every real search (long ones, punctuation,
+          // no results). The stricter isValidSearchQuery only guards trending.
+          if (cleanQuery.length < 2 || cleanQuery.length > 120) return;
           await supabase.from('search_history').delete()
             .eq('user_id', userId)
             .ilike('query', cleanQuery.replace(/[\\%_]/g, '\\$&'));
@@ -554,19 +556,19 @@ router.get('/suggested-roles', async (req, res) => {
       return res.json({ success: true, roles: suggestedRolesCache });
     }
 
-    // Fetch top 7 searches directly from the database view
+    // Popular searches from the database view; history now keeps every search,
+    // so screen out long, odd or junk queries here before they trend
     const { data: topSearches, error } = await supabase
       .from('top_searches')
       .select('query')
-      .limit(7);
+      .limit(40);
 
     if (error) throw error;
 
     const resultSet = new Set();
-    if (topSearches && topSearches.length > 0) {
-      topSearches.forEach(row => {
-        if (row.query) resultSet.add(row.query);
-      });
+    for (const row of topSearches || []) {
+      if (resultSet.size >= 7) break;
+      if (row.query && isValidSearchQuery(row.query, 1)) resultSet.add(row.query);
     }
 
     // Merge with defaults if we have fewer than 7 dynamic popular searches
