@@ -160,3 +160,17 @@ export function readPhoto(file, maxSide = 360) {
         img.src = url;
     });
 }
+
+// "Address, Location, Country" without repeats: a location that already ends
+// with "India" doesn't get ", India" added again
+export function placeLine(info = {}) {
+    const parts = [];
+    for (const raw of [info.address, info.location, info.country]) {
+        const part = String(raw || '').trim();
+        if (!part) continue;
+        const sofar = parts.join(', ').toLowerCase().split(/\s*,\s*/);
+        if (sofar.includes(part.toLowerCase())) continue;
+        parts.push(part);
+    }
+    return parts.join(', ');
+}

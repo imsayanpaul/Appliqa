@@ -1,7 +1,7 @@
 // Resume -> LaTeX source (pdfLaTeX, standard packages only), following the
 // builder's section order, titles and design settings.
 import { certificationLabel, formatScore, formatRange, safeUrl } from './resumeProfile';
-import { sectionTitle } from './resumeDesign';
+import { sectionTitle, placeLine } from './resumeDesign';
 
 const SPECIAL = {
     '\\': '\\textbackslash{}', '&': '\\&', '%': '\\%', '$': '\\$', '#': '\\#', '_': '\\_',
@@ -156,7 +156,7 @@ export function toLatex(data, design) {
         .join('\n\n');
 
     // ---- header
-    const place = [p.address, p.location, p.country].filter(Boolean).join(', ');
+    const place = placeLine(p);
     const line2 = [p.phone ? tex(p.phone) : '', p.email ? href(`mailto:${p.email}`, p.email) : ''].filter(Boolean).join(' \\textbar\\ ');
     const line3 = ['website', 'linkedin', 'github'].filter((k) => p[k]).map((k) => href(ensureHttp(p[k]), shortUrl(p[k]))).join(' \\textbar\\ ');
     const details = [p.dob ? `DOB: ${p.dob}` : '', p.nationality].filter(Boolean).map(tex).join(' \\textbar\\ ');

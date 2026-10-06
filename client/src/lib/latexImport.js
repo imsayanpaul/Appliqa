@@ -3,7 +3,7 @@
 // Date" rows, itemize bullets and \href links. Plain text inside each section is
 // handed to the same rule-based parsers the file import uses.
 import { SECTION_ALIASES, sectionOf, parseSection, parseResumeText } from './parseResume';
-import { BUILT_IN_SECTIONS, newCustomId } from './resumeDesign';
+import { BUILT_IN_SECTIONS, newCustomId, placeLine } from './resumeDesign';
 
 const FORMAT_CMDS = 'textbf|textit|emph|underline|textsc|texttt|textsf|textrm|textup|textmd|MakeUppercase|MakeLowercase|uppercase|mbox|text';
 
@@ -197,7 +197,7 @@ export function latexToResume(code, { design, customSections = [], personalInfo 
     const head = parseResumeText(headerLines.join('\n')).personalInfo;
     const urls = headerLines.join(' ').match(/https?:\/\/[^\s|]+/g) || [];
     const website = urls.find((u) => !/linkedin\.com|github\.com/i.test(u)) || '';
-    const currentPlace = [personalInfo.address, personalInfo.location, personalInfo.country].filter(Boolean).join(', ');
+    const currentPlace = placeLine(personalInfo);
     const place = head.location || '';
     const info = {
         ...personalInfo,

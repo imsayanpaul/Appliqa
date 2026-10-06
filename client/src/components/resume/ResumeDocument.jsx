@@ -1,5 +1,5 @@
 import { certificationLabel, formatScore, formatRange, safeUrl } from '../../lib/resumeProfile';
-import { fontStack, sectionTitle } from '../../lib/resumeDesign';
+import { fontStack, sectionTitle, placeLine } from '../../lib/resumeDesign';
 import './resumeDocument.css';
 
 const ensureHttp = (url) => (!url ? '' : /^https?:\/\//i.test(url) ? url : `https://${url}`);
@@ -38,7 +38,7 @@ export default function ResumeDocument({ data, design, print = false }) {
     const inline = design.dateAlign === 'inline';
 
     const contact = [];
-    const place = [personalInfo.address, personalInfo.location, personalInfo.country].filter(Boolean).join(', ');
+    const place = placeLine(personalInfo);
     if (place) contact.push({ text: place });
     if (personalInfo.email) contact.push({ text: personalInfo.email, href: `mailto:${personalInfo.email}` });
     if (personalInfo.phone) contact.push({ text: personalInfo.phone });

@@ -51,9 +51,7 @@
   margin-top: 3pt !important;
   font-size: var(--rd-role);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #2A2A2A;
+  color: #2A2A2A; /* shown exactly as typed */
 }
 .rd-contact { margin-top: 4pt !important; font-size: 0.92em; color: #333333; overflow-wrap: anywhere; }
 .rd-sep { color: #8A8A8A; }
