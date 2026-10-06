@@ -9,6 +9,7 @@ import ResumeDocument from '../components/resume/ResumeDocument';
 import ResumePreview, { estimatePrintedPages } from '../components/resume/ResumePreview';
 import { analyzeResumeText, expandAnalysis } from '../lib/resumeAnalysis';
 import { extractPdfText } from '../lib/pdfText';
+import { searchCity } from '../data/cities';
 import DesignPanel from '../components/resume/DesignPanel';
 import SectionsPanel from '../components/resume/SectionsPanel';
 import LatexSheet from '../components/resume/LatexSheet';
@@ -896,7 +897,9 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 preferences: {
                     ...user?.preferences,
                     desiredRole: personalInfo.title,
-                    location: personalInfo.location
+                    // Job search wants a city, not the full address on the resume
+                    location: searchCity(personalInfo.location, personalInfo.country || user?.preferences?.country)
+                        || searchCity(user?.preferences?.location, user?.preferences?.country)
                 }
             } : { builderData: payload });
             if (res.data?.user) {

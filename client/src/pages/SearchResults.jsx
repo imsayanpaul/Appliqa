@@ -8,7 +8,7 @@ import { searchJobs, smartSearch, getSavedJobs } from '../services/api';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import citiesByCountry from '../data/cities';
+import citiesByCountry, { searchCity } from '../data/cities';
 
 function SearchResults({ user, resumeData }) {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -43,7 +43,8 @@ function SearchResults({ user, resumeData }) {
 
     // Filters
     const [filters, setFilters] = useState({
-        location: searchParams.get('location') || user?.preferences?.location || '',
+        // A saved full address would match no jobs; search by its city instead
+        location: searchParams.get('location') || searchCity(user?.preferences?.location, searchParams.get('country') || user?.preferences?.country),
         country: searchParams.get('country') || user?.preferences?.country || '',
         employmentType: searchParams.get('employmentType') || '',
         datePosted: searchParams.get('datePosted') || '',

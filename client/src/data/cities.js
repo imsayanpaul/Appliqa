@@ -46,3 +46,35 @@ const citiesByCountry = {
 };
 
 export default citiesByCountry;
+
+// `word` appears in `text` with no letter right before or after it
+function hasWord(text, word) {
+    let i = text.indexOf(word);
+    while (i >= 0) {
+        const before = text[i - 1];
+        const after = text[i + word.length];
+        if (!(before && /[a-z]/.test(before)) && !(after && /[a-z]/.test(after))) return true;
+        i = text.indexOf(word, i + 1);
+    }
+    return false;
+}
+
+// A search location from free text such as a full postal address:
+// "Sukchar, Panihati, Kolkata, West Bengal 700115, India" -> "Kolkata".
+// Known cities win; otherwise a short single place name is kept as typed;
+// anything else (long addresses, PIN codes) gives '' so searches don't
+// come back empty.
+export function searchCity(text, country = '') {
+    const value = String(text || '').trim();
+    if (!value) return '';
+    const lists = country && citiesByCountry[country]
+        ? [citiesByCountry[country], ...Object.values(citiesByCountry)]
+        : Object.values(citiesByCountry);
+    const lower = value.toLowerCase();
+    for (const list of lists) {
+        const hit = list.find((city) => hasWord(lower, city.toLowerCase()));
+        if (hit) return hit;
+    }
+    const looksLikeOnePlace = !/[,\d]/.test(value) && value.split(/\s+/).length <= 3;
+    return looksLikeOnePlace ? value : '';
+}

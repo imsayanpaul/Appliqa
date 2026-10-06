@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowRight } from 'react-icons/fi';
 import { searchJobs, getSavedJobs } from '../services/api';
+import { searchCity } from '../data/cities';
 import JobCard from './JobCard';
 const JobDetail = lazy(() => import('./JobDetail'));
 
@@ -23,7 +24,8 @@ function RecommendedJobs({ user, resumeData }) {
     const profileRole = user?.preferences?.desiredRole;
     const resumeRole = resumeData?.suggestedRoles?.[0];
     const targetRole = profileRole || resumeRole || 'React Developer';
-    const userLocation = user?.preferences?.location;
+    // City only: a full postal address in the query returns no jobs
+    const userLocation = searchCity(user?.preferences?.location, user?.preferences?.country);
     const isPersonalized = Boolean(profileRole || resumeRole);
 
     useEffect(() => {
