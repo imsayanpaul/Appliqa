@@ -10,7 +10,15 @@ const RATINGS = [
     { value: 4, text: 'Great' },
 ];
 
-const CATEGORIES = ['General', 'Bug Report', 'Feature Request', 'Other'];
+const CATEGORIES = [
+    { value: 'General', label: 'General' },
+    { value: 'Bug Report', label: 'Bug' },
+    { value: 'Feature Request', label: 'Idea' },
+    { value: 'Other', label: 'Other' },
+];
+
+// Segmented cell shared by the rating and category rows
+const segment = (selected) => `h-12 flex items-center justify-center gap-1.5 border-0 border-l first:border-l-0 border-[#D8D4CC] cursor-pointer text-[14px] font-medium transition-colors ${selected ? 'bg-[#171717] text-white' : 'bg-white text-[#171717] hover:bg-[#F7F5F2]'}`;
 
 function FeedbackWidget({ user }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -113,7 +121,7 @@ function FeedbackWidget({ user }) {
                     ) : (
                         <form onSubmit={handleSubmit}>
                             <fieldset className="m-0 p-0 border-0 border-b border-[#D8D4CC] min-w-0">
-                                <legend className="ds-mono ds-mono-muted px-5 pt-4 pb-3 float-left w-full">how was your experience?</legend>
+                                <legend className="ds-mono ds-mono-muted px-5 pt-3 pb-2.5 float-left w-full">how was your experience?</legend>
                                 <div className="clear-both grid grid-cols-4 border-0 border-t border-[#D8D4CC]">
                                     {RATINGS.map((opt) => {
                                         const selected = rating === opt.value;
@@ -123,39 +131,39 @@ function FeedbackWidget({ user }) {
                                                 type="button"
                                                 aria-pressed={selected}
                                                 onClick={() => setRating(selected ? 0 : opt.value)}
-                                                className={`h-16 flex flex-col items-center justify-center gap-1 border-0 border-l first:border-l-0 border-[#D8D4CC] cursor-pointer transition-colors ${selected ? 'bg-[#171717] text-white' : 'bg-white text-[#171717] hover:bg-[#F7F5F2]'}`}
+                                                className={segment(selected)}
                                             >
                                                 <span className={`font-mono text-[11px] ${selected ? 'text-[#FF6A33]' : 'text-[#CA3C0A]'}`}>0{opt.value}</span>
-                                                <span className="text-[14px] font-medium">{opt.text}</span>
+                                                {opt.text}
                                             </button>
                                         );
                                     })}
                                 </div>
                             </fieldset>
 
-                            <div className="px-5 pt-4 pb-5 flex flex-col gap-4">
-                                <div>
-                                    <p className="ds-mono ds-mono-muted m-0 mb-2">category</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {CATEGORIES.map((cat) => (
-                                            <button
-                                                key={cat}
-                                                type="button"
-                                                aria-pressed={category === cat}
-                                                onClick={() => setCategory(cat)}
-                                                className={`ds-chip ${category === cat ? '!bg-[#171717] !text-white !border-[#171717]' : '!bg-white'}`}
-                                            >
-                                                {cat}
-                                            </button>
-                                        ))}
-                                    </div>
+                            <fieldset className="m-0 p-0 border-0 border-b border-[#D8D4CC] min-w-0">
+                                <legend className="ds-mono ds-mono-muted px-5 pt-3 pb-2.5 float-left w-full">category</legend>
+                                <div className="clear-both grid grid-cols-4 border-0 border-t border-[#D8D4CC]">
+                                    {CATEGORIES.map((cat) => (
+                                        <button
+                                            key={cat.value}
+                                            type="button"
+                                            aria-pressed={category === cat.value}
+                                            onClick={() => setCategory(cat.value)}
+                                            className={segment(category === cat.value)}
+                                        >
+                                            {cat.label}
+                                        </button>
+                                    ))}
                                 </div>
+                            </fieldset>
 
+                            <div className="px-5 pt-3 pb-4 flex flex-col gap-3">
                                 <div>
                                     <label htmlFor="feedback-message" className="ds-mono ds-mono-muted block mb-2">message</label>
                                     <textarea
                                         id="feedback-message"
-                                        className="resume-input-field !min-h-[110px] resize-y"
+                                        className="resume-input-field !min-h-[84px] resize-y"
                                         placeholder="What can we improve? Or tell us what you love…"
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
@@ -182,7 +190,7 @@ function FeedbackWidget({ user }) {
 
                             <button
                                 type="submit"
-                                className="ds-btn ds-btn-accent w-full !min-h-[56px] !px-5 border-0 border-t border-[#D8D4CC]"
+                                className="ds-btn ds-btn-accent w-full !min-h-[52px] !px-5 border-0 border-t border-[#D8D4CC]"
                                 disabled={isSubmitting || !message.trim()}
                             >
                                 {isSubmitting ? 'Sending…' : 'Send feedback'}

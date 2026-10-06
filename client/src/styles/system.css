@@ -1190,7 +1190,9 @@ textarea.resume-input-field { line-height: 1.6; }
   box-shadow: 0 16px 32px -16px rgba(23, 23, 23, 0.35);
   max-height: calc(100vh - var(--nav-h) - 92px);
   overflow-y: auto;
+  scrollbar-width: none;
 }
+.feedback-panel.ds-feedback::-webkit-scrollbar { display: none; }
 .ds-feedback .ds-btn-accent:disabled { opacity: 1; background: #EFECE6; color: #8A8580; cursor: not-allowed; }
 @media (max-width: 899.98px) {
   .feedback-panel.ds-feedback,
