@@ -4,6 +4,7 @@ import { FiX, FiExternalLink, FiBookmark, FiMapPin, FiDollarSign, FiClock, FiBri
 import { FileCheck } from 'lucide-react';
 import { saveJob, getSavedJobs, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
 import ATSScorer from './ATSScorer';
+import { formatSalary } from '../lib/format';
 
 function JobDetail({ job, user, resumeData, onClose }) {
     const [matchData, setMatchData] = useState(null);
@@ -180,7 +181,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
                             <span className="meta-tag"><FiBriefcase size={12} /> {job.employmentType}</span>
                         )}
                         {job.salary && job.salary !== 'Not specified' && (
-                            <span className="meta-tag"><FiDollarSign size={12} /> {job.salary}</span>
+                            <span className="meta-tag"><FiDollarSign size={12} /> {formatSalary(job.salary)}</span>
                         )}
                         {job.datePosted && (
                             <span className="meta-tag"><FiClock size={12} /> {new Date(job.datePosted).toLocaleDateString()}</span>

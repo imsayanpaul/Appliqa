@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useEscapeKey } from '../lib/useEscapeKey';
+import { formatSalary } from '../lib/format';
 import { 
     FiTrash2, FiBookmark, FiUser, FiGrid, FiSend, FiVideo, FiCheckCircle, 
     FiXCircle, FiMapPin, FiDollarSign, FiZap, FiFileText, FiCopy, FiCheck, 
@@ -444,7 +445,7 @@ function SavedJobs({ user, resumeData }) {
                                                     )}
                                                     {hasSalary && (
                                                         <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#FFF8F5] text-[#CA3C0A] font-bold border border-[#CA3C0A]/20">
-                                                            <FiDollarSign size={11} /> {job.salary}
+                                                            <FiDollarSign size={11} /> {formatSalary(job.salary)}
                                                         </span>
                                                     )}
                                                 </div>

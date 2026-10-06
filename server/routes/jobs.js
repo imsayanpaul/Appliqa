@@ -189,7 +189,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       description: job.job_description,
       employmentType: job.job_employment_type,
       salary: job.job_min_salary && job.job_max_salary
-        ? `$${job.job_min_salary.toLocaleString()} - $${job.job_max_salary.toLocaleString()}`
+        ? `$${job.job_min_salary.toLocaleString('en-US')} - $${job.job_max_salary.toLocaleString('en-US')}`
         : job.job_salary_period ? `${job.job_salary_period}` : 'Not specified',
       datePosted: job.job_posted_at_datetime_utc,
       applyLink: job.job_apply_link,
