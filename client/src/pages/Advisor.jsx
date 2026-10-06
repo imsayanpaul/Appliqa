@@ -120,6 +120,47 @@ const parseInline = (text) => {
 };
 
 const MAX_SAVED_CHATS = 20;
+const CHAT_KEY = 'appliqa_advisor_chat';
+const CHAT_ERROR = 'The advisor couldn’t answer just now. Check your connection and try again.';
+
+const readChat = () => {
+    try { return JSON.parse(window.localStorage.getItem(CHAT_KEY)); } catch { return null; }
+};
+const writeChat = (messages) => {
+    try { window.localStorage.setItem(CHAT_KEY, JSON.stringify(messages)); } catch { /* storage full or blocked */ }
+};
+
+// The request lives outside the component so an answer still lands in the
+// chat when the user switches to another page and comes back.
+const pending = { active: false, error: null, listeners: new Set() };
+const notifyPending = () => pending.listeners.forEach((fn) => fn());
+
+const startAdvisorRequest = (payload, userMessageId) => {
+    pending.active = true;
+    pending.error = null;
+    notifyPending();
+    getAdvisorChat(payload)
+        .then((response) => {
+            if (!response.data?.success) throw new Error('Invalid API response format');
+            const chat = readChat() || [];
+            // Skip the reply if the chat was cleared or swapped while waiting
+            if (!chat.some((m) => m.id === userMessageId)) return;
+            writeChat([...chat, {
+                id: `${Date.now()}-a`,
+                role: 'assistant',
+                text: response.data.response,
+                skills: Array.isArray(response.data.suggestedSkills) ? response.data.suggestedSkills : []
+            }]);
+        })
+        .catch((err) => {
+            console.error('Advisor chat error:', err);
+            pending.error = CHAT_ERROR;
+        })
+        .finally(() => {
+            pending.active = false;
+            notifyPending();
+        });
+};
 
 const formatChatDate = (iso) => {
     const d = new Date(iso);
@@ -137,14 +178,8 @@ function Advisor({ user, resumeData, onUpdateUser }) {
     const chatContainerRef = useRef(null);
     const inputRef = useRef(null);
     const [messages, setMessages] = useState(() => {
-        const saved = window.localStorage.getItem('appliqa_advisor_chat');
-        if (saved) {
-            try {
-                return JSON.parse(saved);
-            } catch (e) {
-                console.error("Failed to parse saved advisor chat:", e);
-            }
-        }
+        const saved = readChat();
+        if (Array.isArray(saved) && saved.length) return saved;
         return [
             {
                 id: 'greeting',
@@ -160,8 +195,27 @@ function Advisor({ user, resumeData, onUpdateUser }) {
     const savedChats = Array.isArray(user?.builderData?.advisorChats) ? user.builderData.advisorChats : [];
     const [savedChatId, setSavedChatId] = useState(() => window.localStorage.getItem('appliqa_advisor_chat_id') || null);
     const [saveState, setSaveState] = useState('idle'); // idle | saving | saved | error
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(() => pending.active);
     const [error, setError] = useState(null);
+
+    // Pick up a reply (or failure) that arrives while this page is open,
+    // and one that failed while the user was elsewhere
+    useEffect(() => {
+        const sync = () => {
+            setLoading(pending.active);
+            if (pending.active) return;
+            const chat = readChat();
+            if (Array.isArray(chat) && chat.length) setMessages(chat);
+            if (pending.error) {
+                setError(pending.error);
+                pending.error = null;
+            }
+            inputRef.current?.focus();
+        };
+        pending.listeners.add(sync);
+        if (!pending.active && pending.error) sync();
+        return () => { pending.listeners.delete(sync); };
+    }, []);
 
     const bentoModules = [
         {
@@ -216,7 +270,7 @@ function Advisor({ user, resumeData, onUpdateUser }) {
 
     const handleSendMessage = async (textToSend) => {
         const text = textToSend?.trim() || inputValue.trim();
-        if (!text) return;
+        if (!text || pending.active) return;
 
         const userMessage = {
             id: Date.now().toString(),
@@ -224,56 +278,33 @@ function Advisor({ user, resumeData, onUpdateUser }) {
             text: text
         };
 
-        setMessages(prev => [...prev, userMessage]);
+        const apiHistory = [];
+        for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
+            if (msg.role === 'user') {
+                const nextMsg = messages[i + 1];
+                if (nextMsg && (nextMsg.role === 'assistant' || nextMsg.role === 'model')) {
+                    apiHistory.push({ role: 'user', text: msg.text });
+                    apiHistory.push({ role: 'assistant', text: nextMsg.text });
+                    i++;
+                }
+            } else {
+                apiHistory.push({ role: 'assistant', text: msg.text });
+            }
+        }
+
+        // Save the question right away so it survives leaving the page
+        const nextMessages = [...messages, userMessage];
+        setMessages(nextMessages);
+        writeChat(nextMessages);
         setInputValue('');
-        setLoading(true);
         setError(null);
 
-        try {
-            const apiHistory = [];
-            for (let i = 0; i < messages.length; i++) {
-                const msg = messages[i];
-                if (msg.role === 'user') {
-                    const nextMsg = messages[i + 1];
-                    if (nextMsg && (nextMsg.role === 'assistant' || nextMsg.role === 'model')) {
-                        apiHistory.push({ role: 'user', text: msg.text });
-                        apiHistory.push({ role: 'assistant', text: nextMsg.text });
-                        i++;
-                    }
-                } else {
-                    apiHistory.push({ role: 'assistant', text: msg.text });
-                }
-            }
-
-            const response = await getAdvisorChat({
-                message: text,
-                chatHistory: apiHistory,
-                resumeData: resumeData || null
-            });
-
-            if (response.data && response.data.success) {
-                const updatedMessages = [
-                    ...messages,
-                    userMessage,
-                    {
-                        id: (Date.now() + 1).toString(),
-                        role: 'assistant',
-                        text: response.data.response,
-                        skills: Array.isArray(response.data.suggestedSkills) ? response.data.suggestedSkills : []
-                    }
-                ];
-                setMessages(updatedMessages);
-                window.localStorage.setItem('appliqa_advisor_chat', JSON.stringify(updatedMessages));
-            } else {
-                throw new Error("Invalid API response format");
-            }
-        } catch (err) {
-            console.error("Advisor chat error:", err);
-            setError("The advisor couldn’t answer just now. Check your connection and try again.");
-        } finally {
-            setLoading(false);
-            inputRef.current?.focus();
-        }
+        startAdvisorRequest({
+            message: text,
+            chatHistory: apiHistory,
+            resumeData: resumeData || null
+        }, userMessage.id);
     };
 
     const handleClearChat = () => {
@@ -287,7 +318,7 @@ function Advisor({ user, resumeData, onUpdateUser }) {
             }
         ];
         setMessages(initialGreeting);
-        window.localStorage.setItem('appliqa_advisor_chat', JSON.stringify(initialGreeting));
+        writeChat(initialGreeting);
         window.localStorage.removeItem('appliqa_advisor_chat_id');
         setSavedChatId(null);
         setSaveState('idle');
@@ -327,7 +358,7 @@ function Advisor({ user, resumeData, onUpdateUser }) {
     const handleOpenChat = (chat) => {
         setMessages(chat.messages);
         setSavedChatId(chat.id);
-        window.localStorage.setItem('appliqa_advisor_chat', JSON.stringify(chat.messages));
+        writeChat(chat.messages);
         window.localStorage.setItem('appliqa_advisor_chat_id', chat.id);
         setError(null);
         setSaveState('idle');
