@@ -1020,93 +1020,69 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             <div className="resume-creator-container">
                 {/* Left Workspace Panel: Form Editor */}
                 <div className="resume-creator-editor-panel">
-                    {/* Creator Header Actions (Clean Single-Row Layout) */}
-                    <div className="resume-creator-header-actions border-b border-[#D8D4CC] px-6 py-3.5 bg-white flex items-center justify-end gap-2">
-                        <button 
+                    {/* Actions strip */}
+                    <div className="shrink-0 grid grid-cols-3 border-0 border-b border-[#D8D4CC] bg-[#F7F5F2]">
+                        <button
+                            type="button"
                             onClick={() => setShowTailorModal(true)}
-                            className="h-8 px-3 rounded-md bg-[#FFF0E8] hover:bg-[#FFE4D6] text-[#CA3C0A] text-xs font-bold transition-all border border-[#CA3C0A]/30 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                            style={{ boxShadow: 'none' }}
-                            title="Calibrate resume keywords to match a target job"
+                            className="ds-btn !min-h-14 !px-4 sm:!px-5 !text-[14px] bg-transparent text-[#171717] hover:bg-white border-0 border-r border-[#D8D4CC]"
+                            title="Rewrite your resume to match a job description"
                         >
-                            <Sliders size={13} className="stroke-[2.5]" />
-                            <span>Tailor to Job</span>
+                            Tailor to a job <Sliders size={15} className="shrink-0 text-[#CA3C0A]" />
                         </button>
-                        <button 
+                        <button
+                            type="button"
                             onClick={() => setShowUploadModal(true)}
-                            className="h-8 px-3 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-[#171717] text-xs font-bold transition-all border border-[#D8D4CC] flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                            style={{ boxShadow: 'none' }}
+                            className="ds-btn !min-h-14 !px-4 sm:!px-5 !text-[14px] bg-transparent text-[#171717] hover:bg-white border-0 border-r border-[#D8D4CC]"
                         >
-                            <Upload size={13} />
-                            <span>Scan Existing</span>
+                            Import resume <Upload size={15} className="shrink-0" />
                         </button>
-                        <button 
+                        <button
+                            type="button"
                             onClick={handleSync}
                             disabled={syncing}
-                            className={`h-8 px-3.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 whitespace-nowrap border-none shadow-sm ${
-                                saved
-                                    ? 'bg-[#CA3C0A] text-white shadow-[#CA3C0A]/30'
-                                    : isDirty
-                                    ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white shadow-[#CA3C0A]/25 animate-pulse'
-                                    : 'bg-[#171717] hover:bg-[#CA3C0A] text-white'
-                            }`}
-                            style={{ boxShadow: 'none' }}
-                            title="Save & sync resume changes to account profile (Ctrl+S)"
+                            className={`ds-btn !min-h-14 !px-4 sm:!px-5 !text-[14px] ${isDirty || saved ? 'ds-btn-accent' : 'ds-btn-ink'}`}
+                            title="Save to your profile (Ctrl+S)"
                         >
-                            {syncing ? (
-                                <>
-                                    <RefreshCw size={13} className="animate-spin" />
-                                    <span>Syncing...</span>
-                                </>
-                            ) : saved ? (
-                                <>
-                                    <Check size={13} />
-                                    <span>Saved!</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Save size={13} />
-                                    <span>{isDirty ? 'Save Resume' : 'Sync Profile'}</span>
-                                </>
-                            )}
+                            {syncing ? 'Saving…' : saved ? 'Saved' : isDirty ? 'Save changes' : 'Save'}
+                            {syncing ? <RefreshCw size={15} className="animate-spin shrink-0" /> : saved ? <Check size={15} className="shrink-0" /> : <Save size={15} className="shrink-0" />}
                         </button>
                     </div>
 
-                    {/* Sleek Integrated Section Tabs Bar */}
-                    <div className="border-b border-[#D8D4CC] bg-[#FAF8F5] px-4 flex items-center gap-0.5 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {/* Section tabs */}
+                    <div role="tablist" aria-label="Resume sections" style={{ scrollbarWidth: 'none' }} className="shrink-0 flex overflow-x-auto border-0 border-b border-[#D8D4CC] bg-[#EFECE6]">
                         {[
-                            { id: 'personal', name: 'Personal', icon: User },
-                            { id: 'summary', name: 'Summary', icon: AlignLeft },
-                            { id: 'experience', name: 'Experience', icon: Briefcase },
-                            { id: 'education', name: 'Education', icon: GraduationCap },
-                            { id: 'skills', name: 'Skills', icon: Layers },
-                            { id: 'expertise', name: 'Expertise', icon: Compass },
-                            { id: 'certifications', name: 'Certifications', icon: ShieldCheck },
-                            { id: 'languages', name: 'Languages', icon: Globe }
-                        ].map(tab => {
+                            { id: 'personal', name: 'Personal' },
+                            { id: 'summary', name: 'Summary' },
+                            { id: 'experience', name: 'Experience' },
+                            { id: 'education', name: 'Education' },
+                            { id: 'skills', name: 'Skills' },
+                            { id: 'expertise', name: 'Expertise' },
+                            { id: 'certifications', name: 'Certifications' },
+                            { id: 'languages', name: 'Languages' }
+                        ].map((tab, i) => {
                             const isActive = activeTab === tab.id;
-                            const Icon = tab.icon;
                             return (
                                 <button
                                     key={tab.id}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={isActive}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`relative py-2.5 px-3 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap border-none bg-transparent select-none shrink-0 ${
-                                        isActive 
-                                            ? 'text-[#171717]' 
-                                            : 'text-[#8A8580] hover:text-[#171717]'
+                                    className={`relative h-12 px-4 shrink-0 flex items-center gap-2 text-[14px] font-medium cursor-pointer border-0 border-r border-[#D8D4CC] whitespace-nowrap ${
+                                        isActive ? 'bg-white text-[#171717]' : 'bg-transparent text-[#4A4540] hover:bg-white/60'
                                     }`}
                                 >
-                                    <Icon size={13} className={isActive ? 'text-[#CA3C0A]' : 'text-[#8A8580]'} />
-                                    <span>{tab.name}</span>
-                                    {isActive && (
-                                        <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#CA3C0A] rounded-t-full" />
-                                    )}
+                                    <span className={`ds-mono ${isActive ? 'text-[#CA3C0A]' : 'ds-mono-muted'}`}>{String(i + 1).padStart(2, '0')}</span>
+                                    {tab.name}
+                                    {isActive && <span className="absolute left-0 right-0 bottom-[-1px] h-[2px] bg-[#CA3C0A]" />}
                                 </button>
                             );
                         })}
                     </div>
 
                     {/* Scrollable Tab Content Container */}
-                    <div className="flex-1 overflow-y-auto py-4 px-6 space-y-5 resume-creator-form-scroll">
+                    <div className="flex-1 overflow-y-auto py-6 px-6 sm:px-8 space-y-6 resume-creator-form-scroll" data-lenis-prevent>
                         {activeTab === 'personal' && (
                             <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-4">
@@ -1694,7 +1670,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             </button>
                             <button 
                                 onClick={handleDownloadPDF}
-                                className="h-8 px-3.5 rounded-md bg-[#171717] hover:bg-[#CA3C0A] text-white text-xs font-bold transition-all border border-[#171717] flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                className="h-10 px-4 bg-[#CA3C0A] hover:bg-[#B73609] text-white text-[14px] font-semibold border-0 flex items-center gap-2 cursor-pointer whitespace-nowrap"
                                 style={{ boxShadow: 'none' }}
                             >
                                 <Download size={13} />

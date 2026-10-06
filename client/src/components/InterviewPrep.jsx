@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useEscapeKey } from '../lib/useEscapeKey';
-import { FiX, FiCopy, FiCheck, FiVideo, FiBookOpen, FiTarget, FiMessageCircle, FiAward } from 'react-icons/fi';
+import { FiX, FiCopy, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import { generateInterviewPrep, saveInterviewPrep } from '../services/api';
 
 function InterviewPrep({ job, user, resumeData, onClose }) {
@@ -66,7 +66,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                 text += `${i + 1}. ${q.question}\n`;
                 text += `   Type: ${q.type}\n`;
                 q.talkingPoints?.forEach(tp => { text += `   • ${tp}\n`; });
-                if (q.sampleAnswer) text += `   💡 ${q.sampleAnswer}\n`;
+                if (q.sampleAnswer) text += `   Example answer: ${q.sampleAnswer}\n`;
                 text += '\n';
             });
         }
@@ -96,184 +96,119 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
 
     return (
         <div className="modal-overlay" onClick={onClose} data-lenis-prevent>
-            <div className="modal-content" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }} data-lenis-prevent>
-                <button className="modal-close" onClick={onClose} aria-label="Close modal">
-                    <FiX size={15} />
-                </button>
-
-                {/* Header */}
-                <div className="modal-header pb-4 border-b border-neutral-100">
-                    <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 bg-white text-[#CA3C0A] flex items-center justify-center flex-shrink-0 border border-[#D8D4CC]">
-                            <FiVideo size={20} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <span className="ds-mono text-[#CA3C0A] block mb-1">interview prep</span>
-                            <h2 className="text-[24px] sm:text-[28px] font-semibold text-[#171717] tracking-[-0.025em] leading-tight m-0">
-                                Prepare for this interview
-                            </h2>
-                            <p className="text-xs text-neutral-500 font-medium mt-1 truncate">
-                                {job.title} <span className="text-neutral-300">·</span> {job.company}
-                            </p>
-                        </div>
-                    </div>
-
-                    {prepData && !loading && (
-                        <div className="mt-4 flex items-center gap-2">
-                            <button 
-                                onClick={handleCopyAll}
-                                className="h-8 px-3.5 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-[#171717] text-xs font-bold border border-[#D8D4CC] flex items-center gap-1.5 cursor-pointer transition-all"
-                                style={{ boxShadow: 'none' }}
-                            >
-                                {copied ? <><FiCheck size={13} className="text-emerald-600" /> Copied All</> : <><FiCopy size={13} /> Copy All</>}
-                            </button>
-                        </div>
-                    )}
+            <div
+                className="modal-content ds-sheet"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="prep-title"
+                onClick={e => e.stopPropagation()}
+                data-lenis-prevent
+            >
+                <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                    <span className="ds-mono self-center px-6 sm:px-8 truncate">interview prep / {(job.company || 'job').toLowerCase()}</span>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white"
+                    >
+                        <FiX size={18} />
+                    </button>
                 </div>
 
-                {/* Loading */}
-                {loading && (
-                    <div className="text-center py-16 px-4">
-                        <div className="w-10 h-10 border-3 border-neutral-200 border-t-[#CA3C0A] rounded-full animate-spin mx-auto mb-4" />
-                        <h3 className="text-base font-bold text-[#171717]">Generating your tailored interview prep...</h3>
-                        <p className="text-xs text-neutral-500 mt-1">Analyzing candidate resume synergies, behavioral STAR questions, and technical topics.</p>
-                    </div>
-                )}
+                <div className="ds-sheet-body" data-lenis-prevent>
+                    <header className="ds-sheet-section !pt-8">
+                        <h2 id="prep-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#171717]">
+                            Prepare for this interview
+                        </h2>
+                        <p className="ds-mono ds-mono-muted mt-3 mb-0 truncate">{job.title} · {job.company}</p>
+                    </header>
 
-                {/* Content */}
-                {prepData && !loading && (
-                    <div className="space-y-6 pt-5">
-
-                        {/* Questions */}
-                        {prepData.questions?.length > 0 && (
-                            <div>
-                                <div className="flex items-center gap-2 mb-3.5">
-                                    <div className="w-1 h-3.5 bg-[#CA3C0A] rounded-full" />
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
-                                        <FiMessageCircle size={14} className="text-[#CA3C0A]" /> Likely Questions & STAR Frameworks
-                                    </h3>
-                                </div>
-
-                                <div className="space-y-3.5">
-                                    {prepData.questions.map((q, i) => (
-                                        <div key={i} className="bg-white rounded-lg p-5 border border-[#D8D4CC] transition-all">
-                                            {/* Header with tag */}
-                                            <div className="flex items-start justify-between gap-3 mb-3">
-                                                <h4 className="text-sm sm:text-base font-bold text-[#171717] leading-snug m-0">
-                                                    {i + 1}. {q.question}
-                                                </h4>
-                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E8] text-[#CA3C0A] border border-[#CA3C0A]/20 shrink-0 font-mono">
-                                                    {q.type || 'Behavioral'}
-                                                </span>
-                                            </div>
-
-                                            {/* Talking Points */}
-                                            {q.talkingPoints?.length > 0 && (
-                                                <div className="mb-3">
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono block mb-1.5">
-                                                        Key Talking Points
-                                                    </span>
-                                                    <div className="pl-3 border-l-2 border-[#D8D4CC] space-y-1">
-                                                        {q.talkingPoints.map((tp, j) => (
-                                                            <p key={j} className="text-xs sm:text-[13px] text-neutral-700 leading-relaxed m-0 font-normal">
-                                                                {tp}
-                                                            </p>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* Sample Answer Box */}
-                                            {q.sampleAnswer && (
-                                                <div className="bg-[#FAF8F5] rounded-md p-3.5 border border-[#D8D4CC] border-l-3 border-l-[#CA3C0A] mt-2.5">
-                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#CA3C0A] font-mono mb-1 flex items-center gap-1.5">
-                                                        <span>💡</span> Suggested Answer Framework
-                                                    </div>
-                                                    <p className="text-xs sm:text-[13px] text-neutral-800 leading-relaxed font-normal italic m-0">
-                                                        "{q.sampleAnswer}"
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
+                    {loading && (
+                        <section className="ds-sheet-section !py-16" aria-busy="true">
+                            <p className="ds-mono ds-mono-muted m-0 mb-4 animate-pulse">writing questions and talking points…</p>
+                            <div className="h-1.5 bg-[#EFECE6] overflow-hidden">
+                                <div className="h-full w-1/3 bg-[#CA3C0A] animate-pulse" />
                             </div>
-                        )}
+                        </section>
+                    )}
 
-                        {/* Technical Topics */}
-                        {prepData.technicalTopics?.length > 0 && (
-                            <div>
-                                <div className="flex items-center gap-2 mb-3.5">
-                                    <div className="w-1 h-3.5 bg-[#CA3C0A] rounded-full" />
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
-                                        <FiBookOpen size={14} className="text-[#CA3C0A]" /> Technical Concepts to Review
-                                    </h3>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {prepData.technicalTopics.map((t, i) => (
-                                        <div key={i} className="bg-white rounded-lg p-4 border border-[#D8D4CC] flex flex-col justify-between">
-                                            <div>
-                                                <div className="flex items-center justify-between gap-2 mb-1.5">
-                                                    <h4 className="text-xs sm:text-sm font-bold text-[#171717] m-0 truncate">
-                                                        {t.topic}
-                                                    </h4>
-                                                    <span className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold uppercase tracking-wider shrink-0 ${
-                                                        t.importance === 'high' 
-                                                            ? 'bg-[#171717] text-white' 
-                                                            : 'bg-neutral-100 text-neutral-600 border border-neutral-200'
-                                                    }`}>
-                                                        {t.importance}
-                                                    </span>
+                    {prepData && !loading && (
+                        <>
+                            {prepData.questions?.length > 0 && (
+                                <section className="ds-sheet-section">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-2">likely questions · {prepData.questions.length}</h3>
+                                    <ol className="list-none m-0 p-0">
+                                        {prepData.questions.map((q, i) => (
+                                            <li key={i} className="grid grid-cols-[32px_1fr] gap-2 py-5 border-0 border-t border-[#D8D4CC] first:border-t-0">
+                                                <span className="ds-mono text-[#CA3C0A] pt-1">{String(i + 1).padStart(2, '0')}</span>
+                                                <div>
+                                                    <p className="m-0 text-[17px] font-semibold leading-snug text-[#171717]">{q.question}</p>
+                                                    <p className="ds-mono ds-mono-muted mt-1.5 mb-0">{(q.type || 'behavioral').toLowerCase()}</p>
+                                                    {q.talkingPoints?.length > 0 && (
+                                                        <ul className="ds-list mt-3">
+                                                            {q.talkingPoints.map((tp, j) => <li key={j}>{tp}</li>)}
+                                                        </ul>
+                                                    )}
+                                                    {q.sampleAnswer && (
+                                                        <div className="mt-3 bg-white border border-[#D8D4CC] p-4">
+                                                            <p className="ds-mono ds-mono-muted m-0 mb-1">example answer</p>
+                                                            <p className="m-0 text-[15px] leading-relaxed text-[#2A2622]">{q.sampleAnswer}</p>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <p className="text-xs text-neutral-600 leading-relaxed m-0 font-normal">
-                                                    {t.reviewTips}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Company Insights + Tips */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {prepData.companyInsights?.length > 0 && (
-                                <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-1 h-3 bg-[#CA3C0A] rounded-full" />
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
-                                            <FiTarget size={14} className="text-[#CA3C0A]" /> Company Insights
-                                        </h3>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {prepData.companyInsights.map((c, i) => (
-                                            <div key={i} className="text-xs text-neutral-700 pl-2.5 border-l-2 border-[#D8D4CC] leading-relaxed">
-                                                {c}
-                                            </div>
+                                            </li>
                                         ))}
-                                    </div>
-                                </div>
+                                    </ol>
+                                </section>
+                            )}
+
+                            {prepData.technicalTopics?.length > 0 && (
+                                <section className="border-0 border-b border-[#D8D4CC]">
+                                    <h3 className="ds-mono ds-mono-muted m-0 px-6 sm:px-8 pt-6 pb-4">topics to review</h3>
+                                    <ul className="ds-gridlines grid-cols-1 sm:grid-cols-2 list-none m-0 p-0 border-0 border-t border-[#D8D4CC]">
+                                        {prepData.technicalTopics.map((t, i) => (
+                                            <li key={i} className="px-6 sm:px-8 py-5">
+                                                <p className="m-0 flex items-baseline justify-between gap-3">
+                                                    <span className="text-[16px] font-semibold text-[#171717]">{t.topic}</span>
+                                                    <span className={`ds-mono shrink-0 ${t.importance === 'high' ? 'text-[#CA3C0A]' : 'ds-mono-muted'}`}>{t.importance}</span>
+                                                </p>
+                                                <p className="m-0 mt-1.5 text-[15px] leading-relaxed text-[#4A4540]">{t.reviewTips}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+                            )}
+
+                            {prepData.companyInsights?.length > 0 && (
+                                <section className="ds-sheet-section">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-2">about the company</h3>
+                                    <ul className="ds-list">
+                                        {prepData.companyInsights.map((c, i) => <li key={i}>{c}</li>)}
+                                    </ul>
+                                </section>
                             )}
 
                             {prepData.tips?.length > 0 && (
-                                <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-1 h-3 bg-[#CA3C0A] rounded-full" />
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
-                                            <FiAward size={14} className="text-[#CA3C0A]" /> Interview Pro Tips
-                                        </h3>
-                                    </div>
-                                    <div className="space-y-2">
-                                        {prepData.tips.map((t, i) => (
-                                            <div key={i} className="text-xs text-neutral-700 pl-2.5 border-l-2 border-[#CA3C0A]/40 leading-relaxed">
-                                                {t}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                <section className="ds-sheet-section">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-2">tips</h3>
+                                    <ul className="ds-list">
+                                        {prepData.tips.map((t, i) => <li key={i}>{t}</li>)}
+                                    </ul>
+                                </section>
                             )}
-                        </div>
+                        </>
+                    )}
+                </div>
+
+                {prepData && !loading && (
+                    <div className="shrink-0 grid grid-cols-2 border-0 border-t border-[#D8D4CC]">
+                        <button type="button" onClick={handleCopyAll} className="ds-btn !min-h-[64px] !px-6 sm:!px-8 bg-[#F7F5F2] text-[#171717] hover:bg-white">
+                            {copied ? 'Copied' : 'Copy all'} {copied ? <FiCheck size={17} /> : <FiCopy size={17} />}
+                        </button>
+                        <button type="button" onClick={handleGenerate} className="ds-btn ds-btn-ink !min-h-[64px] !px-6 sm:!px-8">
+                            Generate again <FiRefreshCw size={17} />
+                        </button>
                     </div>
                 )}
             </div>

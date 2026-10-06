@@ -1,21 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    FiFileText, 
-    FiSend, 
-    FiPlus, 
-    FiUser, 
-    FiArrowRight, 
-    FiZap,
-    FiMessageSquare,
-    FiCheck,
-    FiTrendingUp,
-    FiTarget,
-    FiAward,
-    FiShield,
-    FiCpu
-} from 'react-icons/fi';
-import { motion, AnimatePresence } from 'framer-motion';
+import { FiFileText, FiSend, FiPlus, FiArrowRight, FiArrowUpRight } from 'react-icons/fi';
 import { getAdvisorChat } from '../services/api';
 
 // Markdown-to-HTML parser helper for structured advisor responses
@@ -30,7 +15,7 @@ const renderMarkdown = (text) => {
     const flushList = (key) => {
         if (inList && listItems.length > 0) {
             elements.push(
-                <ul key={key} className="space-y-1.5 my-2.5 pl-4 list-disc text-neutral-700">
+                <ul key={key}>
                     {listItems}
                 </ul>
             );
@@ -45,7 +30,7 @@ const renderMarkdown = (text) => {
         if (trimmed.startsWith('###')) {
             flushList(`list-before-h3-${index}`);
             elements.push(
-                <h4 key={index} className="text-sm font-bold text-[#171717] mt-3.5 mb-1.5 tracking-tight">
+                <h4 key={index}>
                     {parseInline(trimmed.replace(/^###\s*/, ''))}
                 </h4>
             );
@@ -54,7 +39,7 @@ const renderMarkdown = (text) => {
         if (trimmed.startsWith('##')) {
             flushList(`list-before-h2-${index}`);
             elements.push(
-                <h3 key={index} className="text-sm font-black text-[#171717] mt-4 mb-2 pb-1 border-b border-neutral-100">
+                <h3 key={index}>
                     {parseInline(trimmed.replace(/^##\s*/, ''))}
                 </h3>
             );
@@ -63,7 +48,7 @@ const renderMarkdown = (text) => {
         if (trimmed.startsWith('#')) {
             flushList(`list-before-h1-${index}`);
             elements.push(
-                <h2 key={index} className="text-base font-black text-[#171717] mt-4 mb-2">
+                <h2 key={index}>
                     {parseInline(trimmed.replace(/^#\s*/, ''))}
                 </h2>
             );
@@ -73,7 +58,7 @@ const renderMarkdown = (text) => {
         if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
             inList = true;
             listItems.push(
-                <li key={`li-${index}`} className="text-xs sm:text-[13px] text-neutral-700 leading-relaxed">
+                <li key={`li-${index}`}>
                     {parseInline(trimmed.substring(2))}
                 </li>
             );
@@ -84,7 +69,7 @@ const renderMarkdown = (text) => {
         if (numMatch) {
             inList = true;
             listItems.push(
-                <li key={`li-${index}`} className="text-xs sm:text-[13px] text-neutral-700 leading-relaxed list-decimal ml-2">
+                <li key={`li-${index}`}>
                     {parseInline(numMatch[2])}
                 </li>
             );
@@ -94,7 +79,7 @@ const renderMarkdown = (text) => {
         if (trimmed.length > 0) {
             flushList(`list-before-p-${index}`);
             elements.push(
-                <p key={index} className="text-xs sm:text-[13px] leading-relaxed mb-2.5 text-neutral-700 font-normal">
+                <p key={index}>
                     {parseInline(trimmed)}
                 </p>
             );
@@ -119,7 +104,7 @@ const parseInline = (text) => {
             parts.push(text.substring(lastIndex, match.index));
         }
         parts.push(
-            <strong key={match.index} className="font-bold text-[#171717]">
+            <strong key={match.index}>
                 {match[1]}
             </strong>
         );
@@ -151,8 +136,8 @@ function Advisor({ user, resumeData }) {
                 id: 'greeting',
                 role: 'assistant',
                 text: resumeData 
-                    ? `I've analyzed your profile and active resume (${resumeData.fileName || 'synced resume'}). Ask me about targeted role positioning, interview strategy, ATS keyword optimization, or skill development roadmaps.`
-                    : "Welcome to your Career Intelligence workspace. Upload your resume on Profile to get hyper-tailored advice, ATS scoring, and interview prep."
+                    ? `I have your resume${resumeData.fileName ? ` (${resumeData.fileName})` : ''}. Ask me about roles to target, interviews, your resume or pay.`
+                    : "Hi. Add your resume on your profile for advice specific to you, or ask me anything about your job search."
             }
         ];
     });
@@ -265,7 +250,7 @@ function Advisor({ user, resumeData }) {
             }
         } catch (err) {
             console.error("Advisor chat error:", err);
-            setError("Could not reach career intelligence advisor. Please check your network connection and try again.");
+            setError("The advisor couldn’t answer just now. Check your connection and try again.");
         } finally {
             setLoading(false);
             inputRef.current?.focus();
@@ -290,299 +275,176 @@ function Advisor({ user, resumeData }) {
     const isOnlyGreeting = messages.length === 1;
 
     return (
-        <div className="w-full h-[calc(100vh-64px)] flex bg-[#FAF8F5] overflow-hidden">
-            
-            {/* Left Sidebar: Candidate Profile & Strategy Rail */}
-            <div className="w-80 bg-white border-r border-neutral-200/90 hidden md:flex flex-col shrink-0 overflow-y-auto justify-between">
-                <div className="p-5 space-y-6">
-                    
-                    {/* Active Profile Section */}
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                Active Profile
-                            </span>
-                            <span className="flex items-center gap-1 text-[10px] font-semibold text-[#CA3C0A]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-pulse" />
-                                <span>Synced</span>
-                            </span>
-                        </div>
-
-                        {resumeData ? (
-                            <div className="p-3 rounded-xl bg-[#FAF8F5] border border-neutral-200/80 space-y-2">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 rounded-lg bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center shrink-0">
-                                        <FiFileText size={14} />
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-xs font-bold text-[#171717] truncate m-0">
-                                            {resumeData.fileName || 'sayan cv.pdf'}
-                                        </p>
-                                    </div>
-                                </div>
-                                {resumeData.experienceLevel && (
-                                    <div className="flex items-center justify-between pt-1 border-t border-neutral-200/50 text-[11px]">
-                                        <span className="text-neutral-500">Seniority</span>
-                                        <span className="font-bold text-[#171717] uppercase text-[10px] px-1.5 py-0.5 rounded bg-white border border-neutral-200">
-                                            {resumeData.experienceLevel} Level
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="p-3 rounded-xl bg-[#FAF8F5] border border-neutral-200/80 text-center">
-                                <p className="text-xs text-neutral-500 mb-2 font-medium">No resume attached.</p>
-                                <button
-                                    onClick={() => navigate('/profile')}
-                                    className="w-full py-1.5 px-3 rounded-lg bg-[#FFF0E8] text-[#CA3C0A] text-xs font-bold transition-all border border-[#CA3C0A]/20 cursor-pointer flex items-center justify-center gap-1"
-                                >
-                                    <span>Upload Resume</span>
-                                    <FiArrowRight size={12} />
-                                </button>
-                            </div>
-                        )}
+        <div className="h-[calc(100vh-64px)] bg-[#F7F5F2] text-[#171717] overflow-hidden">
+            <div className="ds-frame h-full flex">
+                {/* Context rail */}
+                <aside className="w-80 shrink-0 hidden md:flex flex-col border-0 border-r border-[#D8D4CC] overflow-y-auto" aria-label="Advisor context" data-lenis-prevent>
+                    <div className="h-14 shrink-0 px-6 flex items-center border-0 border-b border-[#D8D4CC]">
+                        <span className="ds-mono">your context</span>
                     </div>
 
-                    {/* Synced Skills Cloud */}
-                    {resumeData?.skills && resumeData.skills.length > 0 && (
-                        <div>
-                            <div className="flex items-center justify-between mb-2.5">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                                    Profile Skills ({resumeData.skills.length})
-                                </span>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
-                                {resumeData.skills.slice(0, 10).map((skill, index) => (
-                                    <button 
-                                        key={index}
+                    <section className="px-6 py-5 border-0 border-b border-[#D8D4CC]">
+                        <h2 className="ds-mono ds-mono-muted m-0 mb-3">resume</h2>
+                        {resumeData ? (
+                            <>
+                                <p className="m-0 text-[15px] font-semibold truncate flex items-center gap-2">
+                                    <FiFileText size={15} className="shrink-0 text-[#CA3C0A]" />
+                                    {resumeData.fileName || 'Uploaded resume'}
+                                </p>
+                                {resumeData.experienceLevel && (
+                                    <p className="ds-mono ds-mono-muted mt-2 mb-0">{resumeData.experienceLevel.toLowerCase()} level</p>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <p className="m-0 text-[15px] text-[#4A4540]">No resume yet. Answers will be general.</p>
+                                <button type="button" onClick={() => navigate('/profile')} className="ds-btn ds-btn-ink w-full mt-4 !min-h-[44px] !text-[14px]">
+                                    Add your resume <FiArrowRight size={15} />
+                                </button>
+                            </>
+                        )}
+                    </section>
+
+                    {resumeData?.skills?.length > 0 && (
+                        <section className="px-6 py-5 border-0 border-b border-[#D8D4CC]">
+                            <h2 className="ds-mono ds-mono-muted m-0 mb-3">ask about a skill</h2>
+                            <div className="flex flex-wrap gap-1.5">
+                                {resumeData.skills.slice(0, 12).map((skill) => (
+                                    <button
+                                        key={skill}
                                         type="button"
+                                        disabled={loading}
                                         onClick={() => handleSendMessage(`How can I best demonstrate my expertise in ${skill} for target roles?`)}
-                                        className="px-2 py-1 rounded-lg bg-[#FAF8F5] hover:bg-[#FFF0E8] hover:text-[#CA3C0A] hover:border-[#CA3C0A] text-neutral-800 text-[11px] font-medium border border-[#D8D4CC] transition-all cursor-pointer"
-                                        title={`Ask advisor about ${skill}`}
+                                        className="ds-tag cursor-pointer hover:border-[#171717] disabled:opacity-50"
                                     >
                                         {skill}
                                     </button>
                                 ))}
-                                {resumeData.skills.length > 10 && (
-                                    <span className="text-[10px] text-neutral-400 font-medium self-center pl-1">
-                                        +{resumeData.skills.length - 10} more
-                                    </span>
-                                )}
                             </div>
-                        </div>
+                        </section>
                     )}
 
-                    {/* Quick Strategy Playbooks */}
-                    <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2.5">
-                            Strategy Presets
-                        </div>
-                        <div className="space-y-1.5">
-                            {strategyPlaybooks.map((play, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => handleSendMessage(play.prompt)}
-                                    disabled={loading}
-                                    className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#FFF8F5] text-neutral-800 hover:text-[#171717] text-xs font-medium border border-[#D8D4CC] hover:border-[#CA3C0A] transition-all cursor-pointer flex items-center justify-between gap-1.5 group disabled:opacity-50"
-                                    style={{ boxShadow: 'none' }}
-                                >
-                                    <span className="truncate">{play.label}</span>
-                                    <FiArrowRight size={11} className="text-neutral-400 group-hover:text-[#CA3C0A] shrink-0" />
-                                </button>
+                    <section className="flex-1">
+                        <h2 className="ds-mono ds-mono-muted m-0 px-6 pt-5 pb-3">quick prompts</h2>
+                        <ul className="list-none m-0 p-0">
+                            {strategyPlaybooks.map((play) => (
+                                <li key={play.label} className="border-0 border-t border-[#D8D4CC]">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSendMessage(play.prompt)}
+                                        disabled={loading}
+                                        className="w-full px-6 py-3.5 flex items-center justify-between gap-3 text-left text-[15px] text-[#171717] bg-transparent hover:bg-white border-0 cursor-pointer disabled:opacity-50 group"
+                                    >
+                                        {play.label}
+                                        <FiArrowRight size={14} className="shrink-0 transition-transform group-hover:translate-x-0.5" />
+                                    </button>
+                                </li>
                             ))}
-                        </div>
-                    </div>
+                        </ul>
+                    </section>
+                </aside>
 
-                </div>
-
-                {/* Footer disclaimer */}
-                <div className="p-4 border-t border-neutral-100 text-center">
-                    <p className="text-[10px] text-neutral-400 m-0 font-medium">
-                        Appliqa Career Intelligence
-                    </p>
-                </div>
-            </div>
-
-            {/* Right Chat Workspace Area */}
-            <div className="flex-1 flex flex-col bg-[#FAF8F5] overflow-hidden">
-                
-                {/* Top Workspace Header Bar */}
-                <div className="h-14 px-6 bg-white border-b border-neutral-200 flex items-center justify-between shrink-0 z-10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center font-bold">
-                            <FiTrendingUp size={16} />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-sm text-[#171717] tracking-tight">
-                                    Career Advisor & Intelligence
-                                </h1>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <button 
+                {/* Conversation */}
+                <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                        <h1 className="ds-mono self-center px-6 sm:px-8 m-0 font-normal">advisor / chat</h1>
+                        <button
+                            type="button"
                             onClick={handleClearChat}
-                            className="px-3 py-1.5 rounded-xl bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-bold border border-[#D8D4CC] transition-all cursor-pointer flex items-center gap-1.5"
-                            style={{ boxShadow: 'none' }}
+                            className="ds-btn !min-h-0 !px-5 sm:!px-6 !text-[14px] bg-transparent text-[#171717] hover:bg-white border-0 border-l border-[#D8D4CC]"
                         >
-                            <FiPlus size={13} className="text-[#CA3C0A]" />
-                            <span>New Chat</span>
+                            New chat <FiPlus size={15} />
                         </button>
                     </div>
-                </div>
 
-                {/* Messages Feed */}
-                <div 
-                    ref={chatContainerRef}
-                    className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
-                >
-                    {isOnlyGreeting ? (
-                        <div className="max-w-3xl mx-auto py-8 text-center space-y-6">
-                            
-                            {/* Header Intro */}
-                            <div>
-                                <h2 className="text-2xl font-black text-[#171717] tracking-tight">
-                                    How can I assist your career progression today?
-                                </h2>
-                                <p className="text-xs sm:text-sm text-neutral-500 mt-1 max-w-lg mx-auto">
-                                    {resumeData 
-                                        ? `Context synchronized for ${resumeData.fileName || 'your profile'}. Ready to evaluate promotion paths, target skills, and interview strategy.`
-                                        : "Upload your resume to receive custom gap analysis, ATS score feedback, and tailored interview answers."}
+                    <div ref={chatContainerRef} className="flex-1 overflow-y-auto" data-lenis-prevent aria-live="polite">
+                        {isOnlyGreeting ? (
+                            <div className="px-6 sm:px-10 py-12 sm:py-16 max-w-4xl">
+                                <h2 className="ds-slash m-0" style={{ fontSize: 'clamp(40px, 5vw, 72px)' }}>advisor</h2>
+                                <p className="ds-lede mt-5 mb-0 max-w-2xl">
+                                    {resumeData
+                                        ? 'Ask about your next role, your resume, interviews or pay. Answers use your resume and profile.'
+                                        : 'Ask about your next role, your resume, interviews or pay. Add your resume for answers specific to you.'}
                                 </p>
+                                <ul className="ds-gridlines grid-cols-1 sm:grid-cols-2 list-none m-0 mt-10 p-0 border border-[#D8D4CC]">
+                                    {bentoModules.map((item) => (
+                                        <li key={item.title}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleSendMessage(item.query)}
+                                                className="w-full h-full text-left px-5 py-5 bg-transparent hover:bg-white border-0 cursor-pointer flex items-start justify-between gap-4 group"
+                                            >
+                                                <span>
+                                                    <span className="block text-[17px] font-semibold text-[#171717]">{item.title}</span>
+                                                    <span className="block mt-1 text-[14px] text-[#4A4540]">{item.desc}</span>
+                                                </span>
+                                                <FiArrowUpRight size={18} className="shrink-0 text-[#171717] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-
-                            {/* Bento Grid Action Cards */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-2xl mx-auto text-left pt-2">
-                                {bentoModules.map((item, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => handleSendMessage(item.query)}
-                                        className="p-4 rounded-2xl bg-white hover:bg-[#FFFDFB] border border-[#D8D4CC] hover:border-[#CA3C0A] text-neutral-800 transition-all text-left group cursor-pointer flex flex-col justify-between"
-                                        style={{ boxShadow: 'none' }}
-                                    >
-                                        <div>
-                                            <div className="flex items-center justify-between mb-1.5">
-                                                <h4 className="text-xs font-bold text-[#171717] group-hover:text-[#CA3C0A] transition-colors">
-                                                    {item.title}
-                                                </h4>
-                                                <FiArrowRight size={13} className="text-neutral-400 group-hover:text-[#CA3C0A] group-hover:translate-x-0.5 transition-all" />
-                                            </div>
-                                            <p className="text-[11px] text-neutral-500 leading-relaxed m-0">
-                                                {item.desc}
-                                            </p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="max-w-3xl mx-auto space-y-5">
-                            <AnimatePresence initial={false}>
+                        ) : (
+                            <ol className="list-none m-0 p-0">
                                 {messages.map((msg) => (
-                                    <motion.div
+                                    <li
                                         key={msg.id}
-                                        initial={{ opacity: 0, y: 8 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-full`}
+                                        className={`grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 sm:gap-6 px-6 sm:px-10 py-6 border-0 border-b border-[#D8D4CC] ${msg.role === 'user' ? 'bg-white' : ''}`}
                                     >
-                                        <div className="flex items-center gap-1.5 mb-1 text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                                        <span className={`ds-mono pt-0.5 flex items-start gap-2 ${msg.role === 'user' ? 'ds-mono-muted' : 'text-[#CA3C0A]'}`}>
+                                            {msg.role !== 'user' && <span className="ds-square mt-1" />}
+                                            {msg.role === 'user' ? 'you' : 'advisor'}
+                                        </span>
+                                        <div className="min-w-0 max-w-3xl">
                                             {msg.role === 'user' ? (
-                                                <>
-                                                    <span>You</span>
-                                                    <FiUser size={10} className="text-neutral-500" />
-                                                </>
+                                                <p className="m-0 text-[16px] font-medium leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                                             ) : (
-                                                <>
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A]" />
-                                                    <span className="text-[#CA3C0A]">Advisor</span>
-                                                </>
+                                                <div className="advisor-md">{renderMarkdown(msg.text)}</div>
                                             )}
                                         </div>
-
-                                        <div 
-                                            className={`p-4 text-xs sm:text-[13px] leading-relaxed max-w-[90%] sm:max-w-[85%] ${
-                                                msg.role === 'user'
-                                                    ? 'bg-[#171717] text-white rounded-2xl rounded-tr-xs font-normal'
-                                                    : 'bg-white border border-[#D8D4CC] text-[#171717] rounded-2xl rounded-tl-xs'
-                                            }`}
-                                            style={{ boxShadow: 'none' }}
-                                        >
-                                            {msg.role === 'user' ? (
-                                                <p className="m-0 leading-relaxed text-white whitespace-pre-wrap">{msg.text}</p>
-                                            ) : (
-                                                <div className="space-y-0.5 text-neutral-800 font-normal">
-                                                    {renderMarkdown(msg.text)}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </motion.div>
+                                    </li>
                                 ))}
-                            </AnimatePresence>
-
-                            {/* Loading State */}
-                            {loading && (
-                                <div className="flex flex-col items-start">
-                                    <div className="flex items-center gap-1.5 mb-1 text-[10px] font-bold uppercase tracking-wider text-[#CA3C0A]">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-pulse" />
-                                        <span>Analyzing Profile Context...</span>
-                                    </div>
-                                    <div className="p-4 rounded-2xl rounded-tl-xs bg-white border border-[#D8D4CC] flex items-center gap-1.5" style={{ boxShadow: 'none' }}>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-bounce" style={{ animationDelay: '300ms' }} />
-                                    </div>
-                                </div>
-                            )}
-
-                            {error && (
-                                <div className="p-4 rounded-xl bg-[#FFF0E8] border border-[#CA3C0A]/30 text-xs font-semibold text-[#CA3C0A] flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[#CA3C0A]" />
-                                    <span>{error}</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Fixed Bottom Input Composer */}
-                <div className="p-4 bg-white border-t border-neutral-200 shrink-0">
-                    <div className="max-w-3xl mx-auto">
-                        <form 
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleSendMessage();
-                            }}
-                            className="flex items-center gap-2 bg-[#FAF8F5] rounded-xl p-2 border border-[#D8D4CC] focus-within:border-[#CA3C0A] focus-within:ring-2 focus-within:ring-[#CA3C0A]/15 transition-all"
-                        >
-                            <input 
-                                ref={inputRef}
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                disabled={loading}
-                                placeholder="Ask anything about role transitions, resume tailoring, or interview questions..."
-                                className="flex-1 bg-transparent border-none outline-none text-xs sm:text-sm text-[#171717] placeholder-neutral-400 font-medium px-3 py-1"
-                            />
-                            <button
-                                type="submit"
-                                disabled={loading || !inputValue.trim()}
-                                className="px-4 py-2 rounded-lg bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                            >
-                                <span>Send</span>
-                                <FiSend size={11} />
-                            </button>
-                        </form>
-                        <p className="text-[10px] text-neutral-400 text-center mt-2 mb-0 font-medium">
-                            Press Enter to send. Responses are synthesized from your verified resume profile and target career preferences.
-                        </p>
+                                {loading && (
+                                    <li className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 sm:gap-6 px-6 sm:px-10 py-6 border-0 border-b border-[#D8D4CC]">
+                                        <span className="ds-mono text-[#CA3C0A] flex items-start gap-2"><span className="ds-square mt-1 animate-pulse" />advisor</span>
+                                        <span className="ds-mono ds-mono-muted animate-pulse">thinking…</span>
+                                    </li>
+                                )}
+                                {error && (
+                                    <li role="alert" className="px-6 sm:px-10 py-5 border-0 border-b border-[#D8D4CC] bg-[#FEF2F2] text-[#991B1B] text-[15px]">
+                                        {error}
+                                    </li>
+                                )}
+                            </ol>
+                        )}
                     </div>
+
+                    <form
+                        onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+                        className="shrink-0 flex items-stretch border-0 border-t border-[#D8D4CC] bg-white focus-within:shadow-[inset_0_2px_0_#CA3C0A]"
+                    >
+                        <label htmlFor="advisor-input" className="sr-only">Message the advisor</label>
+                        <input
+                            id="advisor-input"
+                            ref={inputRef}
+                            type="text"
+                            autoComplete="off"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            disabled={loading}
+                            placeholder="Ask about roles, your resume, interviews or salary…"
+                            className="flex-1 min-w-0 h-16 px-6 sm:px-8 bg-transparent border-0 outline-none text-[16px] text-[#171717] placeholder:text-[#8A8580] focus-visible:!outline-none"
+                        />
+                        <button
+                            type="submit"
+                            disabled={loading || !inputValue.trim()}
+                            className="ds-btn ds-btn-accent !min-h-16 !px-6 sm:!px-8 shrink-0"
+                        >
+                            Send <FiSend size={16} />
+                        </button>
+                    </form>
                 </div>
-
             </div>
-
         </div>
     );
 }

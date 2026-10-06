@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { FileText, Upload, X, ArrowUpRight, Copy, Check, Sparkles, ExternalLink, Sliders } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { analyzeResume, incrementStat } from '../services/api';
 import * as pdfjsLib from 'pdfjs-dist';
 import { createWorker } from 'tesseract.js';
@@ -337,204 +336,133 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                 </button>
 
                 {error && (
-                    <p className="mt-3 text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-md p-3">
+                    <p role="alert" className="mt-3 text-[15px] text-[#991B1B] bg-[#FEF2F2] border border-[#FECACA] p-3">
                         {error}
                     </p>
                 )}
             </div>
 
-            {/* ── Authentic Editorial Dossier Layout with Extra Details ── */}
             {analysis && (
-                <motion.div
-                    className="mt-16 w-full"
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                >
-                    {/* Header */}
-                    <div className="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-neutral-200/80">
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-[#CA3C0A] mb-1 font-mono">
-                                [ Candidate Profile Dossier ]
-                            </p>
-                            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171717]">
-                                Intelligence & Career Summary
-                            </h2>
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            {fileName && (
-                                <span className="text-xs font-mono text-[#66615C] bg-white px-3.5 py-1.5 rounded-full border border-neutral-200/80 shadow-2xs">
-                                    {fileName}
-                                </span>
+                <div className="mt-10 border border-[#D8D4CC] bg-[#F7F5F2]">
+                    <div className="flex items-stretch justify-between border-0 border-b border-[#D8D4CC] min-h-14">
+                        <span className="ds-mono self-center px-5 sm:px-6 py-3 truncate">
+                            your resume{fileName ? ` / ${fileName.toLowerCase()}` : ''}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const savedRole = user?.preferences?.desiredRole?.trim() || user?.desiredRole?.trim();
+                                const queryRole = savedRole || analysis.suggestedRoles?.[0] || 'Software Engineer';
+                                navigate(`/search?query=${encodeURIComponent(queryRole)}`);
+                            }}
+                            className="ds-btn ds-btn-accent shrink-0 !min-h-14 !px-5 sm:!px-6 !text-[14px]"
+                        >
+                            Find matching jobs <ArrowUpRight size={16} className="ds-btn-arrow" />
+                        </button>
+                    </div>
+
+                    {analysis.summary && (
+                        <section className="bg-white px-5 sm:px-6 py-6 border-0 border-b border-[#D8D4CC]">
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                                <h3 className="ds-mono ds-mono-muted m-0">summary</h3>
+                                <button
+                                    type="button"
+                                    onClick={handleCopySummary}
+                                    className="h-8 px-3 inline-flex items-center gap-1.5 text-[13px] font-medium bg-transparent border border-[#D8D4CC] hover:border-[#171717] cursor-pointer"
+                                >
+                                    {copiedSummary ? <Check size={13} /> : <Copy size={13} />}
+                                    {copiedSummary ? 'Copied' : 'Copy'}
+                                </button>
+                            </div>
+                            <p className="m-0 text-[17px] sm:text-[19px] leading-relaxed text-[#171717] max-w-4xl">{analysis.summary}</p>
+                        </section>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12">
+                        <div className="lg:col-span-7 border-0 lg:border-r border-[#D8D4CC]">
+                            {analysis.experience?.length > 0 && (
+                                <section className="px-5 sm:px-6 py-6 border-0 border-b border-[#D8D4CC]">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-2">experience · {analysis.experience.length}</h3>
+                                    <ul className="list-none m-0 p-0">
+                                        {analysis.experience.map((expStr, i) => {
+                                            const { title, company, duration } = parseExperienceItem(expStr);
+                                            return (
+                                                <li key={i} className="py-3.5 border-0 border-t border-[#D8D4CC] first:border-t-0">
+                                                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                                                        <span className="text-[16px] font-semibold text-[#171717]">{title}</span>
+                                                        {duration && <span className="ds-mono ds-mono-muted shrink-0">{duration.toLowerCase()}</span>}
+                                                    </div>
+                                                    {company && <p className="m-0 mt-0.5 text-[14px] text-[#4A4540]">{company}</p>}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </section>
                             )}
-                            <button
-                                onClick={() => {
-                                    const savedRole = user?.preferences?.desiredRole?.trim() || user?.desiredRole?.trim();
-                                    const queryRole = savedRole || analysis.suggestedRoles?.[0] || 'Software Engineer';
-                                    navigate(`/search?query=${encodeURIComponent(queryRole)}`);
-                                }}
-                                className="px-4 py-1.5 rounded-full bg-[#171717] hover:bg-[#CA3C0A] text-white text-xs font-bold transition-all border-none cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
-                            >
-                                Match Jobs <ArrowUpRight size={13} />
-                            </button>
+
+                            {analysis.education?.length > 0 && (
+                                <section className="px-5 sm:px-6 py-6 border-0 border-b lg:border-b-0 border-[#D8D4CC]">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-2">education</h3>
+                                    <ul className="list-none m-0 p-0">
+                                        {analysis.education.map((eduStr, i) => {
+                                            const { degree, school } = parseEducationItem(eduStr);
+                                            return (
+                                                <li key={i} className="py-3.5 border-0 border-t border-[#D8D4CC] first:border-t-0">
+                                                    <span className="text-[16px] font-semibold text-[#171717]">{degree}</span>
+                                                    {school && <p className="m-0 mt-0.5 text-[14px] text-[#4A4540]">{school}</p>}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </section>
+                            )}
+
+                            {analysis.certifications?.length > 0 && (
+                                <section className="px-5 sm:px-6 py-6 border-0 border-t border-[#D8D4CC]">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-3">certifications</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {analysis.certifications.map((cert, i) => (
+                                            <span key={i} className="ds-tag !font-sans !text-[13px]">{cert}</span>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
                         </div>
-                    </div>
 
-                    {/* Editorial Surface */}
-                    <div className="bg-white rounded-3xl border border-neutral-200/80 p-8 sm:p-10 shadow-xs space-y-8">
-
-                        {/* Executive Summary */}
-                        {analysis.summary && (
-                            <div>
-                                <div className="flex items-center justify-between gap-2 mb-3">
-                                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] font-mono">
-                                        01 // Professional Summary
-                                    </p>
-                                    <button
-                                        onClick={handleCopySummary}
-                                        className="text-xs font-semibold text-[#66615C] hover:text-[#171717] inline-flex items-center gap-1 bg-transparent border-none cursor-pointer"
-                                    >
-                                        {copiedSummary ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
-                                        {copiedSummary ? 'Copied' : 'Copy'}
-                                    </button>
-                                </div>
-                                <p className="text-base sm:text-[17px] leading-relaxed font-normal text-[#171717] max-w-4xl">
-                                    {analysis.summary}
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-8 border-t border-neutral-100">
-                            {/* Left: Experience & Education (7 cols) */}
-                            <div className="lg:col-span-7 space-y-10">
-                                {/* Experience Timeline */}
-                                {analysis.experience?.length > 0 && (
-                                    <div>
-                                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] font-mono mb-4">
-                                            02 // Work Experience & Track Record ({analysis.experience.length})
-                                        </p>
-                                        <div className="space-y-4">
-                                            {analysis.experience.map((expStr, i) => {
-                                                const { title, company, duration } = parseExperienceItem(expStr);
-                                                return (
-                                                    <div 
-                                                        key={i} 
-                                                        className="p-4 rounded-2xl bg-[#F7F5F2]/70 hover:bg-[#F7F5F2] border border-neutral-200/60 transition-colors"
-                                                    >
-                                                        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-1">
-                                                            <h4 className="text-sm sm:text-[15px] font-bold text-[#171717]">
-                                                                {title}
-                                                            </h4>
-                                                            {duration && (
-                                                                <span className="text-xs font-mono text-[#8A8580] bg-white px-2.5 py-0.5 rounded-md border border-neutral-200/70 w-fit">
-                                                                    {duration}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        {company && (
-                                                            <p className="text-xs font-semibold text-[#66615C]">
-                                                                {company}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Education */}
-                                {analysis.education?.length > 0 && (
-                                    <div>
-                                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] mb-4 font-mono">
-                                            03 // Academic Credentials & Degrees
-                                        </p>
-                                        <div className="space-y-3">
-                                            {analysis.education.map((eduStr, i) => {
-                                                const { degree, school } = parseEducationItem(eduStr);
-                                                return (
-                                                    <div key={i} className="p-4 rounded-2xl bg-[#F7F5F2]/70 border border-neutral-200/60">
-                                                        <h4 className="text-sm font-bold text-[#171717]">
-                                                            {degree}
-                                                        </h4>
-                                                        {school && (
-                                                            <p className="text-xs font-semibold text-[#66615C] mt-0.5">
-                                                                {school}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Certifications & Languages (if present) */}
-                                {analysis.certifications?.length > 0 && (
-                                    <div>
-                                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] mb-3 font-mono">
-                                            04 // Verified Certifications
-                                        </p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {analysis.certifications.map((cert, i) => (
-                                                <span key={i} className="px-3 py-1.5 rounded-xl bg-white border border-neutral-200/80 text-xs font-semibold text-[#171717]">
-                                                    {cert}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Right: Matched Roles & Skills (5 cols) */}
-                            <div className="lg:col-span-5 space-y-10">
-                                {/* Matched Roles */}
-                                {analysis.suggestedRoles?.length > 0 && (
-                                    <div>
-                                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] mb-4 font-mono">
-                                            05 // High-Match Target Roles
-                                        </p>
-                                        <div className="space-y-2">
-                                            {analysis.suggestedRoles.map((role, i) => (
+                        <div className="lg:col-span-5">
+                            {analysis.suggestedRoles?.length > 0 && (
+                                <section className="border-0 border-b border-[#D8D4CC]">
+                                    <h3 className="ds-mono ds-mono-muted m-0 px-5 sm:px-6 pt-6 pb-3">roles that fit</h3>
+                                    <ul className="list-none m-0 p-0">
+                                        {analysis.suggestedRoles.map((role, i) => (
+                                            <li key={i} className="border-0 border-t border-[#D8D4CC]">
                                                 <button
-                                                    key={i}
+                                                    type="button"
                                                     onClick={() => navigate(`/search?query=${encodeURIComponent(role)}`)}
-                                                    className="w-full px-4 py-3 rounded-2xl bg-[#F7F5F2] hover:bg-[#171717] text-[#171717] hover:text-white transition-all duration-200 flex items-center justify-between text-xs font-bold border border-neutral-200/60 hover:border-[#171717] cursor-pointer group"
+                                                    className="w-full px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3 bg-transparent hover:bg-white border-0 cursor-pointer text-left text-[15px] font-medium text-[#171717] group"
                                                 >
-                                                    <span>{role}</span>
-                                                    <span className="text-[11px] font-mono text-[#8A8580] group-hover:text-white inline-flex items-center gap-1">
-                                                        Find Roles <ArrowUpRight size={13} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                                                    </span>
+                                                    {role}
+                                                    <ArrowUpRight size={16} className="shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                                                 </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+                            )}
 
-                                {/* Skills */}
-                                {analysis.skills?.length > 0 && (
-                                    <div>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <p className="text-[11px] font-bold uppercase tracking-widest text-[#8A8580] font-mono">
-                                                06 // Core Skills & Technologies ({analysis.skills.length})
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {analysis.skills.map((skill, i) => (
-                                                <span
-                                                    key={i}
-                                                    className="rounded-lg bg-[#F7F5F2] px-2.5 py-1 text-xs font-medium text-[#171717] border border-neutral-200/60 hover:border-[#171717] hover:bg-neutral-200/50 transition-colors cursor-default"
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                        </div>
+                            {analysis.skills?.length > 0 && (
+                                <section className="px-5 sm:px-6 py-6">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-3">skills · {analysis.skills.length}</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {analysis.skills.map((skill, i) => (
+                                            <span key={i} className="ds-tag !font-sans !text-[13px]">{skill}</span>
+                                        ))}
                                     </div>
-                                )}
-                            </div>
+                                </section>
+                            )}
                         </div>
                     </div>
-                </motion.div>
+                </div>
             )}
         </div>
     );

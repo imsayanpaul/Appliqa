@@ -30,7 +30,7 @@ const COLUMNS = [
   },
 ];
 
-function Footer() {
+function Footer({ signedIn = false }) {
   const navigate = useNavigate();
 
   const handleNav = (e, href) => {
@@ -50,11 +50,11 @@ function Footer() {
             Job search, resume scoring and applications, in one place.
           </p>
           <a
-            href="/profile"
-            onClick={(e) => handleNav(e, '/profile')}
+            href={signedIn ? '/search' : '/profile'}
+            onClick={(e) => handleNav(e, signedIn ? '/search' : '/profile')}
             className="ds-btn ds-btn-accent w-full sm:w-72"
           >
-            Create free account <FiArrowUpRight size={18} className="ds-btn-arrow" />
+            {signedIn ? 'Search jobs' : 'Create free account'} <FiArrowUpRight size={18} className="ds-btn-arrow" />
           </a>
         </div>
 
@@ -87,7 +87,7 @@ function Footer() {
       </div>
 
       <div className="border-t border-white/15">
-        <div className="ds-frame !border-white/15 px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+        <div className="ds-frame !border-white/15 px-6 sm:px-8 pr-36 sm:pr-40 h-14 flex items-center justify-between gap-4">
           <span className="ds-mono text-white/50">© {new Date().getFullYear()} appliqa</span>
           <span className="ds-mono text-white/50 flex items-center gap-2">
             made for job seekers <span className="ds-square" />

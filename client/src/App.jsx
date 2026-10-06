@@ -730,7 +730,7 @@ function AppContent() {
                                 <Profile user={user} session={session} authResolved={authResolved} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
                             } />
                         </Routes>
-                        {['/', '/pricing', '/checkout', '/privacy', '/terms', '/security'].includes(location.pathname) && <Footer />}
+                        {['/', '/pricing', '/checkout', '/privacy', '/terms', '/security'].includes(location.pathname) && <Footer signedIn={!!session} />}
                     </Suspense>
                 </div>
             </main>

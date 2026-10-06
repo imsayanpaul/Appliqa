@@ -862,3 +862,244 @@
 @media (max-width: 640px) {
   .ds-fields { grid-template-columns: 1fr; }
 }
+
+/* Advisor answers rendered from markdown */
+.advisor-md { font-size: 16px; line-height: 1.7; color: #2A2622; }
+.advisor-md p { margin: 0 0 12px; }
+.advisor-md h2, .advisor-md h3, .advisor-md h4 {
+  margin: 20px 0 8px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+.advisor-md h2 { font-size: 20px; }
+.advisor-md h3 { font-size: 18px; }
+.advisor-md h4 { font-size: 16px; }
+.advisor-md > :first-child { margin-top: 0; }
+.advisor-md ul { margin: 4px 0 14px; padding: 0; list-style: none; }
+.advisor-md li { position: relative; padding: 4px 0 4px 20px; }
+.advisor-md li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 15px;
+  width: 6px;
+  height: 6px;
+  background: var(--accent-primary);
+}
+.advisor-md strong { font-weight: 600; color: var(--text-primary); }
+
+/* =========================================================================
+   Resume builder
+   ========================================================================= */
+.resume-creator-outer-wrapper,
+.resume-creator-editor-panel { background: var(--bg-primary); }
+
+.resume-creator-container { background: var(--bg-primary); }
+
+.resume-creator-editor-panel { border-right-color: var(--line); }
+
+.resume-creator-preview-panel { background: #EFECE6; }
+
+.resume-input-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.resume-input-field {
+  min-height: 46px;
+  padding: 11px 14px;
+  font-size: 15px;
+  font-weight: 400;
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  border-radius: 0;
+}
+
+.resume-input-field:hover { border-color: #8A8580; background: var(--bg-surface); }
+
+.resume-input-field:focus {
+  border-color: var(--text-primary);
+  box-shadow: inset 0 -2px 0 var(--accent-primary);
+}
+
+textarea.resume-input-field { line-height: 1.6; }
+
+.resume-entry-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: 22px;
+}
+
+.resume-entry-card:hover { border-color: #8A8580; }
+
+.resume-btn-icon,
+.resume-bullet-delete-btn,
+.resume-bullet-ai-btn {
+  border-radius: 0 !important;
+  border-width: 1px !important;
+}
+
+.resume-btn-secondary {
+  border-radius: 0;
+  background: transparent;
+  border-color: var(--text-primary);
+  font-weight: 600;
+}
+
+.resume-btn-secondary:hover { background: var(--text-primary); color: #FFFFFF; }
+
+.resume-btn-primary { border-radius: 0; font-weight: 600; }
+
+.resume-add-entry-btn,
+.resume-add-bullet-btn {
+  min-height: 52px;
+  border: 1px dashed #8A8580;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.resume-add-entry-btn:hover,
+.resume-add-bullet-btn:hover {
+  border-style: solid;
+  border-color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+.resume-skill-add-btn,
+.resume-suggest-skills-btn {
+  border-radius: 0 !important;
+  font-weight: 600;
+}
+
+.resume-skill-tag,
+.resume-rec-skill-btn {
+  border-radius: 0 !important;
+  font-family: var(--font-mono);
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  background: var(--bg-surface);
+  border: 1px solid var(--line) !important;
+}
+
+.resume-rec-skill-btn.added {
+  background: var(--text-primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--text-primary) !important;
+}
+
+.resume-template-selector {
+  padding: 0;
+  gap: 0;
+  border-radius: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+}
+
+.resume-template-btn {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 0;
+  border-right: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+}
+
+.resume-template-btn:last-child { border-right: none; }
+
+.resume-template-btn.active { background: var(--text-primary); color: #FFFFFF; }
+
+/* Paper preview reads as a sheet on the desk */
+.resume-paper-preview {
+  border-radius: 0 !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: 0 24px 48px -32px rgba(23, 23, 23, 0.35) !important;
+}
+
+/* Resume builder popups */
+.resume-modal-overlay {
+  background: rgba(23, 23, 23, 0.42);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.resume-modal-content {
+  border-radius: 0;
+  border: 1px solid var(--text-primary);
+  background: var(--bg-primary);
+}
+
+.resume-modal-close-btn,
+.resume-modal-action-btn,
+.resume-modal-variation-btn,
+.resume-modal-dropzone,
+.resume-modal-textarea {
+  border-radius: 0 !important;
+}
+
+/* Neutral scrollbars in the builder */
+.resume-creator-form-scroll,
+.resume-creator-preview-panel {
+  scrollbar-color: rgba(23, 23, 23, 0.25) transparent !important;
+}
+
+.resume-creator-form-scroll::-webkit-scrollbar-thumb,
+.resume-creator-preview-panel::-webkit-scrollbar-thumb {
+  background: rgba(23, 23, 23, 0.25) !important;
+  border-radius: 0 !important;
+}
+
+/* Resume builder: ATS checker toggle and panel */
+.ats-checker-btn {
+  height: 40px !important;
+  padding: 0 14px !important;
+  border-radius: 0 !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+}
+
+.ats-checker-btn::after { display: none !important; }
+
+.ats-checker-btn.inactive {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--text-primary) !important;
+}
+
+.ats-checker-btn.inactive:hover { border-color: var(--text-primary) !important; }
+
+.ats-checker-btn.active {
+  background: var(--text-primary) !important;
+  border: 1px solid var(--text-primary) !important;
+  color: #FFFFFF !important;
+}
+
+.ats-checker-btn .ats-icon-wrapper {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.ats-panel-container {
+  border-radius: 0 !important;
+  border: 1px solid var(--line) !important;
+  background: var(--bg-surface) !important;
+  box-shadow: none !important;
+}

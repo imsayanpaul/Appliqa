@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useEscapeKey } from '../lib/useEscapeKey';
-import { FiX, FiCheck, FiAlertCircle, FiRefreshCw, FiFileText } from 'react-icons/fi';
-import { FileCheck } from 'lucide-react';
+import { FiX, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import { getATSScore } from '../services/api';
 
 function ATSScorer({ job, resumeData, onClose }) {
@@ -16,7 +15,7 @@ function ATSScorer({ job, resumeData, onClose }) {
 
     const handleAnalyze = async () => {
         if (!resumeData?.rawText) {
-            setError('We need your raw resume text to perform an ATS scan. Please upload a PDF or TXT resume on the Home page first.');
+            setError('Upload your resume (PDF or TXT) on your profile first, then run the ATS check.');
             return;
         }
 
@@ -40,238 +39,145 @@ function ATSScorer({ job, resumeData, onClose }) {
         }
     };
 
-    const getScoreTier = (score) => {
-        if (score >= 75) return { label: 'High Alignment', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' };
-        if (score >= 50) return { label: 'Moderate Match', color: 'text-[#CA3C0A]', bg: 'bg-[#FFF0E8] border-[#CA3C0A]/30' };
-        return { label: 'Low Match', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' };
-    };
+    const tier = (score) => (score >= 75 ? 'strong match' : score >= 50 ? 'partial match' : 'low match');
+    const overall = Math.min(100, Math.max(0, Number(atsData?.atsScore) || 0));
+    const subScores = atsData ? [
+        { label: 'action verbs', value: atsData.actionVerbs?.score || 0, note: (atsData.actionVerbs?.score || 0) >= 65 ? 'strong' : 'needs work' },
+        { label: 'measurable results', value: atsData.metrics?.score || 0, note: (atsData.metrics?.score || 0) >= 65 ? 'strong' : 'needs work' },
+    ] : [];
+    const found = atsData?.keywords?.found || [];
+    const missing = atsData?.keywords?.missing || [];
 
     return (
         <div className="modal-overlay" onClick={onClose} data-lenis-prevent>
-            <div className="modal-content" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ maxWidth: 780 }} data-lenis-prevent>
-                <button className="modal-close" onClick={onClose} aria-label="Close modal">
-                    <FiX size={15} />
-                </button>
+            <div
+                className="modal-content ds-sheet"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="ats-title"
+                onClick={e => e.stopPropagation()}
+                data-lenis-prevent
+            >
+                <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                    <span className="ds-mono self-center px-6 sm:px-8 truncate">ats check / {(job.company || 'job').toLowerCase()}</span>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white"
+                    >
+                        <FiX size={18} />
+                    </button>
+                </div>
 
-                {/* Header */}
-                <div className="modal-header pb-4 border-b border-neutral-100">
-                    <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 bg-white text-[#CA3C0A] flex items-center justify-center flex-shrink-0 border border-[#D8D4CC]">
-                            <FileCheck size={20} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <span className="ds-mono text-[#CA3C0A] block mb-1">ats check</span>
-                            <h2 className="text-[24px] sm:text-[28px] font-semibold text-[#171717] tracking-[-0.025em] leading-tight m-0">
-                                How your resume scores for this job
-                            </h2>
-                            <p className="text-xs text-neutral-500 font-medium mt-1 truncate">
-                                {job.title} <span className="text-neutral-300">·</span> {job.company}
-                            </p>
-                        </div>
-                    </div>
+                <div className="ds-sheet-body" data-lenis-prevent>
+                    <header className="ds-sheet-section !pt-8">
+                        <h2 id="ats-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#171717]">
+                            How your resume scores for this job
+                        </h2>
+                        <p className="ds-mono ds-mono-muted mt-3 mb-0 truncate">{job.title} · {job.company}</p>
+                    </header>
+
+                    {error && (
+                        <section className="ds-sheet-section">
+                            <p role="alert" className="m-0 text-[15px] text-[#991B1B]">{error}</p>
+                        </section>
+                    )}
+
+                    {loading && (
+                        <section className="ds-sheet-section !py-16" aria-busy="true">
+                            <p className="ds-mono ds-mono-muted m-0 mb-4 animate-pulse">scanning your resume…</p>
+                            <div className="h-1.5 bg-[#EFECE6] overflow-hidden">
+                                <div className="h-full w-1/3 bg-[#CA3C0A] animate-pulse" />
+                            </div>
+                        </section>
+                    )}
 
                     {atsData && !loading && (
-                        <div className="mt-3.5 flex items-center gap-2">
-                            <button 
-                                onClick={handleAnalyze}
-                                className="h-8 px-3.5 rounded-md bg-[#FAF8F5] hover:bg-neutral-200 text-[#171717] text-xs font-bold border border-[#D8D4CC] flex items-center gap-1.5 cursor-pointer transition-all"
-                                style={{ boxShadow: 'none' }}
-                            >
-                                <FiRefreshCw size={12} /> Re-scan Resume
-                            </button>
-                        </div>
+                        <>
+                            <section className="ds-sheet-section bg-white">
+                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-end">
+                                    <div className="sm:col-span-6">
+                                        <p className="ds-mono ds-mono-muted m-0 mb-2">overall fit</p>
+                                        <p className="m-0 flex items-baseline gap-2">
+                                            <span className="font-[900] leading-none tracking-[-0.04em]" style={{ fontSize: 'clamp(56px, 8vw, 88px)', fontStretch: '125%' }}>{overall}</span>
+                                            <span className="ds-mono ds-mono-muted">/100</span>
+                                        </p>
+                                        <p className="ds-mono mt-3 mb-0 flex items-center gap-2"><span className="ds-square" /> {tier(overall)}</p>
+                                    </div>
+                                    <dl className="sm:col-span-6 ds-gridlines grid-cols-2 m-0 border border-[#D8D4CC]">
+                                        {subScores.map((s) => (
+                                            <div key={s.label} className="!bg-white px-4 py-4">
+                                                <dt className="ds-mono ds-mono-muted">{s.label}</dt>
+                                                <dd className="m-0 mt-3 text-[32px] font-semibold tracking-[-0.03em] leading-none">{s.value}<span className="text-[16px] text-[#6F6A65]">%</span></dd>
+                                                <dd className="ds-mono m-0 mt-2 text-[#4A4540]">{s.note}</dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                </div>
+                                <div className="mt-6 h-1.5 bg-[#EFECE6]">
+                                    <div className="h-full bg-[#CA3C0A] report-bar" style={{ width: `${overall}%` }} />
+                                </div>
+                                {atsData.verdict && (
+                                    <p className="m-0 mt-6 text-[16px] leading-relaxed text-[#2A2622]">{atsData.verdict}</p>
+                                )}
+                            </section>
+
+                            <section className="ds-sheet-section">
+                                <h3 className="ds-mono ds-mono-muted m-0 mb-3">keywords in your resume · {found.length}</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {found.map((kw, i) => <span key={`f-${i}`} className="ds-tag gap-2"><FiCheck size={12} className="text-[#047857]" />{kw}</span>)}
+                                    {found.length === 0 && <p className="m-0 text-[15px] text-[#4A4540]">No direct keyword matches.</p>}
+                                </div>
+
+                                <h3 className="ds-mono ds-mono-muted m-0 mt-6 mb-3">missing keywords · {missing.length}</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {missing.map((kw, i) => <span key={`m-${i}`} className="ds-tag !border-[#CA3C0A] !text-[#CA3C0A]">+ {kw}</span>)}
+                                    {missing.length === 0 && <p className="m-0 text-[15px] text-[#4A4540]">Your resume covers the job's key terms.</p>}
+                                </div>
+                            </section>
+
+                            <section className="border-0 border-b border-[#D8D4CC]">
+                                <div className="ds-gridlines grid-cols-1 sm:grid-cols-2">
+                                    <div className="px-6 sm:px-8 py-6">
+                                        <h3 className="ds-mono ds-mono-muted m-0 mb-2">action verbs</h3>
+                                        <p className="m-0 text-[15px] leading-relaxed text-[#2A2622]">{atsData.actionVerbs?.feedback || 'Your bullets use clear action verbs.'}</p>
+                                    </div>
+                                    <div className="px-6 sm:px-8 py-6">
+                                        <h3 className="ds-mono ds-mono-muted m-0 mb-2">measurable results</h3>
+                                        <p className="m-0 text-[15px] leading-relaxed text-[#2A2622]">{atsData.metrics?.feedback || 'Your bullets include numbers and results.'}</p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {atsData.improvements?.length > 0 && (
+                                <section className="ds-sheet-section">
+                                    <h3 className="ds-mono ds-mono-muted m-0 mb-2">what to fix</h3>
+                                    <ol className="list-none m-0 p-0">
+                                        {atsData.improvements.map((imp, i) => (
+                                            <li key={i} className="grid grid-cols-[32px_1fr] gap-2 py-4 border-0 border-t border-[#D8D4CC] first:border-t-0">
+                                                <span className="ds-mono text-[#CA3C0A] pt-1">0{i + 1}</span>
+                                                <div>
+                                                    <p className="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                                        <span className="text-[16px] font-semibold text-[#171717]">{imp.issue}</span>
+                                                        <span className={`ds-mono ${imp.priority === 'high' ? 'text-[#CA3C0A]' : 'ds-mono-muted'}`}>{imp.priority} priority</span>
+                                                    </p>
+                                                    <p className="m-0 mt-1.5 text-[15px] leading-relaxed text-[#4A4540]">{imp.fix}</p>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </section>
+                            )}
+                        </>
                     )}
                 </div>
 
-                {/* Error State */}
-                {error && (
-                    <div className="py-6 text-center">
-                        <div className="bg-rose-50 text-rose-700 border border-rose-200 px-4 py-3 rounded-md inline-flex items-center gap-2 text-xs font-medium">
-                            <FiAlertCircle size={16} className="shrink-0" /> {error}
-                        </div>
-                    </div>
-                )}
-
-                {/* Loading State */}
-                {loading && (
-                    <div className="text-center py-16 px-4">
-                        <div className="w-10 h-10 border-3 border-neutral-200 border-t-[#CA3C0A] rounded-full animate-spin mx-auto mb-4" />
-                        <h3 className="text-base font-bold text-[#171717]">Scanning resume through ATS parser...</h3>
-                        <p className="text-xs text-neutral-500 mt-1">Simulating keyword extraction, semantic density, and quantifiable impact metrics.</p>
-                    </div>
-                )}
-
-                {/* Results View */}
-                {atsData && !loading && (
-                    <div className="space-y-5 pt-4">
-                        
-                        {/* Top Overview: Overall Score + Sub Scores */}
-                        <div className="bg-[#FAF8F5] rounded-lg p-5 sm:p-6 border border-[#D8D4CC]">
-                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                                {/* Verdict Memo */}
-                                <div className="md:col-span-6 space-y-2">
-                                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-neutral-500 block">
-                                        Executive Assessment
-                                    </span>
-                                    <p className="text-xs sm:text-[13px] text-neutral-800 leading-relaxed font-normal m-0">
-                                        {atsData.verdict}
-                                    </p>
-                                </div>
-
-                                {/* 3 Metric Columns */}
-                                <div className="md:col-span-6 grid grid-cols-3 gap-2.5">
-                                    {/* Overall Score */}
-                                    <div className="bg-white rounded-md p-3 border border-[#D8D4CC] flex flex-col justify-between">
-                                        <span className="text-[10px] font-mono uppercase text-neutral-400 block mb-1">
-                                            Overall Fit
-                                        </span>
-                                        <div>
-                                            <span className="text-xl sm:text-2xl font-mono font-black text-[#171717] block leading-none">
-                                                {atsData.atsScore || 0}%
-                                            </span>
-                                            <span className={`inline-block text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded mt-1.5 border ${getScoreTier(atsData.atsScore || 0).bg} ${getScoreTier(atsData.atsScore || 0).color}`}>
-                                                {getScoreTier(atsData.atsScore || 0).label}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Verbs */}
-                                    <div className="bg-white rounded-md p-3 border border-[#D8D4CC] flex flex-col justify-between">
-                                        <span className="text-[10px] font-mono uppercase text-neutral-400 block mb-1">
-                                            Action Verbs
-                                        </span>
-                                        <div>
-                                            <span className="text-xl sm:text-2xl font-mono font-black text-[#171717] block leading-none">
-                                                {atsData.actionVerbs?.score || 0}%
-                                            </span>
-                                            <span className={`inline-block text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded mt-1.5 border ${getScoreTier(atsData.actionVerbs?.score || 0).bg} ${getScoreTier(atsData.actionVerbs?.score || 0).color}`}>
-                                                {atsData.actionVerbs?.score >= 65 ? 'Strong' : 'Review'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Metrics & Impact */}
-                                    <div className="bg-white rounded-md p-3 border border-[#D8D4CC] flex flex-col justify-between">
-                                        <span className="text-[10px] font-mono uppercase text-neutral-400 block mb-1">
-                                            Measurable
-                                        </span>
-                                        <div>
-                                            <span className="text-xl sm:text-2xl font-mono font-black text-[#171717] block leading-none">
-                                                {atsData.metrics?.score || 0}%
-                                            </span>
-                                            <span className={`inline-block text-[9px] font-mono font-bold uppercase px-1 py-0.2 rounded mt-1.5 border ${getScoreTier(atsData.metrics?.score || 0).bg} ${getScoreTier(atsData.metrics?.score || 0).color}`}>
-                                                {atsData.metrics?.score >= 65 ? 'High' : 'Needs Work'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Keyword Density & Parsing Breakdown */}
-                        <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-1 h-3.5 bg-[#CA3C0A] rounded-full" />
-                                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#171717] m-0">
-                                    Keyword Extraction & Density Analysis
-                                </h3>
-                            </div>
-
-                            <div className="space-y-4">
-                                {/* Found in Resume */}
-                                <div>
-                                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700 block mb-2">
-                                        Found in Resume ({atsData.keywords?.found?.length || 0})
-                                    </span>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {(atsData.keywords?.found || []).map((kw, i) => (
-                                            <span key={`f-${i}`} className="font-mono text-[11px] font-semibold bg-[#FAF8F5] text-neutral-800 border border-[#D8D4CC] rounded px-2 py-0.5 inline-flex items-center gap-1.5">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                                                {kw}
-                                            </span>
-                                        ))}
-                                        {(!atsData.keywords?.found || atsData.keywords.found.length === 0) && (
-                                            <span className="text-xs text-neutral-400 font-mono">No direct keyword matches detected.</span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="border-t border-neutral-100" />
-
-                                {/* Missing Keywords */}
-                                <div>
-                                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#CA3C0A] block mb-2">
-                                        Missing High-Priority Terms ({atsData.keywords?.missing?.length || 0})
-                                    </span>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {(atsData.keywords?.missing || []).map((kw, i) => (
-                                            <span key={`m-${i}`} className="font-mono text-[11px] font-semibold bg-[#FFF0E8] text-[#CA3C0A] border border-[#CA3C0A]/25 rounded px-2 py-0.5 inline-flex items-center gap-1">
-                                                + {kw}
-                                            </span>
-                                        ))}
-                                        {(!atsData.keywords?.missing || atsData.keywords.missing.length === 0) && (
-                                            <span className="text-xs text-neutral-500 font-mono">All required keyword terms identified in resume.</span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Action Verbs & Metrics Feedback (2 Columns) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="bg-white rounded-lg p-4 border border-[#D8D4CC]">
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#171717] block mb-1.5">
-                                    Action Verbs & Impact
-                                </span>
-                                <p className="text-xs text-neutral-700 leading-relaxed m-0 font-normal">
-                                    {atsData.actionVerbs?.feedback || "Sufficient action verbs utilized across experience bullets."}
-                                </p>
-                            </div>
-
-                            <div className="bg-white rounded-lg p-4 border border-[#D8D4CC]">
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#171717] block mb-1.5">
-                                    Metrics & Quantifiable Data
-                                </span>
-                                <p className="text-xs text-neutral-700 leading-relaxed m-0 font-normal">
-                                    {atsData.metrics?.feedback || "Quantifiable metrics and results detected in your bullet points."}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Actionable Improvements */}
-                        {atsData.improvements?.length > 0 && (
-                            <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
-                                <div className="flex items-center gap-2 mb-3.5">
-                                    <div className="w-1 h-3.5 bg-[#CA3C0A] rounded-full" />
-                                    <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#171717] m-0">
-                                        Targeted Resume Optimization Steps
-                                    </h3>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {atsData.improvements.map((imp, i) => (
-                                        <div key={i} className="bg-[#FAF8F5] rounded-md p-3.5 border border-[#D8D4CC] space-y-1.5">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`font-mono text-[9px] font-bold uppercase px-1.5 py-0.2 rounded ${
-                                                    imp.priority === 'high' 
-                                                        ? 'bg-[#171717] text-white' 
-                                                        : 'bg-neutral-200 text-neutral-700'
-                                                }`}>
-                                                    {imp.priority} Priority
-                                                </span>
-                                                <h4 className="text-xs sm:text-[13px] font-bold text-[#171717] m-0">
-                                                    {imp.issue}
-                                                </h4>
-                                            </div>
-                                            <p className="text-xs text-neutral-700 pl-2.5 border-l-2 border-[#CA3C0A] leading-relaxed m-0 font-normal">
-                                                <strong>Suggested Fix:</strong> {imp.fix}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        
+                {(atsData || error) && !loading && resumeData?.rawText && (
+                    <div className="shrink-0 border-0 border-t border-[#D8D4CC]">
+                        <button type="button" onClick={handleAnalyze} className="ds-btn ds-btn-ink w-full !min-h-[64px] !px-6 sm:!px-8">
+                            Scan again <FiRefreshCw size={17} />
+                        </button>
                     </div>
                 )}
             </div>
