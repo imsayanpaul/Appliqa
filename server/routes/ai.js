@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { supabase } = require('../lib/supabase');
 const crypto = require('crypto');
 const { optionalAuth } = require('../middleware/auth');
@@ -11,11 +10,8 @@ const { sendServerError } = require('../lib/errors');
 // Signed-in users get a higher ceiling than anonymous visitors.
 router.use(optionalAuth, rateLimit({ name: 'ai', windowMs: 60 * 1000, maxAuthed: 30, maxAnon: 8 }));
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-const getModel = (modelName = "gemini-3.1-flash-lite") => {
-  return genAI.getGenerativeModel({ model: modelName }, { timeout: 45000 });
-};
+// Retries busy errors and falls back to a second model (see lib/gemini.js)
+const { getModel } = require('../lib/gemini');
 
 const getCacheKey = (resumeText, jobDescription, queryType) => {
   const input = `${resumeText || ''}_${jobDescription || ''}_${queryType}`;
@@ -133,6 +129,14 @@ const safeParseJSON = (text, fallback) => {
     return fallback;
   }
 };
+
+// Experience/education arrive as text lines or as entries; prompts need lines
+const asLines = (list) => (Array.isArray(list) ? list : []).map((x) => {
+  if (typeof x === 'string') return x;
+  if (!x || typeof x !== 'object') return '';
+  const head = [x.role || x.degree || x.title, x.company || x.school].filter(Boolean).join(x.company ? ' at ' : ' from ');
+  return `${head}${x.dates ? ` (${x.dates})` : ''}`;
+}).filter(Boolean);
 
 // The advisor appends "SKILLS_TO_ADD: a, b" when it recommends skills; split it out
 const extractSkillsLine = (raw) => {
@@ -391,7 +395,7 @@ router.post("/cover-letter", async (req, res) => {
       return res.status(400).json({ error: "jobTitle is required" });
 
     // 1. Calculate Cache Key
-    const candidateInput = `${resumeData?.skills?.join(",") || preferences?.skills?.join(",") || ""}_${resumeData?.experience?.join(";") || ""}_${resumeData?.experienceLevel || preferences?.experienceLevel || ""}_${preferences?.name || ""}`;
+    const candidateInput = `${resumeData?.skills?.join(",") || preferences?.skills?.join(",") || ""}_${asLines(resumeData?.experience).join(";") || ""}_${resumeData?.experienceLevel || preferences?.experienceLevel || ""}_${preferences?.name || ""}`;
     const cacheKey = getCacheKey(candidateInput, jobDescription, 'cover-letter');
 
     // 2. Check AI Cache Table
@@ -419,7 +423,7 @@ router.post("/cover-letter", async (req, res) => {
       preferences?.skills?.join(", ") ||
       "Not specified";
     const candidateExperience =
-      resumeData?.experience?.join("; ") || "Not specified";
+      asLines(resumeData?.experience).join("; ") || "Not specified";
     const candidateLevel =
       resumeData?.experienceLevel || preferences?.experienceLevel || "mid";
 
@@ -633,7 +637,7 @@ router.post("/interview-prep", async (req, res) => {
       preferences?.skills?.join(", ") ||
       "Not specified";
     const candidateExperience =
-      resumeData?.experience?.join("; ") || "Not specified";
+      asLines(resumeData?.experience).join("; ") || "Not specified";
     const candidateLevel =
       resumeData?.experienceLevel || preferences?.experienceLevel || "mid";
 
@@ -834,8 +838,8 @@ Here is the candidate's resume context:
 - Experience Level: ${resumeData.experienceLevel || "N/A"}
 - Key Skills: ${resumeData.skills?.join(", ") || "N/A"}
 - Suggested/Target Roles: ${resumeData.suggestedRoles?.join(", ") || "N/A"}
-- Work History: ${resumeData.experience?.join("; ") || "N/A"}
-- Education: ${resumeData.education?.join("; ") || "N/A"}
+- Work History: ${asLines(resumeData.experience).join("; ") || "N/A"}
+- Education: ${asLines(resumeData.education).join("; ") || "N/A"}
 `;
     } else {
       resumeContext = `
@@ -861,10 +865,7 @@ SKILLS_TO_ADD: Skill One, Skill Two, Skill Three
 - Use short, resume-ready names (e.g. "Docker", "System Design"), at most 8, and only skills they don't already list. Omit the line if you are not recommending skills.
 `;
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-3.1-flash-lite",
-      systemInstruction: systemInstruction,
-    }, { timeout: 45000 });
+    const model = getModel({ systemInstruction });
 
     // Map chatHistory (roles: 'user', 'assistant') to Gemini format ('user', 'model')
     let formattedHistory = (chatHistory || []).map((msg) => ({
@@ -1121,10 +1122,7 @@ router.post("/achievement-finder", async (req, res) => {
       "suggestedBullet": "The final suggested XYZ-formula bullet point if ready, otherwise null"
     }`;
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-3.1-flash-lite",
-      systemInstruction: systemInstruction,
-    }, { timeout: 45000 });
+    const model = getModel({ systemInstruction });
 
     // Format chat history
     let formattedHistory = (chatHistory || []).map((msg) => ({
