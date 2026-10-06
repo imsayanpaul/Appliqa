@@ -1682,166 +1682,147 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     {/* ATS Score & Keyword Matcher Section */}
                     <AnimatePresence>
                         {showATSPanel && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.98, y: -10 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.98, y: -10 }}
-                                transition={{ duration: 0.2, ease: "easeOut" }}
-                                className="w-full max-w-[760px] ats-panel-container p-5 relative z-10 mb-6 shrink-0"
+                            <motion.section
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -8 }}
+                                transition={{ duration: 0.18, ease: 'easeOut' }}
+                                aria-label="ATS check"
+                                className="w-full max-w-[760px] relative z-10 mb-6 shrink-0 bg-[#F7F5F2] border border-[#D8D4CC]"
                             >
-                                <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-100 relative z-10">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-[#CA3C0A] shrink-0" />
-                                        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#171717] m-0">
-                                            ATS OPTIMIZATION & KEYWORD SCANNER
-                                        </h3>
-                                    </div>
-                                    <button 
+                                <div className="flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                                    <span className="ds-mono self-center px-5 py-3 flex items-center gap-2"><span className="ds-square" /> ats check</span>
+                                    <button
+                                        type="button"
                                         onClick={() => setShowATSPanel(false)}
-                                        className="ats-panel-close-btn cursor-pointer"
-                                        title="Close ATS Diagnostics"
+                                        aria-label="Close ATS check"
+                                        className="w-12 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white"
                                     >
-                                        <X size={12} />
+                                        <X size={16} />
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 relative z-10">
-                                    <div className="space-y-3">
+                                <div className="grid grid-cols-1 2xl:grid-cols-2">
+                                    <div className="p-5 space-y-4 border-0 2xl:border-r border-[#D8D4CC]">
                                         <div>
-                                            <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Target Job Title</label>
+                                            <label htmlFor="ats-target-title" className="resume-input-label">target job title</label>
                                             <input
+                                                id="ats-target-title"
                                                 type="text"
                                                 value={atsTargetTitle}
                                                 onChange={(e) => setAtsTargetTitle(e.target.value)}
-                                                className="ats-panel-input"
+                                                className="resume-input-field"
                                                 placeholder="e.g. Senior Product Designer"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Target Job Description</label>
+                                            <label htmlFor="ats-target-jd" className="resume-input-label">job description</label>
                                             <textarea
+                                                id="ats-target-jd"
                                                 value={atsTargetJD}
                                                 onChange={(e) => setAtsTargetJD(e.target.value)}
-                                                rows={4}
-                                                className="ats-panel-textarea"
-                                                placeholder="Paste the job description here..."
+                                                rows={5}
+                                                className="resume-input-field resize-none"
+                                                placeholder="Paste the job description here…"
                                             />
                                         </div>
                                         <button
+                                            type="button"
                                             onClick={handleATSCheck}
                                             disabled={loadingATS}
-                                            className="ats-panel-calc-btn cursor-pointer"
+                                            className="ds-btn ds-btn-ink w-full"
                                         >
-                                            {loadingATS ? (
-                                                <>
-                                                    <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-[2px] border-white border-t-transparent" />
-                                                    <span>Calculating Score...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <FileCheck size={13} />
-                                                    <span>Calculate ATS Score</span>
-                                                </>
-                                            )}
+                                            {loadingATS ? 'Scoring…' : atsResult ? 'Score again' : 'Score my resume'}
+                                            {loadingATS ? <RefreshCw size={16} className="animate-spin" /> : <FileCheck size={16} />}
                                         </button>
                                     </div>
 
-                                    {/* ATS Scorer Feedback results */}
-                                    <div className="ats-panel-results-box">
+                                    <div className="p-5 border-0 border-t 2xl:border-t-0 border-[#D8D4CC] bg-white" aria-live="polite">
                                         {atsResult ? (
-                                            <div className="space-y-3">
-                                                <div className="flex items-center justify-between border-b border-[#D8D4CC] pb-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="ats-result-score-ring">
-                                                            <span>{atsResult.atsScore}</span>
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider">Score Verdict</div>
-                                                            <div className={`ats-verdict-badge ${
-                                                                atsResult.atsScore >= 80 
-                                                                    ? 'ats-verdict-high' 
-                                                                    : atsResult.atsScore >= 60 
-                                                                        ? 'ats-verdict-medium' 
-                                                                        : 'ats-verdict-poor'
-                                                            }`}>
-                                                                {atsResult.atsScore >= 80 ? 'Highly Optimized' : atsResult.atsScore >= 60 ? 'Requires Optimization' : 'Poor Match'}
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                            <div>
+                                                <p className="ds-mono ds-mono-muted m-0 mb-2">score</p>
+                                                <p className="m-0 flex items-baseline gap-2">
+                                                    <span className="font-[900] leading-none tracking-[-0.04em]" style={{ fontSize: '64px', fontStretch: '125%' }}>{atsResult.atsScore}</span>
+                                                    <span className="ds-mono ds-mono-muted">/100</span>
+                                                </p>
+                                                <p className="ds-mono mt-2 mb-0 flex items-center gap-2">
+                                                    <span className="ds-square" />
+                                                    {atsResult.atsScore >= 80 ? 'well optimised' : atsResult.atsScore >= 60 ? 'needs some work' : 'weak match'}
+                                                </p>
+                                                <div className="mt-4 h-1.5 bg-[#EFECE6]">
+                                                    <div className="h-full bg-[#CA3C0A] report-bar" style={{ width: `${Math.min(100, Math.max(0, atsResult.atsScore || 0))}%` }} />
                                                 </div>
-                                                
-                                                <p className="text-xs text-neutral-700 leading-relaxed italic m-0">"{atsResult.verdict}"</p>
+                                                {atsResult.verdict && <p className="m-0 mt-4 text-[15px] leading-relaxed text-[#2A2622]">{atsResult.verdict}</p>}
 
-                                                {/* Keyword tags found/missing */}
-                                                <div className="space-y-2 pt-1">
-                                                    <div>
-                                                        <div className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-1">Found Keywords ({atsResult.keywords?.found?.length || 0})</div>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {atsResult.keywords?.found?.slice(0, 5).map(k => (
-                                                                <span key={k} className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">{k}</span>
-                                                            ))}
+                                                {atsResult.keywords?.found?.length > 0 && (
+                                                    <div className="mt-5">
+                                                        <p className="ds-mono ds-mono-muted m-0 mb-2">found · {atsResult.keywords.found.length}</p>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {atsResult.keywords.found.slice(0, 8).map(k => <span key={k} className="ds-tag">{k}</span>)}
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        <div className="text-[10px] font-mono font-bold text-[#CA3C0A] uppercase tracking-wider mb-1">Missing Keywords ({atsResult.keywords?.missing?.length || 0})</div>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {atsResult.keywords?.missing?.slice(0, 8).map(k => {
+                                                )}
+                                                {atsResult.keywords?.missing?.length > 0 && (
+                                                    <div className="mt-4">
+                                                        <p className="ds-mono ds-mono-muted m-0 mb-2">missing · click to add to skills</p>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {atsResult.keywords.missing.slice(0, 10).map(k => {
                                                                 const isAdded = skills.includes(k);
                                                                 return (
-                                                                    <button 
-                                                                        key={k} 
-                                                                        onClick={() => {
-                                                                            if (!isAdded) {
-                                                                                setSkills([...skills, k]);
-                                                                            }
-                                                                        }}
+                                                                    <button
+                                                                        key={k}
+                                                                        type="button"
+                                                                        onClick={() => { if (!isAdded) setSkills([...skills, k]); }}
                                                                         disabled={isAdded}
-                                                                        title={isAdded ? "Added to skills" : "Click to add to skills"}
-                                                                        className={`text-[10px] px-2 py-0.5 rounded-md flex items-center gap-1 font-semibold transition-all ${
-                                                                            isAdded 
-                                                                                ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 opacity-75' 
-                                                                                : 'bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 hover:border-rose-300 cursor-pointer'
-                                                                        }`}
+                                                                        aria-label={isAdded ? `${k} added to skills` : `Add ${k} to skills`}
+                                                                        className={`ds-tag gap-1.5 ${isAdded ? '!bg-[#171717] !text-white !border-[#171717] cursor-default' : '!border-[#CA3C0A] !text-[#CA3C0A] cursor-pointer hover:!bg-[#FFF0E8]'}`}
                                                                     >
-                                                                        {isAdded ? <Check size={8} /> : <Plus size={8} />}
-                                                                        <span>{k}</span>
+                                                                        {isAdded ? <Check size={11} /> : <Plus size={11} />}
+                                                                        {k}
                                                                     </button>
                                                                 );
                                                             })}
                                                         </div>
                                                     </div>
-                                                </div>
+                                                )}
                                             </div>
                                         ) : (
-                                            <div className="ats-scanner-placeholder">
-                                                <div className="w-12 h-12 rounded-md bg-[#FFF0E8] border border-[#CA3C0A]/20 flex items-center justify-center text-[#CA3C0A] mb-3">
-                                                    <FileCheck size={24} className="stroke-[2]" />
-                                                </div>
-                                                <span className="text-xs font-bold text-[#171717]">No score computed yet</span>
-                                                <span className="text-[11px] text-neutral-600 max-w-[220px] mt-1 leading-relaxed">Enter job details and hit calculate to run optimization diagnostics</span>
+                                            <div className="h-full min-h-[220px] flex flex-col justify-center">
+                                                <p className="ds-mono ds-mono-muted m-0 mb-2">no score yet</p>
+                                                <p className="m-0 text-[18px] font-medium tracking-[-0.015em] leading-snug">Paste a job description to see how this resume scores against it.</p>
+                                                <p className="m-0 mt-2 text-[14px] text-[#4A4540]">You’ll get a score, the keywords you’re missing, and what to fix.</p>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {atsResult?.improvements && atsResult.improvements.length > 0 && (
-                                    <div className="border-t border-neutral-100 pt-3 mt-3 relative z-10">
-                                        <div className="text-[10px] font-mono font-bold text-neutral-500 uppercase tracking-wider mb-2">Recommended Fixes</div>
-                                        <div className="space-y-1.5 pr-2 ats-fixes-list">
-                                            {atsResult.improvements.map((imp, idx) => (
-                                                <div key={idx} className="flex gap-2 items-start text-xs bg-white p-2.5 rounded-md border border-[#D8D4CC]">
-                                                    {imp.priority === 'high' ? (
-                                                        <AlertCircle size={13} className="text-rose-500 shrink-0 mt-0.5" />
-                                                    ) : (
-                                                        <CheckCircle2 size={13} className="text-[#CA3C0A] shrink-0 mt-0.5" />
-                                                    )}
-                                                    <span className="text-neutral-800 leading-relaxed font-medium">{imp.tip || imp}</span>
-                                                </div>
-                                            ))}
-                                        </div>
+                                {atsResult?.improvements?.length > 0 && (
+                                    <div className="border-0 border-t border-[#D8D4CC] px-5 py-4">
+                                        <p className="ds-mono ds-mono-muted m-0 mb-1">what to fix</p>
+                                        <ol className="list-none m-0 p-0">
+                                            {atsResult.improvements.map((imp, idx) => {
+                                                const isObj = imp && typeof imp === 'object';
+                                                const title = isObj ? (imp.issue || imp.tip) : String(imp);
+                                                const fix = isObj ? imp.fix : null;
+                                                return (
+                                                    <li key={idx} className="grid grid-cols-[28px_1fr] gap-2 py-3 border-0 border-t border-[#D8D4CC] first:border-t-0">
+                                                        <span className="ds-mono text-[#CA3C0A] pt-0.5">{String(idx + 1).padStart(2, '0')}</span>
+                                                        <div>
+                                                            <p className="m-0 flex flex-wrap items-baseline gap-x-3">
+                                                                <span className="text-[15px] font-semibold text-[#171717]">{title}</span>
+                                                                {isObj && imp.priority && (
+                                                                    <span className={`ds-mono ${imp.priority === 'high' ? 'text-[#CA3C0A]' : 'ds-mono-muted'}`}>{imp.priority} priority</span>
+                                                                )}
+                                                            </p>
+                                                            {fix && <p className="m-0 mt-1 text-[14px] leading-relaxed text-[#4A4540]">{fix}</p>}
+                                                        </div>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ol>
                                     </div>
                                 )}
-                            </motion.div>
+                            </motion.section>
                         )}
                     </AnimatePresence>
 
