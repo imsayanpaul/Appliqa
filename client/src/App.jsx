@@ -24,15 +24,32 @@ const lazyWithRetry = (componentImport) =>
   });
 
 // Lazy-loaded pages for code-splitting and performance optimization
-const Profile = lazyWithRetry(() => import('./pages/Profile'));
-const CareerPath = lazyWithRetry(() => import('./pages/CareerPath'));
-const Advisor = lazyWithRetry(() => import('./pages/Advisor'));
-const ResumeCreator = lazyWithRetry(() => import('./pages/ResumeCreator'));
-const Pricing = lazyWithRetry(() => import('./pages/Pricing'));
-const Vault = lazyWithRetry(() => import('./pages/Vault'));
-const SearchResults = lazyWithRetry(() => import('./pages/SearchResults'));
-const SavedJobs = lazyWithRetry(() => import('./pages/SavedJobs'));
-const Legal = lazyWithRetry(() => import('./pages/Legal'));
+const pageImports = {
+    Profile: () => import('./pages/Profile'),
+    CareerPath: () => import('./pages/CareerPath'),
+    Advisor: () => import('./pages/Advisor'),
+    ResumeCreator: () => import('./pages/ResumeCreator'),
+    Pricing: () => import('./pages/Pricing'),
+    Vault: () => import('./pages/Vault'),
+    SearchResults: () => import('./pages/SearchResults'),
+    SavedJobs: () => import('./pages/SavedJobs'),
+    Legal: () => import('./pages/Legal'),
+};
+const Profile = lazyWithRetry(pageImports.Profile);
+const CareerPath = lazyWithRetry(pageImports.CareerPath);
+const Advisor = lazyWithRetry(pageImports.Advisor);
+const ResumeCreator = lazyWithRetry(pageImports.ResumeCreator);
+const Pricing = lazyWithRetry(pageImports.Pricing);
+const Vault = lazyWithRetry(pageImports.Vault);
+const SearchResults = lazyWithRetry(pageImports.SearchResults);
+const SavedJobs = lazyWithRetry(pageImports.SavedJobs);
+const Legal = lazyWithRetry(pageImports.Legal);
+
+// Router navigations run as transitions, so an unloaded page chunk keeps the
+// old page on screen until it arrives. Fetch them all once the app is idle.
+const preloadPages = () => {
+    Object.values(pageImports).forEach((load) => load().catch(() => {}));
+};
 
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
@@ -47,8 +64,6 @@ import { getUserProfile, createOrUpdateUser } from './services/api';
 import { Dropdown } from './components/ui/Dropdown';
 import PremiumDatePicker from './components/ui/PremiumDatePicker';
 import { PageSkeleton } from './components/ui/PageSkeleton';
-import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
 import './App.css';
 
 // Protected Route Wrapper with auth resolution check
@@ -104,69 +119,15 @@ function AppContent() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // 🌊 Lenis Smooth Scrolling scoped to <main>
+    // Native scrolling on <main>: it runs on the compositor, so it stays smooth while React renders
     const mainRef = useRef(null);
-    const contentRef = useRef(null);
-    const lenisRef = useRef(null);
 
     useEffect(() => {
-        if (!mainRef.current || !contentRef.current) return;
-        // Keep native scrolling for users who ask the OS to reduce motion
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-        const lenis = new Lenis({
-            wrapper: mainRef.current,
-            content: contentRef.current,
-            eventsTarget: mainRef.current,
-            duration: 0.9,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            orientation: 'vertical',
-            gestureOrientation: 'vertical',
-            smoothWheel: true,
-            wheelMultiplier: 1.0,
-            touchMultiplier: 1.2,
-            allowNestedScroll: true,
-            prevent: (node) => {
-                if (!node || typeof node.closest !== 'function') return false;
-                return Boolean(node.closest('.modal-content, .modal-overlay, [data-lenis-prevent], .resume-modal-content, .auth-split-left, textarea, select, input'));
-            }
-        });
-
-        lenisRef.current = lenis;
-        window.lenis = lenis;
-
-        // Automatically update Lenis scrollable limits whenever page content or API data changes size
-        const resizeObserver = new ResizeObserver(() => {
-            lenis.resize();
-        });
-        resizeObserver.observe(contentRef.current);
-
-        let rafId;
-        function raf(time) {
-            lenis.raf(time);
-            rafId = requestAnimationFrame(raf);
-        }
-        rafId = requestAnimationFrame(raf);
-
-        return () => {
-            resizeObserver.disconnect();
-            cancelAnimationFrame(rafId);
-            lenis.destroy();
-            delete window.lenis;
-        };
+        const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1200));
+        const cancel = window.cancelIdleCallback || clearTimeout;
+        const id = idle(preloadPages);
+        return () => cancel(id);
     }, []);
-
-    // Re-measure dimensions and scroll to top on route change
-    useEffect(() => {
-        if (lenisRef.current) {
-            setTimeout(() => {
-                lenisRef.current?.resize();
-                lenisRef.current?.scrollTo(0, { immediate: true });
-            }, 50);
-        } else if (mainRef.current) {
-            mainRef.current.scrollTop = 0;
-        }
-    }, [location.pathname]);
 
     const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
     const [onboardingForm, setOnboardingForm] = useState({
@@ -254,47 +215,9 @@ function AppContent() {
         setIsOpen(false);
     };
 
-    // Navbar expand/contract & show/hide state on scroll
-    const [scrolled, setScrolled] = useState(false);
-    const [visible, setVisible] = useState(true);
-    const lastScrollTopRef = useRef(0);
-
-    const handleScroll = useCallback((e) => {
-        const scrollTop = e.currentTarget.scrollTop;
-        const lastScrollTop = lastScrollTopRef.current;
-        
-        // Threshold check (scrolled state)
-        const isScrolled = scrollTop > 30;
-        setScrolled(prev => {
-            if (prev !== isScrolled) return isScrolled;
-            return prev;
-        });
-
-        // Direction check (visible state)
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
-            setVisible(prev => {
-                if (prev !== false) return false;
-                return prev;
-            });
-        } else if (scrollTop < lastScrollTop) {
-            setVisible(prev => {
-                if (prev !== true) return true;
-                return prev;
-            });
-        }
-        
-        lastScrollTopRef.current = scrollTop;
-    }, []);
-
-    // Reset scroll position and navbar state on route change
+    // Start each page at the top
     useEffect(() => {
-        const mainEl = document.querySelector('main');
-        if (mainEl) {
-            mainEl.scrollTop = 0;
-        }
-        setScrolled(false);
-        setVisible(true);
-        lastScrollTopRef.current = 0;
+        if (mainRef.current) mainRef.current.scrollTop = 0;
     }, [location.pathname]);
 
     // Pages with a composer pinned to the bottom lift the feedback button above it
@@ -767,8 +690,8 @@ function AppContent() {
             </AnimatePresence>
 
             <ResumeSkillsContext.Provider value={resumeSkills}>
-            <main id="main-content" tabIndex={-1} ref={mainRef} onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px' }}>
-                <div ref={contentRef} style={{ width: '100%', minHeight: '100%' }}>
+            <main id="main-content" tabIndex={-1} ref={mainRef} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px' }}>
+                <div style={{ width: '100%', minHeight: '100%' }}>
                     <Suspense fallback={<PageSkeleton />}>
                         <Routes>
                             <Route path="/" element={
