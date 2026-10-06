@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FiSearch, FiBriefcase, FiZap, FiArrowRight, FiHome, FiAward, FiCheckCircle, FiFilter } from 'react-icons/fi';
+import { FiSearch, FiBriefcase, FiZap, FiArrowRight, FiArrowDown, FiLoader, FiHome, FiAward, FiCheckCircle, FiFilter } from 'react-icons/fi';
 import JobCard from '../components/JobCard';
 import JobDetail from '../components/JobDetail';
 import { Dropdown } from '../components/ui/Dropdown';
@@ -297,10 +297,15 @@ function SearchResults({ user, resumeData }) {
                             setPage(nextPage);
                             fetchJobs(query, filters, nextPage, true);
                         }}
-                        className="ds-btn w-full !min-h-[72px] !px-8 bg-transparent text-[#171717] hover:bg-white border-0 border-t border-[#D8D4CC]"
+                        className="ds-btn ds-btn-ink w-full !min-h-[72px] !px-6 sm:!px-8 hover:!bg-[#CA3C0A] disabled:!opacity-100 disabled:cursor-wait"
                     >
-                        {loadingMore ? 'Loading more…' : 'Load more jobs'}
-                        <FiArrowRight size={18} className="ds-btn-arrow" aria-hidden="true" />
+                        <span className="flex items-center gap-3">
+                            {loadingMore ? 'Loading more jobs…' : 'Load more jobs'}
+                            <span className="ds-mono !text-white/60 hidden sm:inline">showing {jobs.length}</span>
+                        </span>
+                        {loadingMore
+                            ? <FiLoader size={18} className="animate-spin" aria-hidden="true" />
+                            : <FiArrowDown size={18} aria-hidden="true" />}
                     </button>
                 )}
             </section>
