@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
-import { FiMessageSquare, FiX, FiSend, FiCheckCircle } from 'react-icons/fi';
+import { FiMessageSquare, FiX, FiArrowUpRight, FiCheck } from 'react-icons/fi';
 import { supabase } from '../services/supabase';
+import { useEscapeKey } from '../lib/useEscapeKey';
+
+const RATINGS = [
+    { value: 1, text: 'Poor' },
+    { value: 2, text: 'Okay' },
+    { value: 3, text: 'Good' },
+    { value: 4, text: 'Great' },
+];
+
+const CATEGORIES = ['General', 'Bug Report', 'Feature Request', 'Other'];
 
 function FeedbackWidget({ user }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -10,8 +20,11 @@ function FeedbackWidget({ user }) {
     const [email, setEmail] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState('');
 
-    // Allow other pages to open the widget (e.g. "Contact us" on legal pages)
+    useEscapeKey(() => setIsOpen(false), isOpen);
+
+    // Allow other pages (and the mobile navbar) to open the widget
     useEffect(() => {
         const open = (e) => {
             if (e.detail?.category) setCategory(e.detail.category);
@@ -23,22 +36,17 @@ function FeedbackWidget({ user }) {
 
     // Sync email when user profile loads
     useEffect(() => {
-        if (user?.email) {
-            setEmail(user.email);
-        }
+        if (user?.email) setEmail(user.email);
     }, [user]);
-
-    const handleRatingSelect = (val) => {
-        setRating(val);
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!message.trim()) return;
 
         setIsSubmitting(true);
+        setError('');
         try {
-            const { error } = await supabase
+            const { error: insertError } = await supabase
                 .from('feedback')
                 .insert({
                     user_id: user?.id || null,
@@ -48,200 +56,137 @@ function FeedbackWidget({ user }) {
                     message: message.trim()
                 });
 
-            if (error) throw error;
+            if (insertError) throw insertError;
 
             setSubmitted(true);
-            // Reset form
             setMessage('');
             setRating(0);
             setCategory('General');
-            
-            // Auto close after 3 seconds
+
             setTimeout(() => {
                 setIsOpen(false);
                 setSubmitted(false);
             }, 3000);
         } catch (err) {
             console.error('Failed to submit feedback:', err);
-            alert(err.message || 'Failed to send feedback. Please try again.');
+            setError('We couldn’t send that just now. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const ratingOptions = [
-        { value: 1, text: 'Poor' },
-        { value: 2, text: 'Okay' },
-        { value: 3, text: 'Good' },
-        { value: 4, text: 'Awesome' }
-    ];
-
-    const categories = ['General', 'Bug Report', 'Feature Request', 'Other'];
-
-    const renderEmojiIcon = (val, isSelected) => {
-        const strokeColor = isSelected ? '#CA3C0A' : '#8A8580';
-        const fillColor = isSelected ? '#FFF0E8' : 'transparent';
-        const eyeColor = isSelected ? '#CA3C0A' : '#8A8580';
-        const starFillColor = isSelected ? '#CA3C0A' : 'transparent';
-        
-        switch (val) {
-            case 1: // Crying / Very Sad
-                return (
-                    <svg viewBox="0 0 24 24" width="26" height="26" style={{ display: 'block', transition: 'all 0.15s ease' }}>
-                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="1.75" fill={fillColor} />
-                        {/* Crying eyes (downward curves) */}
-                        <path d="M7.5 12c.5-1 1.5-1 2 0" stroke={eyeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
-                        <path d="M14.5 12c.5-1 1.5-1 2 0" stroke={eyeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
-                        {/* Vertical Tears */}
-                        <path d="M8.5 12.5v3.5" stroke="#3b82f6" strokeWidth="1.75" strokeLinecap="round" />
-                        <path d="M15.5 12.5v3.5" stroke="#3b82f6" strokeWidth="1.75" strokeLinecap="round" />
-                        {/* Frown Mouth */}
-                        <path d="M10.5 16.5c.5-.5 1.5-.5 2 0" stroke={strokeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
-                    </svg>
-                );
-            case 2: // Sad / Frown
-                return (
-                    <svg viewBox="0 0 24 24" width="26" height="26" style={{ display: 'block', transition: 'all 0.15s ease' }}>
-                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="1.75" fill={fillColor} />
-                        <circle cx="9" cy="10" r="1.2" fill={eyeColor} />
-                        <circle cx="15" cy="10" r="1.2" fill={eyeColor} />
-                        <path d="M9 16c1-1.5 5-1.5 6 0" stroke={strokeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
-                    </svg>
-                );
-            case 3: // Smile / Good
-                return (
-                    <svg viewBox="0 0 24 24" width="26" height="26" style={{ display: 'block', transition: 'all 0.15s ease' }}>
-                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="1.75" fill={fillColor} />
-                        <circle cx="9" cy="10" r="1.2" fill={eyeColor} />
-                        <circle cx="15" cy="10" r="1.2" fill={eyeColor} />
-                        <path d="M9 14.5c1 1.8 5 1.8 6 0" stroke={strokeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
-                    </svg>
-                );
-            case 4: // Star-eyes / Awesome
-                return (
-                    <svg viewBox="0 0 24 24" width="26" height="26" style={{ display: 'block', transition: 'all 0.15s ease' }}>
-                        <circle cx="12" cy="12" r="10" stroke={strokeColor} strokeWidth="1.75" fill={fillColor} />
-                        {/* Star left eye */}
-                        <polygon 
-                            points="9,7.5 9.8,9.2 11.6,9.2 10.2,10.3 10.7,12.1 9,11 7.3,12.1 7.8,10.3 6.4,9.2 8.2,9.2" 
-                            fill={starFillColor} 
-                            stroke={isSelected ? '#CA3C0A' : '#8A8580'} 
-                            strokeWidth="1" 
-                            strokeLinejoin="round"
-                        />
-                        {/* Star right eye */}
-                        <polygon 
-                            points="15,7.5 15.8,9.2 17.6,9.2 16.2,10.3 16.7,12.1 15,11 13.3,12.1 13.8,10.3 12.4,9.2 14.2,9.2" 
-                            fill={starFillColor} 
-                            stroke={isSelected ? '#CA3C0A' : '#8A8580'} 
-                            strokeWidth="1" 
-                            strokeLinejoin="round"
-                        />
-                        {/* Laughing Smile Mouth */}
-                        <path d="M8.5 14c1 2.5 6 2.5 7 0" stroke={strokeColor} strokeWidth="1.75" strokeLinecap="round" fill="none" />
-                    </svg>
-                );
-            default:
-                return null;
-        }
-    };
-
     return (
         <>
-            {/* Floating button */}
-            <button 
+            {/* Floating button (desktop; mobile opens from the navbar) */}
+            <button
+                type="button"
                 className={`feedback-floating-btn ${isOpen ? 'active' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
+                aria-expanded={isOpen}
             >
                 {isOpen ? <FiX size={16} /> : <FiMessageSquare size={16} />}
                 <span>{isOpen ? 'Close' : 'Feedback'}</span>
             </button>
 
-            {/* Feedback Panel */}
             {isOpen && (
-                <div className="feedback-panel">
+                <div className="feedback-panel ds-feedback" role="dialog" aria-label="Share feedback">
+                    <div className="h-12 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                        <span className="ds-mono self-center px-5">feedback / {submitted ? 'sent' : 'share'}</span>
+                        <button
+                            type="button"
+                            onClick={() => setIsOpen(false)}
+                            aria-label="Close feedback"
+                            className="w-12 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-[#F7F5F2]"
+                        >
+                            <FiX size={16} />
+                        </button>
+                    </div>
+
                     {submitted ? (
-                        <div className="feedback-success-card">
-                            <FiCheckCircle size={40} className="feedback-success-icon" style={{ color: '#CA3C0A' }} />
-                            <h4>Thank you!</h4>
-                            <p>Your feedback helps us make Appliqa better for everyone.</p>
+                        <div className="px-5 py-10">
+                            <span className="inline-flex w-10 h-10 items-center justify-center bg-[#CA3C0A] text-white">
+                                <FiCheck size={20} />
+                            </span>
+                            <p className="m-0 mt-5 text-[22px] font-semibold tracking-[-0.02em]">Thank you.</p>
+                            <p className="m-0 mt-2 text-[15px] text-[#66615C] leading-relaxed">Your feedback helps us make Appliqa better for everyone.</p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit}>
-                            <div className="feedback-header">
-                                <h3>
-                                    <FiMessageSquare size={18} color="#CA3C0A" />
-                                    <span>Share Feedback</span>
-                                </h3>
-                                <button 
-                                    type="button" 
-                                    className="feedback-close-btn"
-                                    onClick={() => setIsOpen(false)}
-                                >
-                                    <FiX size={16} />
-                                </button>
+                            <fieldset className="m-0 p-0 border-0 border-b border-[#D8D4CC] min-w-0">
+                                <legend className="ds-mono ds-mono-muted px-5 pt-4 pb-3 float-left w-full">how was your experience?</legend>
+                                <div className="clear-both grid grid-cols-4 border-0 border-t border-[#D8D4CC]">
+                                    {RATINGS.map((opt) => {
+                                        const selected = rating === opt.value;
+                                        return (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                aria-pressed={selected}
+                                                onClick={() => setRating(selected ? 0 : opt.value)}
+                                                className={`h-16 flex flex-col items-center justify-center gap-1 border-0 border-l first:border-l-0 border-[#D8D4CC] cursor-pointer transition-colors ${selected ? 'bg-[#171717] text-white' : 'bg-white text-[#171717] hover:bg-[#F7F5F2]'}`}
+                                            >
+                                                <span className={`font-mono text-[11px] ${selected ? 'text-[#FF6A33]' : 'text-[#CA3C0A]'}`}>0{opt.value}</span>
+                                                <span className="text-[14px] font-medium">{opt.text}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </fieldset>
+
+                            <div className="px-5 pt-4 pb-5 flex flex-col gap-4">
+                                <div>
+                                    <p className="ds-mono ds-mono-muted m-0 mb-2">category</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {CATEGORIES.map((cat) => (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                aria-pressed={category === cat}
+                                                onClick={() => setCategory(cat)}
+                                                className={`ds-chip ${category === cat ? '!bg-[#171717] !text-white !border-[#171717]' : '!bg-white'}`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="feedback-message" className="ds-mono ds-mono-muted block mb-2">message</label>
+                                    <textarea
+                                        id="feedback-message"
+                                        className="resume-input-field !min-h-[110px] resize-y"
+                                        placeholder="What can we improve? Or tell us what you love…"
+                                        value={message}
+                                        onChange={(e) => setMessage(e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                {!user && (
+                                    <div>
+                                        <label htmlFor="feedback-email" className="ds-mono ds-mono-muted block mb-2">email · optional</label>
+                                        <input
+                                            id="feedback-email"
+                                            type="email"
+                                            className="resume-input-field"
+                                            placeholder="you@example.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                    </div>
+                                )}
+
+                                {error && <p role="alert" className="m-0 text-[14px] text-[#B91C1C]">{error}</p>}
                             </div>
 
-                            {/* Rating selection */}
-                            <span className="feedback-rating-label">How was your experience?</span>
-                            <div className="feedback-ratings">
-                                {ratingOptions.map((opt) => (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        title={opt.text}
-                                        className={`feedback-rating-opt ${rating === opt.value ? 'selected' : ''}`}
-                                        onClick={() => handleRatingSelect(opt.value)}
-                                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                    >
-                                        {renderEmojiIcon(opt.value, rating === opt.value)}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Category pills */}
-                            <span className="feedback-rating-label">Category</span>
-                            <div className="feedback-categories">
-                                {categories.map((cat) => (
-                                    <button
-                                        key={cat}
-                                        type="button"
-                                        className={`feedback-cat-btn ${category === cat ? 'selected' : ''}`}
-                                        onClick={() => setCategory(cat)}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Feedback Text */}
-                            <textarea
-                                className="feedback-textarea"
-                                placeholder="What can we improve? Or tell us what you love..."
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                required
-                            />
-
-                            {/* Email Address (only editable/shown if guest or optional to change) */}
-                            {!user && (
-                                <input
-                                    type="email"
-                                    className="feedback-input-email"
-                                    placeholder="Your email address (optional)"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            )}
-
-                            {/* Submit Button */}
                             <button
                                 type="submit"
-                                className="feedback-submit-btn"
+                                className="ds-btn ds-btn-accent w-full !min-h-[56px] !px-5 border-0 border-t border-[#D8D4CC]"
                                 disabled={isSubmitting || !message.trim()}
                             >
-                                <FiSend size={14} />
-                                <span>{isSubmitting ? 'Sending...' : 'Submit'}</span>
+                                {isSubmitting ? 'Sending…' : 'Send feedback'}
+                                <FiArrowUpRight size={18} className="ds-btn-arrow" />
                             </button>
                         </form>
                     )}

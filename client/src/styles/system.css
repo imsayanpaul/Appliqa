@@ -1107,6 +1107,7 @@ textarea.resume-input-field { line-height: 1.6; }
 /* Keep the feedback button clear of bottom composers (advisor) */
 .feedback-raised .feedback-floating-btn { bottom: 84px; }
 .feedback-raised .feedback-panel { bottom: 136px; }
+.feedback-raised .feedback-panel.ds-feedback { max-height: calc(100vh - var(--nav-h) - 152px); }
 
 /* Small screens: feedback lives in the navbar, the panel drops down from it */
 .nav-feedback { display: flex; }
@@ -1177,4 +1178,21 @@ textarea.resume-input-field { line-height: 1.6; }
 .ds-toast-close:hover { background: var(--bg-primary); color: var(--text-primary); }
 @media (max-width: 767.98px) {
   .ds-toast { left: 16px; right: 16px; bottom: 16px; width: auto; }
+}
+
+/* Feedback panel: grid card matching sheets and toasts */
+.feedback-panel.ds-feedback {
+  width: 380px;
+  padding: 0;
+  border: 1px solid var(--text-primary);
+  border-radius: 0;
+  background: #FFFFFF;
+  box-shadow: 0 16px 32px -16px rgba(23, 23, 23, 0.35);
+  max-height: calc(100vh - var(--nav-h) - 92px);
+  overflow-y: auto;
+}
+.ds-feedback .ds-btn-accent:disabled { opacity: 1; background: #EFECE6; color: #8A8580; cursor: not-allowed; }
+@media (max-width: 899.98px) {
+  .feedback-panel.ds-feedback,
+  .feedback-raised .feedback-panel.ds-feedback { width: auto; max-height: calc(100dvh - var(--nav-h) - 24px); }
 }
