@@ -70,6 +70,9 @@ export function toLatex(data, design) {
         certifications = [], languages = [], projects = [], achievements = [], customSections = [], photo = '',
     } = data;
     const inline = design.dateAlign === 'inline';
+    // Space between entries; read back by the LaTeX import as blockGap
+    const gapPt = (design.blockGap * 0.5).toFixed(1);
+    const entryGap = `\n\n\\vspace{${gapPt}pt}\n`;
     const accent = (design.accent || '#2163CA').replace('#', '').toUpperCase();
     const fontSize = design.bodySize >= 11.5 ? '12pt' : design.bodySize >= 10.5 ? '11pt' : '10pt';
 
@@ -82,7 +85,7 @@ export function toLatex(data, design) {
             const title = tex(e.company || e.role || 'Company');
             const sub = [e.company ? e.role : '', e.type && e.type !== 'Full-time' ? e.type : '', e.location].filter(Boolean).map(tex).join(' \\textperiodcentered\\ ');
             return [`${headRow(title, e.dates, inline)}${sub ? `\\\\\n\\textit{${sub}}` : ''}`, bullets(e.bullets)].filter(Boolean).join('\n');
-        }).join('\n\n\\vspace{3pt}\n');
+        }).join(entryGap);
     }
 
     if (projects.length) {
@@ -102,7 +105,7 @@ export function toLatex(data, design) {
             }
             const techLine = pr.tech?.length ? `\\\\\n\\textit{${tex(pr.tech.join(', '))}}` : '';
             return [`${head}${techLine}`, richText(pr.description)].filter(Boolean).join('\n');
-        }).join('\n\n\\vspace{3pt}\n');
+        }).join(entryGap);
     }
 
     if (education.length) {
@@ -112,7 +115,7 @@ export function toLatex(data, design) {
             const [first, second] = design.educationFirst === 'degree' ? [degree, school] : [school, degree];
             const extra = [e.board, formatScore(e)].filter(Boolean).map(tex).join(' \\textbar\\ ');
             return `${headRow(tex(first), e.dates, inline)}\\\\\n${tex(second)}${extra ? ` \\textbar\\ \\textbf{${extra}}` : ''}`;
-        }).join('\\\\[3pt]\n\n');
+        }).join(`\\\\[${gapPt}pt]\n\n`);
     }
 
     if (skills.length) {
@@ -142,7 +145,7 @@ export function toLatex(data, design) {
                 blocks[cs.id] = items.map((it) => [
                     `${it.title || it.date ? headRow(tex(it.title), it.date, inline) : ''}${it.subtitle ? `${it.title || it.date ? '\\\\\n' : '\\noindent '}\\textit{${tex(it.subtitle)}}` : ''}`,
                     richText(it.description),
-                ].filter(Boolean).join('\n')).join('\n\n\\vspace{3pt}\n');
+                ].filter(Boolean).join('\n')).join(entryGap);
             }
         }
     }
@@ -209,7 +212,7 @@ ${FONT_PACKAGES[design.font] || FONT_PACKAGES.arial}
 
 ${sectionStyle}
 
-\\titlespacing*{\\section}{0pt}{${Math.round(design.sectionGap * 0.55)}pt}{${Math.max(1, Math.round(design.titleGap * 0.6))}pt}
+\\titlespacing*{\\section}{0pt}{${(design.sectionGap * 0.55).toFixed(1)}pt}{${(design.titleGap * 0.6).toFixed(1)}pt}
 
 \\setlist[itemize]{leftmargin=1.3em, itemsep=${(design.itemGap / 2).toFixed(1)}pt, topsep=1.5pt, parsep=0pt}
 

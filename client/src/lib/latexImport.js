@@ -100,6 +100,48 @@ function readDesign(preamble) {
     }
     const size = preamble.match(/\\documentclass\[[^\]]*?(\d{2})pt/);
     if (size) patch.bodySize = Number(size[1]);
+    const fontPt = patch.bodySize || 10;
+
+    // Spacing, using the same scale the generator writes (see resumeLatex.js)
+    const stretch = preamble.match(/\\setstretch\{([\d.]+)\}/) || preamble.match(/\\linespread\{([\d.]+)\}/);
+    if (stretch) patch.lineHeight = round2(parseFloat(stretch[1]) * 1.3);
+    const ts = preamble.match(/\\titlespacing\*?\{\\section\}\{[^}]*\}\{([^}]*)\}\{([^}]*)\}/);
+    if (ts) {
+        const before = toPt(ts[1], fontPt);
+        const after = toPt(ts[2], fontPt);
+        if (before !== null) patch.sectionGap = round2(before / 0.55);
+        if (after !== null) patch.titleGap = round2(after / 0.6);
+    }
+    const list = preamble.match(/\\setlist\[itemize\]\{([^}]*)\}/);
+    const itemsep = list?.[1].match(/itemsep\s*=\s*(-?[\d.]+\s*(?:pt|em|ex|mm))/);
+    if (itemsep) { const v = toPt(itemsep[1], fontPt); if (v !== null) patch.itemGap = round2(v * 2); }
+    return patch;
+}
+
+const round2 = (n) => Math.round(n * 100) / 100;
+// "4pt", "0.5em", "1ex", "2mm" -> points at the document's font size
+function toPt(value, fontPt) {
+    const m = String(value).trim().match(/^(-?[\d.]+)\s*(pt|em|ex|mm|cm|in)?/);
+    if (!m) return null;
+    const v = parseFloat(m[1]);
+    const unit = m[2] || 'pt';
+    return { pt: v, em: v * fontPt, ex: v * fontPt * 0.43, mm: v * 2.845, cm: v * 28.45, in: v * 72.27 }[unit];
+}
+
+// Gap between entries: the most common positive \vspace inside the sections;
+// a global \small or \footnotesize shrinks the body text
+function readBodySpacing(body, fontPt) {
+    const patch = {};
+    const sections = body.slice(Math.max(0, body.search(/\\section\*?\{/)));
+    const gaps = [...sections.matchAll(/\\vspace\*?\{([^}]*)\}/g)].map((m) => toPt(m[1], fontPt)).filter((v) => v !== null && v > 0);
+    if (gaps.length) {
+        const counts = new Map();
+        for (const g of gaps) counts.set(g, (counts.get(g) || 0) + 1);
+        const common = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+        patch.blockGap = round2(common / 0.5);
+    }
+    const shrink = body.match(/^\s*(?:\\pagestyle\{[^}]*\}\s*)?\\(small|footnotesize|scriptsize)\b/);
+    if (shrink) patch.bodySize = round2(fontPt * { small: 0.9, footnotesize: 0.8, scriptsize: 0.7 }[shrink[1]]);
     return patch;
 }
 
@@ -192,8 +234,10 @@ export function latexToResume(code, { design, customSections = [], personalInfo 
         }
     }
 
+    const fromPreamble = readDesign(preamble);
     const designPatch = {
-        ...readDesign(preamble),
+        ...fromPreamble,
+        ...readBodySpacing(body, fromPreamble.bodySize || 10),
         sectionOrder: order,
         titles,
         hidden: (design.hidden || []).filter((k) => !order.includes(k)),

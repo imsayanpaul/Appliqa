@@ -31,6 +31,18 @@ import { createWorker } from 'tesseract.js';
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
+// "Fit to 1 page": each level only ever tightens a setting, never loosens it.
+// Spacing goes first, then line height and margins, then text size.
+const FIT_LEVELS = [
+    { sectionGap: 10, blockGap: 6, titleGap: 4, itemGap: 1.5 },
+    { lineHeight: 1.25, marginY: 0.4, marginX: 0.5 },
+    { sectionGap: 8, blockGap: 4, titleGap: 3, itemGap: 1 },
+    { bodySize: 9.5, headingSize: 10, sectionSize: 11, lineHeight: 1.2 },
+    { marginY: 0.35, marginX: 0.45, nameSize: 20, photoSize: 70 },
+    { bodySize: 9, headingSize: 9.5, sectionSize: 10.5, sectionGap: 6, blockGap: 3, itemGap: 0.5, titleGap: 2, lineHeight: 1.15 },
+];
+const A4_HEIGHT_PX = (297 * 96) / 25.4;
+
 export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -115,6 +127,50 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     // Ref keeps the newest custom sections for updates queued in the same event
     const customRef = useRef([]);
     customRef.current = customSections;
+    const designRef = useRef(design);
+    designRef.current = design;
+    const fitUndoRef = useRef(null);
+    const [fitting, setFitting] = useState(false);
+    const [canUndoFit, setCanUndoFit] = useState(false);
+
+    // Pages the preview will print to (same estimate the preview shows)
+    const printedPages = () => {
+        const doc = document.querySelector('.resume-creator-preview-panel .rd-screen');
+        if (!doc) return 1;
+        const margin = designRef.current.marginY * 96 * 2;
+        return Math.max(1, Math.ceil((doc.offsetHeight - margin - 2) / (A4_HEIGHT_PX - margin)));
+    };
+
+    const fitToOnePage = async () => {
+        if (fitting) return;
+        if (printedPages() <= 1) { setNotice('It already fits on one page.'); return; }
+        fitUndoRef.current = designRef.current;
+        setFitting(true);
+        try {
+            for (const level of FIT_LEVELS) {
+                const current = designRef.current;
+                const patch = Object.fromEntries(Object.entries(level).map(([k, v]) => [k, Math.min(current[k], v)]));
+                updateDesign(patch);
+                await new Promise((r) => setTimeout(r, 120)); // let the preview re-render before measuring
+                if (printedPages() <= 1) {
+                    setCanUndoFit(true);
+                    setNotice('Fitted on one page by tightening the spacing and sizes. Check it reads well, or undo.');
+                    return;
+                }
+            }
+            setCanUndoFit(true);
+            setNotice('Still more than one page at the tightest settings. Shorten a few bullets or hide a section, then try again.');
+        } finally {
+            setFitting(false);
+        }
+    };
+
+    const undoFit = () => {
+        if (fitUndoRef.current) setDesign(fitUndoRef.current);
+        fitUndoRef.current = null;
+        setCanUndoFit(false);
+    };
+
     const updateDesign = (patch) => setDesign((d) => normalizeDesign({ ...d, ...patch }, customRef.current));
     const updateCustomSections = (next) => {
         customRef.current = next;
@@ -2156,7 +2212,14 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
 
                     {/* A4 preview: same component as the PDF */}
                     <div className="w-full max-w-[820px] shrink-0">
-                        <ResumePreview data={docData} design={design} />
+                        <ResumePreview
+                            data={docData}
+                            design={design}
+                            onFit={fitToOnePage}
+                            onUndoFit={undoFit}
+                            fitting={fitting}
+                            canUndoFit={canUndoFit}
+                        />
                     </div>
                 </div>
             </div>
