@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Copy, Check, Download, ArrowUpRight, Image as ImageIcon } from 'lucide-react';
+import { X, Copy, Check, Download, ArrowUpRight, Image as ImageIcon, RotateCcw, ArrowLeft } from 'lucide-react';
 import { toLatex } from '../../lib/resumeLatex';
 
 const fileSafe = (s) => String(s || 'resume').trim().replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '') || 'resume';
@@ -28,9 +28,15 @@ function openInOverleaf(code, name) {
     form.remove();
 }
 
-export default function LatexSheet({ data, design, onClose }) {
-    const code = useMemo(() => toLatex(data, design), [data, design]);
+// `draft` is { code, base } once the person edits: `base` is the generated code
+// they started from, so we can tell when the builder has moved on since.
+export default function LatexSheet({ data, design, draft, onDraftChange, onApply, onClose }) {
+    const generated = useMemo(() => toLatex(data, design), [data, design]);
+    const code = draft?.code ?? generated;
+    const edited = Boolean(draft) && draft.code !== generated;
+    const stale = Boolean(draft) && draft.base !== generated;
     const [copied, setCopied] = useState(false);
+    const [applyError, setApplyError] = useState('');
     const base = fileSafe(data.personalInfo?.name);
     const hasPhoto = Boolean(data.photo) && design.photoShow;
     const lines = code.split('\n').length;
@@ -54,6 +60,17 @@ export default function LatexSheet({ data, design, onClose }) {
         downloadBlob(blob, 'photo.jpg');
     };
 
+    const apply = () => {
+        const err = onApply(code);
+        setApplyError(err || '');
+    };
+
+    const discard = () => {
+        if (edited && !window.confirm('Discard your edits to the LaTeX code? It will be regenerated from the builder.')) return;
+        onDraftChange(null);
+        setApplyError('');
+    };
+
     const actionCls = 'ds-btn !min-h-[56px] !px-5 !text-[14px] bg-transparent text-[#171717] hover:bg-white border-0 border-l first:border-l-0 border-[#D8D4CC]';
 
     return createPortal(
@@ -70,7 +87,7 @@ export default function LatexSheet({ data, design, onClose }) {
                     <header className="ds-sheet-section !pt-8">
                         <h2 id="latex-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em]">LaTeX code</h2>
                         <p className="ds-body mt-3 mb-0">
-                            Your resume as LaTeX, with your section order, colour, font and margins. Open it in Overleaf to compile a PDF, or paste it into any LaTeX editor (pdfLaTeX).
+                            Your resume as LaTeX. Edit the code here, then <strong className="font-semibold text-[#171717]">apply it to the resume</strong> to update the builder, or export it as it is for Overleaf or any LaTeX editor (pdfLaTeX).
                         </p>
                     </header>
 
@@ -98,20 +115,69 @@ export default function LatexSheet({ data, design, onClose }) {
                     )}
 
                     <section className="ds-sheet-section">
-                        <div className="flex items-center justify-between mb-2">
-                            <p className="ds-mono ds-mono-muted m-0">{base}.tex</p>
+                        <div className="flex items-center justify-between gap-3 mb-2">
+                            <p className="ds-mono m-0 flex items-center gap-2">
+                                <span className="ds-mono-muted">{base}.tex</span>
+                                {edited && <span className="text-[#CA3C0A] flex items-center gap-1.5"><span className="ds-square" /> edited</span>}
+                            </p>
                             <p className="ds-mono ds-mono-muted m-0">{lines} lines</p>
                         </div>
+
+                        {stale && (
+                            <div role="status" className="mb-2 px-4 py-3 bg-[#FFF0E8] border border-[#CA3C0A]/30 text-[14px] text-[#171717]">
+                                The builder changed after you edited this code, so it doesn’t include those changes. Apply it to overwrite the builder, or discard your edits to get the latest.
+                            </div>
+                        )}
+
                         <textarea
-                            readOnly
                             value={code}
                             spellCheck={false}
-                            onFocus={(e) => e.target.select()}
+                            autoCapitalize="off"
+                            autoCorrect="off"
+                            onChange={(e) => onDraftChange({ code: e.target.value, base: draft?.base ?? generated })}
+                            onKeyDown={(e) => {
+                                // Tab indents instead of leaving the editor
+                                if (e.key !== 'Tab') return;
+                                e.preventDefault();
+                                const el = e.currentTarget;
+                                const { selectionStart: a, selectionEnd: b } = el;
+                                const next = `${code.slice(0, a)}    ${code.slice(b)}`;
+                                onDraftChange({ code: next, base: draft?.base ?? generated });
+                                requestAnimationFrame(() => { el.selectionStart = el.selectionEnd = a + 4; });
+                            }}
                             aria-label="LaTeX source"
-                            className="w-full h-[52vh] min-h-[320px] p-4 bg-[#171717] text-[#EDEAE4] border-0 font-mono text-[12.5px] leading-[1.55] resize-y outline-none focus:shadow-[inset_0_0_0_2px_#CA3C0A]"
+                            className="w-full h-[52vh] min-h-[320px] p-4 bg-[#171717] text-[#EDEAE4] caret-[#FF6A33] border-0 font-mono text-[12.5px] leading-[1.55] resize-y outline-none focus:shadow-[inset_0_0_0_2px_#CA3C0A]"
                             style={{ tabSize: 4 }}
                         />
-                        <p className="ds-mono ds-mono-muted m-0 mt-2">matches your current edits, saved or not</p>
+
+                        {applyError && <p role="alert" className="m-0 mt-2 text-[14px] text-[#B91C1C]">{applyError}</p>}
+
+                        <div className="mt-3 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+                            <button
+                                type="button"
+                                onClick={apply}
+                                disabled={!edited && !stale}
+                                className="ds-btn ds-btn-accent !min-h-12 !text-[14px] disabled:!bg-[#EFECE6] disabled:!text-[#8A8580] disabled:!opacity-100"
+                                title="Update the builder's sections, colour and margins from this code"
+                            >
+                                Apply to resume <ArrowLeft size={15} />
+                            </button>
+                            <button type="button" onClick={discard} disabled={!draft} className="ds-btn ds-btn-line !min-h-12 !px-5 !text-[14px] disabled:opacity-40">
+                                Discard edits <RotateCcw size={14} />
+                            </button>
+                        </div>
+                        <p className="ds-mono ds-mono-muted m-0 mt-2">
+                            {draft ? 'edits are kept with this resume when you save' : 'generated from the builder · edit it directly'}
+                        </p>
+                    </section>
+
+                    <section className="ds-sheet-section border-b-0">
+                        <p className="ds-mono ds-mono-muted m-0 mb-2">what apply reads</p>
+                        <ul className="ds-list">
+                            <li>Name, title and contact lines; each <span className="font-mono text-[13px]">\section{'{…}'}</span> with its rows, dates, links and <span className="font-mono text-[13px]">\item</span> bullets.</li>
+                            <li>Section order and titles. A section the builder doesn’t know becomes a custom section.</li>
+                            <li>The <span className="font-mono text-[13px]">primary</span> colour, page margins and font size. Other styling stays in the code only.</li>
+                        </ul>
                     </section>
                 </div>
             </div>

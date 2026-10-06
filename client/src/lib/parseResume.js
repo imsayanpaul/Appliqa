@@ -3,7 +3,7 @@
 // entries. Output matches the shape the AI analysis returns, so the rest of the
 // app can use either.
 
-const SECTION_ALIASES = {
+export const SECTION_ALIASES = {
     summary: ['summary', 'professional summary', 'profile', 'professional profile', 'about', 'about me', 'objective', 'career objective', 'career summary'],
     experience: ['experience', 'work experience', 'professional experience', 'employment', 'employment history', 'work history', 'internship', 'internships', 'internship experience', 'experience and internships'],
     education: ['education', 'academic background', 'academics', 'academic details', 'educational qualifications', 'education and training', 'qualifications'],
@@ -34,7 +34,7 @@ const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
 const stripBullet = (s) => clean(String(s).replace(BULLET_RE, ''));
 const norm = (s) => clean(s).toLowerCase().replace(/[^a-z& ]/g, '').replace(/&/g, 'and').replace(/\s+/g, ' ').trim();
 
-function sectionOf(line) {
+export function sectionOf(line) {
     const raw = clean(line).replace(/[:|]+$/, '');
     // "Languages: JavaScript, Python" is content, not a heading
     if (!raw || raw.length > 42 || /[.,;]$/.test(raw) || /:\s*\S/.test(raw) || EMAIL_RE.test(raw)) return null;
@@ -96,8 +96,14 @@ function findDates(line) {
 }
 
 // Split "Company | Role", "Role at Company", "Role, Company, City"
+const TYPE_RE = /^(internship|full[- ]?time|part[- ]?time|contract|freelance|apprenticeship)$/i;
+const normalizeType = (t) => {
+    const k = t.toLowerCase().replace(/[\s-]/g, '');
+    return { internship: 'Internship', fulltime: 'Full-time', parttime: 'Part-time', contract: 'Contract', freelance: 'Freelance', apprenticeship: 'Apprenticeship' }[k] || t;
+};
+
 function splitHeader(parts) {
-    const pieces = parts.flatMap((p) => p.split(/\s+(?:\||–|—)\s+|\s+at\s+|\s+@\s+/i)).map(clean).filter(Boolean);
+    const pieces = parts.flatMap((p) => p.split(/\s+(?:\||–|—|·)\s+|\s+at\s+|\s+@\s+/i)).map(clean).filter(Boolean);
     return pieces;
 }
 
@@ -124,7 +130,10 @@ function parseExperience(lines) {
         }
     }
     return entries.filter((e) => e.header.length || e.bullets.length).map((e) => {
-        const pieces = splitHeader(e.header);
+        // "AI/ML Intern · Internship": the employment type is its own piece
+        const all = splitHeader(e.header);
+        const typePiece = all.find((p) => TYPE_RE.test(p));
+        const pieces = all.filter((p) => p !== typePiece);
         const roleIdx = pieces.findIndex((p) => ROLE_WORDS.test(p));
         const role = roleIdx >= 0 ? pieces[roleIdx] : (pieces[1] || pieces[0] || '');
         const rest = pieces.filter((_, i) => i !== (roleIdx >= 0 ? roleIdx : (pieces[1] ? 1 : 0)));
@@ -135,7 +144,7 @@ function parseExperience(lines) {
             company,
             location,
             dates: e.dates,
-            type: /intern/i.test(role) ? 'Internship' : 'Full-time',
+            type: typePiece ? normalizeType(typePiece) : /intern/i.test(role) ? 'Internship' : 'Full-time',
             bullets: e.bullets,
         };
     });
@@ -208,7 +217,7 @@ function parseProjects(lines) {
         const urls = e.header.join(' ').match(URL_RE) || [];
         const repoUrl = urls.find((u) => /github|gitlab|bitbucket/i.test(u)) || '';
         const liveUrl = urls.find((u) => u !== repoUrl && !/linkedin/i.test(u)) || '';
-        const name = clean(titleLine.replace(URL_RE, '').replace(/\[?(live demo|github|demo|link|code)\]?/gi, '').replace(/[|·]\s*$/, ''));
+        const name = clean(titleLine.replace(URL_RE, '').replace(/\[?(live demo|github|demo|link|code)\]?/gi, '').replace(/(\s*[|·]\s*)+$/, ''));
         const techLine = more.find((m) => (m.match(/,/g) || []).length >= 1 && m.length < 140) || '';
         const descLines = more.filter((m) => m !== techLine);
         const range = d ? d.text.split(/\s*(?:–|—|-|to)\s*/i) : [];
@@ -252,6 +261,20 @@ function experienceLevel(experience) {
     }
     const y = months / 12;
     return y >= 9 ? 'lead' : y >= 5 ? 'senior' : y >= 2 ? 'mid' : 'entry';
+}
+
+export function parseSection(key, lines) {
+    switch (key) {
+        case 'summary': return clean(lines.join(' '));
+        case 'experience': return parseExperience(lines);
+        case 'education': return parseEducation(lines);
+        case 'projects': return parseProjects(lines);
+        case 'skills':
+        case 'languages': return parseSkills(lines);
+        case 'certifications':
+        case 'achievements': return listItems(lines);
+        default: return null;
+    }
 }
 
 export function parseResumeText(rawText) {

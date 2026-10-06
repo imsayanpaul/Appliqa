@@ -12,6 +12,7 @@ import { extractPdfText } from '../lib/pdfText';
 import DesignPanel from '../components/resume/DesignPanel';
 import SectionsPanel from '../components/resume/SectionsPanel';
 import LatexSheet from '../components/resume/LatexSheet';
+import { latexToResume } from '../lib/latexImport';
 import { ProjectsEditor, AchievementsEditor } from '../components/resume/ProjectsEditor';
 import { 
     User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
@@ -108,6 +109,8 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const [design, setDesign] = useState(() => normalizeDesign(null));
     const [customSections, setCustomSections] = useState([]);
     const [photo, setPhoto] = useState('');
+    // Edited LaTeX for this resume: { code, base } or null when it's just generated
+    const [latexDraft, setLatexDraft] = useState(null);
     const [photoError, setPhotoError] = useState('');
     // Ref keeps the newest custom sections for updates queued in the same event
     const customRef = useRef([]);
@@ -203,7 +206,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             certifications,
             languages,
             summary,
-            { design, customSections, photo, projects, achievements }
+            { design, customSections, photo, projects, achievements, latexDraft }
         );
 
         if (currentSnapshot !== initialSnapshotRef.current) {
@@ -212,7 +215,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         } else {
             setIsDirty(false);
         }
-    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo, projects, achievements]);
+    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo, projects, achievements, latexDraft]);
 
     // Global keyboard shortcut (Ctrl+S / Cmd+S) to save resume from anywhere
     useEffect(() => {
@@ -224,7 +227,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo, projects, achievements, user]);
+    }, [personalInfo, experience, education, skills, expertise, certifications, languages, summary, design, customSections, photo, projects, achievements, latexDraft, user]);
 
     // Advanced Premium Features State
     // 1. ATS Score Checker
@@ -321,7 +324,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 [],
                 [],
                 '',
-                { design, customSections, photo, projects, achievements }
+                { design, customSections, photo, projects, achievements, latexDraft }
             );
             setIsDirty(false);
         }
@@ -409,6 +412,8 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         setCustomSections(nextCustom);
         setDesign(nextDesign);
         setPhoto(nextPhoto);
+        const nextDraft = keepLook ? latexDraft : (data.latexDraft?.code ? data.latexDraft : null);
+        setLatexDraft(nextDraft);
 
         // Set baseline initial snapshot
         initialSnapshotRef.current = serializeResumeState(
@@ -420,7 +425,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             newCerts,
             newLangs,
             newSummary,
-            { design: nextDesign, customSections: nextCustom, photo: nextPhoto, projects: nextProjects, achievements: nextAchievements }
+            { design: nextDesign, customSections: nextCustom, photo: nextPhoto, projects: nextProjects, achievements: nextAchievements, latexDraft: nextDraft }
         );
         setIsDirty(false);
     };
@@ -784,6 +789,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             design,
             customSections,
             photo,
+            latexDraft,
             rawText: `${personalInfo.name}\n${personalInfo.title}\n${summary}\n${skills.join(', ')}\nExpertise: ${expertise.join(', ')}\nCertifications: ${certifications.map(certificationLabel).join(', ')}\nLanguages: ${languages.join(', ')}`,
             suggestedRoles: personalInfo.title ? [personalInfo.title] : [],
             experienceLevel: user?.resumeData?.experienceLevel || 'mid'
@@ -849,7 +855,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     certifications,
                     languages,
                     summary,
-                    { design, customSections, photo, projects, achievements }
+                    { design, customSections, photo, projects, achievements, latexDraft }
                 );
                 setIsDirty(false);
                 setSaved(true);
@@ -951,6 +957,23 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     const sectionCounts = {
         summary: summary?.trim() ? 1 : 0, experience: experience.length, projects: projects.length, education: education.length,
         skills: skills.length, expertise: expertise.length, certifications: certifications.length, achievements: achievements.length, languages: languages.length,
+    };
+
+    // Read edited LaTeX back into the builder. Returns an error message or null.
+    const applyLatex = (code) => {
+        try {
+            const { data, designPatch, sectionCount } = latexToResume(code, { design, customSections, personalInfo });
+            loadFromResumeData(data, { keepLook: true });
+            updateCustomSections(data.customSections);
+            updateDesign(designPatch);
+            setLatexDraft(null);
+            initialSnapshotRef.current = '__imported__';
+            setNotice(`Applied your LaTeX: ${sectionCount} section${sectionCount === 1 ? '' : 's'} read into the builder. Review them, then save.`);
+            return null;
+        } catch (err) {
+            console.error('LaTeX apply failed:', err);
+            return err.message || 'That code could not be read.';
+        }
     };
 
     // Copy another saved resume (or the last uploaded file) into the editor.
@@ -2297,7 +2320,20 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 document.body
             )}
 
-            {showLatex && <LatexSheet data={docData} design={design} onClose={() => setShowLatex(false)} />}
+            {showLatex && (
+                <LatexSheet
+                    data={docData}
+                    design={design}
+                    draft={latexDraft}
+                    onDraftChange={setLatexDraft}
+                    onApply={(code) => {
+                        const err = applyLatex(code);
+                        if (!err) setShowLatex(false);
+                        return err;
+                    }}
+                    onClose={() => setShowLatex(false)}
+                />
+            )}
 
             {showTailorModal && createPortal(
                 <div className="modal-overlay" onClick={() => !tailoring && setShowTailorModal(false)} data-lenis-prevent>
