@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiArrowUpRight, FiArrowRight, FiX, FiCheck, FiMinus } from 'react-icons/fi';
 const ResumeUpload = lazy(() => import('../components/ResumeUpload'));
 import RecommendedJobs from '../components/RecommendedJobs';
-import { smartSearch, getSearchHistory, deleteSearchHistory, clearAllSearchHistory, getSuggestedRoles } from '../services/api';
+import { smartSearch, getSearchHistory, deleteSearchHistory, clearAllSearchHistory, getSuggestedRoles, getSavedJobs } from '../services/api';
+import { readProfiles, formatUpdated } from '../lib/resumeProfiles';
 
 const STEPS = [
     {
@@ -119,6 +120,22 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
     const [error, setError] = useState(null);
     const [recentSearches, setRecentSearches] = useState([]);
     const [suggestedRoles, setSuggestedRoles] = useState(DEFAULT_ROLES);
+    const [trackerCounts, setTrackerCounts] = useState(null);
+
+    // Pipeline counts for the signed-in home
+    useEffect(() => {
+        if (!user) return;
+        let active = true;
+        getSavedJobs()
+            .then((res) => {
+                if (!active) return;
+                const jobs = res.data?.jobs || [];
+                const count = (st) => jobs.filter((j) => (j.status || 'saved') === st).length;
+                setTrackerCounts({ saved: count('saved'), applied: count('applied'), interview: count('interview'), offer: count('offer'), total: jobs.length });
+            })
+            .catch(() => active && setTrackerCounts({ saved: 0, applied: 0, interview: 0, offer: 0, total: 0 }));
+        return () => { active = false; };
+    }, [user]);
 
     // Search is the next page most visitors open: fetch its code while idle
     useEffect(() => {
@@ -407,12 +424,15 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
 
     // ---- Signed-in home ----
     const firstName = user?.name?.trim()?.split(' ')[0];
-    const shortcuts = [
-        { label: 'Resume builder', desc: 'write and tailor', path: '/resume-creator' },
-        { label: 'Tracker', desc: 'saved to offer', path: '/saved' },
-        { label: 'Career path', desc: 'next roles and skills', path: '/career' },
-        { label: 'Advisor', desc: 'ask a career question', path: '/advisor' },
+    const pipeline = [
+        { key: 'saved', label: 'saved', dot: 'bg-[#8A8580]' },
+        { key: 'applied', label: 'applied', dot: 'bg-[#171717]' },
+        { key: 'interview', label: 'interviewing', dot: 'bg-[#CA3C0A]' },
+        { key: 'offer', label: 'offers', dot: 'bg-[#047857]' },
     ];
+    const { profiles, primaryId } = readProfiles(user?.builderData);
+    const primary = profiles.find((p) => p.id === primaryId);
+    const primarySkills = primary?.data?.skills?.length || 0;
 
     return (
         <div className="bg-[#F7F5F2] text-[#171717]">
@@ -434,22 +454,51 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
                     </div>
                 </div>
 
-                <nav aria-label="Shortcuts" className="lg:col-span-4 ds-gridlines grid-cols-2 lg:grid-cols-1 border-t lg:border-t-0 border-[#D8D4CC]">
-                    {shortcuts.map((s) => (
-                        <button
-                            key={s.path}
-                            type="button"
-                            onClick={() => navigate(s.path)}
-                            className="ds-cell ds-cell-hover text-left border-0 cursor-pointer flex items-start justify-between gap-4 group"
-                        >
-                            <span>
-                                <span className="block text-[20px] font-semibold tracking-[-0.015em] text-[#171717]">{s.label}</span>
-                                <span className="ds-mono ds-mono-muted block mt-1">{s.desc}</span>
+                <aside aria-label="Your pipeline" className="lg:col-span-4 flex flex-col border-t lg:border-t-0 border-[#D8D4CC]">
+                    <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+                        <span className="ds-mono">your pipeline</span>
+                        <span className="ds-mono ds-mono-muted">{trackerCounts ? `${trackerCounts.total} job${trackerCounts.total === 1 ? '' : 's'}` : '…'}</span>
+                    </div>
+
+                    <div className="ds-gridlines grid-cols-2">
+                        {pipeline.map((p) => (
+                            <button
+                                key={p.key}
+                                type="button"
+                                onClick={() => navigate('/saved')}
+                                className="ds-cell-hover text-left border-0 cursor-pointer bg-transparent px-6 sm:px-8 py-6"
+                            >
+                                <span className="block text-[44px] font-semibold tracking-[-0.04em] leading-none text-[#171717]" aria-hidden={!trackerCounts}>
+                                    {trackerCounts ? trackerCounts[p.key] : '–'}
+                                </span>
+                                <span className="ds-mono ds-mono-muted mt-3 flex items-center gap-2">
+                                    <span className={`w-2 h-2 shrink-0 ${p.dot}`} aria-hidden="true" />{p.label}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => navigate('/profile')}
+                        className="ds-cell-hover flex-1 text-left border-0 border-t border-[#D8D4CC] cursor-pointer bg-transparent px-6 sm:px-8 py-6 flex flex-col justify-between gap-4 group"
+                    >
+                        <span className="block">
+                            <span className="ds-mono ds-mono-muted flex items-center gap-2"><span className="ds-square" /> primary resume</span>
+                            <span className="block mt-3 text-[20px] font-semibold tracking-[-0.015em] text-[#171717] truncate">
+                                {primary ? primary.name : 'No resume yet'}
                             </span>
-                            <FiArrowUpRight size={20} className="text-[#171717] shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                        </button>
-                    ))}
-                </nav>
+                            <span className="ds-mono ds-mono-muted block mt-1">
+                                {primary
+                                    ? `${primarySkills} skill${primarySkills === 1 ? '' : 's'} · ${profiles.length} resume${profiles.length === 1 ? '' : 's'} · ${formatUpdated(primary.updatedAt)}`
+                                    : 'add one so search and scores match you'}
+                            </span>
+                        </span>
+                        <span className="inline-flex items-center gap-2 text-[15px] font-semibold text-[#171717] group-hover:text-[#CA3C0A]">
+                            {primary ? 'Edit resumes' : 'Add your resume'} <FiArrowUpRight size={16} />
+                        </span>
+                    </button>
+                </aside>
             </section>
 
             <section className="ds-frame ds-rule-b">
