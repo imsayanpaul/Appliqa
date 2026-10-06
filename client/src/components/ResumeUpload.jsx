@@ -252,19 +252,14 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
     return (
         <div>
             {/* ── Upload Box ── */}
-            <div className="w-full max-w-[540px] mx-auto rounded-lg border border-[#D8D4CC] bg-white p-6" style={{ boxShadow: 'none' }}>
+            <div className="w-full">
                 {/* Header */}
-                <div className="mb-5">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-1">
-                        RESUME SCANNER
-                    </span>
-                    <p className="text-xs text-[#66615C]">Upload your resume to extract skills, experience, and get matched career roles.</p>
-                </div>
+                <p className="ds-body m-0 mb-5">Upload your resume to pull out your skills, experience and the roles you fit.</p>
 
                 {/* Dropzone */}
                 <div
                     {...getRootProps()}
-                    className={`w-full flex flex-col justify-center items-center rounded-md border-2 border-dashed bg-[#FAF8F5] px-6 py-10 transition-all duration-150 cursor-pointer ${isDragActive ? 'border-[#CA3C0A] bg-[#FFF0E8]' : 'border-[#D8D4CC] hover:border-[#171717] hover:bg-[#F7F5F2]'} ${uploading || analyzing ? 'opacity-50 pointer-events-none' : ''}`}
+                    className={`w-full flex flex-col justify-center items-center border border-dashed bg-white px-6 py-14 transition-all duration-150 cursor-pointer ${isDragActive ? 'border-[#CA3C0A] bg-[#FFF0E8]' : 'border-[#D8D4CC] hover:border-[#171717] hover:bg-[#F7F5F2]'} ${uploading || analyzing ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                     <input {...getInputProps()} />
                     <div className="flex flex-col items-center gap-3 text-center">
@@ -272,11 +267,11 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                             <Upload className="h-5 w-5" aria-hidden="true" />
                         </div>
                         <div>
-                            <p className="text-sm font-semibold text-[#171717]">
+                            <p className="text-[16px] font-semibold text-[#171717] m-0">
                                 Drop your resume here or{' '}
                                 <span className="text-[#CA3C0A] font-bold">browse</span>
                             </p>
-                            <p className="text-[11px] text-[#8A8580] mt-1">PDF or TXT · 5 MB max</p>
+                            <p className="ds-mono ds-mono-muted mt-2 mb-0">pdf or txt · 5 mb max</p>
                         </div>
                     </div>
                 </div>
@@ -320,10 +315,10 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                     type="button"
                     onClick={handleUpload}
                     disabled={!selectedFile || uploading || analyzing}
-                    className={`mt-4 w-full flex items-center justify-center gap-2 rounded-md h-10 px-4 text-xs font-bold transition-all duration-150 border cursor-pointer ${
+                    className={`mt-4 w-full flex items-center justify-center gap-2 h-14 px-4 text-[15px] font-semibold transition-colors duration-150 border cursor-pointer ${
                         selectedFile && !uploading && !analyzing
-                            ? 'bg-[#171717] hover:bg-[#2a2a2a] text-white border-[#171717]'
-                            : 'bg-[#FAF8F5] text-[#D8D4CC] border-[#D8D4CC] cursor-not-allowed'
+                            ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white border-[#CA3C0A]'
+                            : 'bg-[#EFECE6] text-[#8A8580] border-[#D8D4CC] cursor-not-allowed'
                     }`}
                 >
                     {uploading ? (

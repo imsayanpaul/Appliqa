@@ -22,31 +22,6 @@ const GoogleIcon = () => (
     </svg>
 );
 
-// Premium Redesigned UI Controls and Animation Configurations
-
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.08
-        }
-    }
-};
-
-const cardVariants = {
-    hidden: { opacity: 0, y: 16 },
-    visible: { 
-        opacity: 1, 
-        y: 0,
-        transition: {
-            type: "spring",
-            stiffness: 100,
-            damping: 15
-        }
-    }
-};
-
 function PremiumIconInput({ icon: Icon, symbol, placeholder, value, onChange, type = "text", disabled = false, ...props }) {
     const [focused, setFocused] = useState(false);
     return (
@@ -78,30 +53,25 @@ function PremiumIconInput({ icon: Icon, symbol, placeholder, value, onChange, ty
 
 function PremiumToggle({ checked, onChange, label }) {
     return (
-        <div 
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 12, cursor: 'pointer', userSelect: 'none' }} 
-            onClick={() => onChange(!checked)}
-        >
-            <div className={`switch-track ${checked ? 'active' : ''}`}>
+        <button type="button" role="switch" aria-checked={!!checked} className="ds-switch" onClick={() => onChange(!checked)}>
+            <span className={`switch-track ${checked ? 'active' : ''}`} aria-hidden="true">
                 <span className="switch-knob" />
-            </div>
-            <span style={{ color: 'var(--text-secondary)', fontSize: 14, fontWeight: 500 }}>{label}</span>
-        </div>
+            </span>
+            <span>{label}</span>
+        </button>
     );
 }
 
-function PremiumCard({ children, className = '', style = {}, ...props }) {
+function FormSection({ number, title, description, children }) {
     return (
-        <div 
-            className={`p-5 sm:p-6 rounded-lg bg-white border border-[#D8D4CC] ${className}`}
-            style={{ 
-                boxShadow: 'none',
-                ...style
-            }}
-            {...props}
-        >
-            {children}
-        </div>
+        <section className="ds-frame ds-rule-b grid grid-cols-1 lg:grid-cols-12">
+            <div className="lg:col-span-4 ds-cell border-0 lg:border-r border-[#D8D4CC]">
+                <span className="ds-mono text-[#CA3C0A]">{number}</span>
+                <h2 className="mt-3 mb-2 text-[22px] font-semibold tracking-[-0.02em] leading-tight">{title}</h2>
+                <p className="ds-body m-0 max-w-xs">{description}</p>
+            </div>
+            <div className="lg:col-span-8 ds-cell">{children}</div>
+        </section>
     );
 }
 
@@ -664,116 +634,72 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
         );
     }
 
+    const saveLabel = saving ? 'Saving…' : saved ? 'Saved' : isDirty ? 'Save changes' : 'Save profile';
+    const stats = [
+        ['resumes optimised', form.resumesOptimizedCount],
+        ['cover letters', form.coverLettersGeneratedCount],
+        ['recruiter messages', form.recruiterDmsSentCount],
+    ];
+
     return (
-        <motion.div 
-            className="max-w-5xl mx-auto px-4 sm:px-6 py-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-        >
-            {/* ── Candidate Command Header ── */}
-            <motion.div 
-                className="bg-white rounded-lg border border-[#D8D4CC] p-5 sm:p-6 mb-6"
-                variants={cardVariants}
-            >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-                    <div>
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h1 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight m-0">
-                                {form.name || 'Candidate Profile'}
-                            </h1>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-[#FFF0E8] text-[#CA3C0A] text-[10px] font-mono font-bold uppercase tracking-wider border border-[#CA3C0A]/20">
-                                {form.desiredRole || 'Tech Candidate'}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-[#66615C] flex-wrap">
-                            <span>{form.email || session?.user?.email}</span>
-                            {form.location && (
-                                <>
-                                    <span className="text-[#D8D4CC]">·</span>
-                                    <span>{form.location}{form.country ? `, ${form.country}` : ''}</span>
-                                </>
-                            )}
-                        </div>
+        <div className="bg-[#F7F5F2] text-[#171717] pb-24">
+            <section className="ds-frame ds-rule-b">
+                <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
+                    <span className="ds-mono">profile / settings</span>
+                    <span className={`ds-mono flex items-center gap-2 ${isDirty ? 'text-[#CA3C0A]' : 'ds-mono-muted'}`} aria-live="polite">
+                        {saving ? 'saving…' : saved ? 'saved' : isDirty ? 'unsaved changes' : 'up to date'}
+                        <span className="ds-square" />
+                    </span>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-12">
+                    <div className="lg:col-span-7 ds-cell !py-10 sm:!py-14 border-0 lg:border-r border-[#D8D4CC]">
+                        <p className="ds-mono ds-mono-muted m-0 mb-4">{(form.desiredRole || 'no target role yet').toLowerCase()}</p>
+                        <h1 className="m-0 font-semibold tracking-[-0.035em] leading-[0.95] break-words" style={{ fontSize: 'clamp(40px, 5.5vw, 76px)' }}>
+                            {form.name || 'Your profile'}
+                        </h1>
+                        <p className="ds-mono ds-mono-muted mt-5 mb-0">
+                            {[form.email || session?.user?.email, form.location && `${form.location}${form.country ? `, ${form.country}` : ''}`].filter(Boolean).join(' · ')}
+                        </p>
                     </div>
-
-                    <div className="flex items-center gap-3 flex-wrap">
-                        {/* On-Platform Stats Cluster */}
-                        <div className="flex items-center gap-2 bg-[#FAF8F5] p-1.5 rounded-md border border-[#D8D4CC]">
-                            <div className="px-3 py-1 text-center">
-                                <div className="text-[10px] font-mono uppercase text-[#8A8580] tracking-wider">Optimized</div>
-                                <div className="text-sm font-black text-[#171717] font-mono">{form.resumesOptimizedCount}</div>
-                            </div>
-                            <div className="w-[1px] h-6 bg-[#D8D4CC]" />
-                            <div className="px-3 py-1 text-center">
-                                <div className="text-[10px] font-mono uppercase text-[#8A8580] tracking-wider">Letters</div>
-                                <div className="text-sm font-black text-[#171717] font-mono">{form.coverLettersGeneratedCount}</div>
-                            </div>
-                            <div className="w-[1px] h-6 bg-[#D8D4CC]" />
-                            <div className="px-3 py-1 text-center">
-                                <div className="text-[10px] font-mono uppercase text-[#8A8580] tracking-wider">DMs</div>
-                                <div className="text-sm font-black text-[#171717] font-mono">{form.recruiterDmsSentCount}</div>
-                            </div>
+                    <div className="lg:col-span-5 flex flex-col border-0 border-t lg:border-t-0 border-[#D8D4CC]">
+                        <dl className="ds-gridlines grid-cols-3 m-0 flex-1">
+                            {stats.map(([label, value]) => (
+                                <div key={label} className="px-5 py-6 flex flex-col justify-between gap-6">
+                                    <dt className="ds-mono ds-mono-muted">{label}</dt>
+                                    <dd className="m-0 text-[40px] font-semibold tracking-[-0.03em] leading-none">{value || 0}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                        <div className="grid grid-cols-2 border-0 border-t border-[#D8D4CC]">
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={saving}
+                                title="Save (Ctrl+S)"
+                                className={`ds-btn !min-h-[64px] !px-6 ${isDirty || saved ? 'ds-btn-accent' : 'ds-btn-ink'}`}
+                            >
+                                {saveLabel}
+                                {saved ? <FiCheck size={18} /> : <FiSave size={18} />}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="ds-btn !min-h-[64px] !px-6 bg-transparent text-[#171717] hover:bg-white border-0 border-l border-[#D8D4CC]"
+                            >
+                                Sign out
+                                <FiLogOut size={18} />
+                            </button>
                         </div>
-
-                        {/* Top Save Profile Button */}
-                        <button
-                            type="button"
-                            onClick={handleSubmit}
-                            disabled={saving}
-                            className={`h-9 px-4 rounded-md text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0 border-none shadow-sm ${
-                                saved
-                                    ? 'bg-[#CA3C0A] text-white shadow-[#CA3C0A]/30'
-                                    : isDirty
-                                    ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white shadow-[#CA3C0A]/30 animate-pulse'
-                                    : 'bg-[#171717] hover:bg-[#CA3C0A] text-white'
-                            }`}
-                            title="Save profile changes (Ctrl+S)"
-                        >
-                            {saving ? (
-                                <>
-                                    <FiSave size={13} className="animate-spin" />
-                                    <span>Saving...</span>
-                                </>
-                            ) : saved ? (
-                                <>
-                                    <FiCheck size={13} />
-                                    <span>Saved!</span>
-                                </>
-                            ) : (
-                                <>
-                                    <FiSave size={13} />
-                                    <span>{isDirty ? 'Save Changes' : 'Save Profile'}</span>
-                                </>
-                            )}
-                        </button>
-
-                        <button 
-                            type="button"
-                            onClick={handleLogout} 
-                            className="h-9 px-3 rounded-md bg-white hover:bg-[#FAF8F5] text-[#171717] text-xs font-bold border border-[#D8D4CC] transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0"
-                            title="Sign out of your account"
-                        >
-                            <FiLogOut size={13} className="text-[#8A8580]" />
-                            <span>Sign Out</span>
-                        </button>
                     </div>
                 </div>
-            </motion.div>
+            </section>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit}>
                 
-                {/* 01 // Personal Identity & Contact */}
-                <motion.div variants={cardVariants}>
-                    <PremiumCard>
-                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
-                                01 // PERSONAL IDENTITY & CONTACT
-                            </span>
-                        </div>
-                        <div className="preferences-form">
+            <FormSection number="01" title="About you" description="Your name and date of birth. Your email comes from your sign-in and can’t be changed here.">
+                        <div className="ds-fields">
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Full Name</label>
+                                <label className="ds-label">Full Name</label>
                                 <PremiumIconInput
                                     icon={FiUser}
                                     placeholder="John Doe"
@@ -782,7 +708,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Email Address (Read Only)</label>
+                                <label className="ds-label">Email Address (Read Only)</label>
                                 <PremiumIconInput
                                     icon={FiMail}
                                     type="email"
@@ -791,7 +717,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Date of Birth</label>
+                                <label className="ds-label">Date of Birth</label>
                                 <PremiumDatePicker
                                     value={form.dob}
                                     onChange={(val) => handleChange('dob', val)}
@@ -799,20 +725,12 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                         </div>
-                    </PremiumCard>
-                </motion.div>
+            </FormSection>
 
-                {/* 02 // Career Targeting & Location */}
-                <motion.div variants={cardVariants}>
-                    <PremiumCard>
-                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
-                                02 // CAREER TARGETING & COMPENSATION
-                            </span>
-                        </div>
-                        <div className="preferences-form">
+            <FormSection number="02" title="What you’re looking for" description="Used to personalise search results, recommendations and match scores.">
+                        <div className="ds-fields">
                             <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Desired Target Role</label>
+                                <label className="ds-label">Desired Target Role</label>
                                 <PremiumIconInput
                                     icon={FiBriefcase}
                                     placeholder="e.g. Senior Fullstack Developer"
@@ -822,7 +740,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             </div>
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Country</label>
+                                <label className="ds-label">Country</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Select country" },
@@ -849,7 +767,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             </div>
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">City / Base Location</label>
+                                <label className="ds-label">City / Base Location</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: form.country ? 'Select city' : 'Select country first' },
@@ -865,7 +783,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             </div>
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Experience Level</label>
+                                <label className="ds-label">Experience Level</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Select level" },
@@ -882,7 +800,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             </div>
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Employment Type</label>
+                                <label className="ds-label">Employment Type</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Any type" },
@@ -899,7 +817,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             </div>
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Min Salary</label>
+                                <label className="ds-label">Min Salary</label>
                                 <PremiumIconInput
                                     symbol={form.preferredCurrency === 'USD' ? '$' : form.preferredCurrency === 'EUR' ? '€' : form.preferredCurrency === 'GBP' ? '£' : form.preferredCurrency === 'CAD' ? 'C$' : '₹'}
                                     type="number"
@@ -910,7 +828,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             </div>
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Max Salary</label>
+                                <label className="ds-label">Max Salary</label>
                                 <PremiumIconInput
                                     symbol={form.preferredCurrency === 'USD' ? '$' : form.preferredCurrency === 'EUR' ? '€' : form.preferredCurrency === 'GBP' ? '£' : form.preferredCurrency === 'CAD' ? 'C$' : '₹'}
                                     type="number"
@@ -939,20 +857,12 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                         </div>
-                    </PremiumCard>
-                </motion.div>
+            </FormSection>
 
-                {/* 03 // Skills & Tech Ecosystem */}
-                <motion.div variants={cardVariants}>
-                    <PremiumCard>
-                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
-                                03 // SKILLS & TECH ECOSYSTEM
-                            </span>
-                        </div>
+            <FormSection number="03" title="Skills" description="Press Enter after each one. These feed your match scores and career path.">
                         <div className="space-y-4">
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Core Verified Skills</label>
+                                <label className="ds-label">Your skills</label>
                                 <PremiumTagInput
                                     value={form.skills}
                                     onChange={(val) => handleChange('skills', val)}
@@ -963,7 +873,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="form-group">
-                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Preferred Tech Stack</label>
+                                    <label className="ds-label">Preferred Tech Stack</label>
                                     <PremiumTagInput
                                         value={form.preferredTechStack}
                                         onChange={(val) => handleChange('preferredTechStack', val)}
@@ -972,7 +882,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Preferred Tools & IDEs</label>
+                                    <label className="ds-label">Preferred Tools & IDEs</label>
                                     <PremiumTagInput
                                         value={form.preferredTools}
                                         onChange={(val) => handleChange('preferredTools', val)}
@@ -984,7 +894,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="form-group">
-                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Skills to Learn Next</label>
+                                    <label className="ds-label">Skills to Learn Next</label>
                                     <PremiumTagInput
                                         value={form.skillsToLearn}
                                         onChange={(val) => handleChange('skillsToLearn', val)}
@@ -993,7 +903,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Certifications Held</label>
+                                    <label className="ds-label">Certifications Held</label>
                                     <PremiumTagInput
                                         value={form.certifications}
                                         onChange={(val) => handleChange('certifications', val)}
@@ -1005,7 +915,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                                 <div className="form-group">
-                                    <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Self-Assessed Proficiency</label>
+                                    <label className="ds-label">Self-Assessed Proficiency</label>
                                     <Dropdown
                                         options={[
                                             { value: "", label: "Select proficiency" },
@@ -1028,22 +938,14 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 </div>
                             </div>
                         </div>
-                    </PremiumCard>
-                </motion.div>
+            </FormSection>
 
-                {/* 04 // Career Status & Education */}
-                <motion.div variants={cardVariants}>
-                    <PremiumCard>
-                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
-                                04 // CAREER STATUS & EDUCATION
-                            </span>
-                        </div>
-                        <div className="preferences-form">
+            <FormSection number="04" title="Background" description="Helps tailor advice and salary figures to where you are.">
+                        <div className="ds-fields">
                             {/* Job Search Urgency temporarily hidden */}
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Professional / Academic Status</label>
+                                <label className="ds-label">Professional / Academic Status</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Select status" },
@@ -1068,7 +970,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             {/* College Course / Major and Expected Graduation Year temporarily hidden */}
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Target Cities</label>
+                                <label className="ds-label">Target Cities</label>
                                 <PremiumIconInput
                                     icon={FiGlobe}
                                     placeholder="e.g. Bangalore, Mumbai, Remote"
@@ -1078,7 +980,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             </div>
 
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Preferred Currency</label>
+                                <label className="ds-label">Preferred Currency</label>
                                 <Dropdown
                                     options={[
                                         { value: "", label: "Select currency" },
@@ -1095,20 +997,12 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                         </div>
-                    </PremiumCard>
-                </motion.div>
+            </FormSection>
 
-                {/* 05 // Portfolio & Profiles */}
-                <motion.div variants={cardVariants}>
-                    <PremiumCard>
-                        <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
-                                05 // PORTFOLIO & PROFILES
-                            </span>
-                        </div>
-                        <div className="preferences-form">
+            <FormSection number="05" title="Links" description="Used on your resume and when writing applications.">
+                        <div className="ds-fields">
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">LinkedIn URL</label>
+                                <label className="ds-label">LinkedIn URL</label>
                                 <PremiumIconInput
                                     icon={FiLinkedin}
                                     placeholder="https://linkedin.com/in/username"
@@ -1117,7 +1011,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">GitHub Profile</label>
+                                <label className="ds-label">GitHub Profile</label>
                                 <PremiumIconInput
                                     icon={FiGithub}
                                     placeholder="https://github.com/username"
@@ -1126,7 +1020,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Behance Portfolio</label>
+                                <label className="ds-label">Behance Portfolio</label>
                                 <PremiumIconInput
                                     icon={FiGlobe}
                                     placeholder="https://behance.net/username"
@@ -1135,7 +1029,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="text-xs font-semibold text-neutral-600 mb-1.5 block">Personal Website</label>
+                                <label className="ds-label">Personal Website</label>
                                 <PremiumIconInput
                                     icon={FiGlobe}
                                     placeholder="https://yourwebsite.com"
@@ -1144,53 +1038,20 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 />
                             </div>
                         </div>
-                    </PremiumCard>
-                </motion.div>
+            </FormSection>
 
-                {/* ── Prominent Bottom Save Bar ── */}
-                <div className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-[#D8D4CC] shadow-sm flex-wrap">
-                    <div className="text-xs text-[#66615C] flex items-center gap-2">
-                        {saved ? (
-                            <span className="text-[#CA3C0A] font-bold inline-flex items-center gap-1.5">
-                                <FiCheck size={16} /> Profile settings successfully synced!
-                            </span>
-                        ) : isDirty ? (
-                            <span className="text-[#CA3C0A] font-semibold inline-flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-[#CA3C0A] animate-pulse" /> You have unsaved changes.
-                            </span>
-                        ) : (
-                            <span>All profile changes automatically update your ATS and job match algorithms.</span>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <span className="hidden sm:inline-block text-[11px] text-[#8A8580] font-mono">
-                            Press Ctrl+S to save
-                        </span>
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            className={`h-11 px-7 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 border-none shrink-0 shadow-lg ${
-                                isDirty 
-                                    ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white shadow-[#CA3C0A]/25' 
-                                    : 'bg-[#171717] hover:bg-[#CA3C0A] text-white shadow-neutral-900/10'
-                            }`}
-                        >
-                            {saving ? (
-                                <span className="inline-flex items-center gap-1.5">
-                                    <FiSave size={15} className="animate-spin" /> Saving...
-                                </span>
-                            ) : saved ? (
-                                <span className="inline-flex items-center gap-1.5">
-                                    <FiCheck size={15} /> Saved!
-                                </span>
-                            ) : (
-                                <span className="inline-flex items-center gap-1.5">
-                                    <FiSave size={15} /> Save Profile Changes
-                                </span>
-                            )}
-                        </button>
-                    </div>
+            <section className="ds-frame ds-rule-b grid grid-cols-1 md:grid-cols-12">
+                <div className="md:col-span-8 ds-cell flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <p className={`m-0 text-[15px] ${isDirty ? 'text-[#CA3C0A] font-medium' : 'text-[#4A4540]'}`}>
+                        {saved ? 'Profile saved.' : isDirty ? 'You have unsaved changes.' : 'Your profile personalises search, match scores and applications.'}
+                    </p>
+                    <span className="hidden sm:inline ds-mono ds-mono-muted">ctrl+s to save</span>
                 </div>
+                <button type="submit" disabled={saving} className="md:col-span-4 ds-btn ds-btn-accent !min-h-[80px] !px-8">
+                    {saveLabel}
+                    {saved ? <FiCheck size={18} /> : <FiSave size={18} />}
+                </button>
+            </section>
             </form>
 
             {/* ── Floating Sticky Save Bar (Pops up when changes are made) ── */}
@@ -1201,11 +1062,11 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                         animate={{ opacity: 1, y: 0, x: '-50%' }}
                         exit={{ opacity: 0, y: 50, x: '-50%' }}
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className="fixed bottom-6 left-1/2 z-50 flex items-center justify-between gap-4 px-5 py-3 rounded-2xl bg-[#171717] text-white shadow-2xl border border-white/15"
+                        className="fixed bottom-4 left-1/2 z-50 flex items-center justify-between gap-4 pl-5 pr-1 py-1 bg-[#171717] text-white shadow-2xl"
                         style={{ width: 'min(92vw, 560px)' }}
                     >
                         <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#CA3C0A] animate-ping shrink-0" />
+                            <span className="ds-square shrink-0" />
                             <span className="text-xs font-medium text-white/90 truncate">
                                 You have unsaved profile changes
                             </span>
@@ -1218,7 +1079,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={saving}
-                                className="h-8 px-4 rounded-xl bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold border-none transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-md shadow-[#CA3C0A]/30"
+                                className="h-10 px-4 bg-[#CA3C0A] hover:bg-[#B73609] text-white text-[14px] font-semibold border-none cursor-pointer inline-flex items-center gap-2"
                             >
                                 {saving ? <FiSave size={13} className="animate-spin" /> : <FiSave size={13} />}
                                 <span>Save Changes</span>
@@ -1228,26 +1089,20 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 )}
             </AnimatePresence>
 
-            {/* ── Dedicated Full-Width Synchronized Resume Section ── */}
-            <motion.div variants={cardVariants} className="mt-14 pt-10 border-t border-[#D8D4CC]">
-                <div className="mb-6">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-1">
-                        AI RESUME PROFILE
-                    </span>
-                    <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight m-0">
-                        Synchronized Resume Intelligence
-                    </h2>
-                    <p className="text-xs text-[#66615C] mt-1">
-                        Live extracted skills, experience record, and career trajectory synced with your candidate profile.
-                    </p>
+            <section className="ds-frame ds-rule-b" aria-labelledby="resume-heading">
+                <div className="ds-cell ds-rule-b flex flex-wrap items-end justify-between gap-4 !pt-14">
+                    <h2 id="resume-heading" className="ds-slash m-0">resume</h2>
+                    <p className="ds-mono ds-mono-muted m-0">pdf or txt · read in your browser</p>
                 </div>
-                <ResumeUpload
-                    onResumeAnalyzed={onResumeAnalyzed}
-                    existingData={resumeData}
-                    user={user}
-                />
-            </motion.div>
-        </motion.div>
+                <div className="ds-cell">
+                    <ResumeUpload
+                        onResumeAnalyzed={onResumeAnalyzed}
+                        existingData={resumeData}
+                        user={user}
+                    />
+                </div>
+            </section>
+        </div>
     );
 }
 

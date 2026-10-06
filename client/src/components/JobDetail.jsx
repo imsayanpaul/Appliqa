@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useEscapeKey } from '../lib/useEscapeKey';
-import { FiX, FiExternalLink, FiBookmark, FiMapPin, FiDollarSign, FiClock, FiBriefcase, FiFileText, FiCopy, FiCheck, FiZap, FiHome, FiInfo, FiMessageSquare, FiRefreshCw } from 'react-icons/fi';
+import { FiX, FiBookmark, FiFileText, FiCopy, FiCheck, FiMessageSquare, FiRefreshCw, FiArrowUpRight } from 'react-icons/fi';
 import { FileCheck } from 'lucide-react';
 import { saveJob, getSavedJobs, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
 import ATSScorer from './ATSScorer';
+import { CompanyMark } from './JobCard';
 import { formatSalary } from '../lib/format';
 
 function JobDetail({ job, user, resumeData, onClose }) {
@@ -47,7 +48,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
     };
 
     const handleSave = async () => {
-        if (!user) return alert('Set up your profile first');
+        if (!user) return alert('Sign in to save jobs to your tracker.');
         try {
             await saveJob({ 
                 ...job, 
@@ -66,12 +67,6 @@ function JobDetail({ job, user, resumeData, onClose }) {
         } catch (err) {
             if (err.response?.status === 409) setIsSaved(true);
         }
-    };
-
-    const getScoreClass = (score) => {
-        if (score >= 70) return 'high';
-        if (score >= 40) return 'medium';
-        return 'low';
     };
 
     const handleGenerateCoverLetter = async () => {
@@ -149,323 +144,253 @@ function JobDetail({ job, user, resumeData, onClose }) {
             .trim();
     };
 
+    const salary = formatSalary(job.salary);
+    const posted = job.datePosted ? new Date(job.datePosted).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    const meta = [job.location, job.remote ? 'Remote' : null, job.employmentType?.toLowerCase().replace(/_/g, '-'), posted && `posted ${posted}`].filter(Boolean);
+    const score = matchData ? Math.min(100, Math.max(0, Number(matchData.score) || 0)) : 0;
+    const fitLabel = score >= 70 ? 'strong fit' : score >= 40 ? 'moderate fit' : 'partial fit';
+    const analysisFailed = matchData?.reasons?.[0]?.includes('Unable to analyze');
+
+    const toolBtn = 'ds-cell-hover text-left bg-[#F7F5F2] border-0 cursor-pointer px-5 py-5 flex items-start justify-between gap-3 disabled:opacity-50 disabled:cursor-not-allowed';
+
+    const renderOutput = ({ title, loading, loadingText, text, copiedState, onCopy, onRegenerate }) => (
+        <section className="ds-sheet-section" aria-live="polite">
+            <div className="flex items-center justify-between gap-3 mb-4">
+                <h3 className="ds-mono m-0 text-[#171717]">{title}</h3>
+                {text && !loading && (
+                    <div className="flex">
+                        <button type="button" onClick={onCopy} className="h-9 px-3 inline-flex items-center gap-2 text-[13px] font-medium bg-transparent border border-[#D8D4CC] hover:border-[#171717] cursor-pointer">
+                            {copiedState ? <><FiCheck size={13} /> Copied</> : <><FiCopy size={13} /> Copy</>}
+                        </button>
+                        <button type="button" onClick={onRegenerate} className="h-9 px-3 inline-flex items-center gap-2 text-[13px] font-medium bg-transparent border border-l-0 border-[#D8D4CC] hover:border-[#171717] cursor-pointer">
+                            <FiRefreshCw size={13} /> Rewrite
+                        </button>
+                    </div>
+                )}
+            </div>
+            {loading ? (
+                <div className="ds-output">
+                    <p className="ds-mono ds-mono-muted m-0 animate-pulse">{loadingText}</p>
+                </div>
+            ) : (
+                <div className="ds-output">{text}</div>
+            )}
+        </section>
+    );
+
     return (
         <div className="modal-overlay" onClick={onClose} data-lenis-prevent>
-            <div className="modal-content" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-lenis-prevent>
-                <button className="modal-close" onClick={onClose}>
-                    <FiX />
-                </button>
-
-                {/* Header */}
-                <div className="modal-header">
-                    <div className="modal-logo-header">
-                        {job.companyLogo ? (
-                            <img src={job.companyLogo} alt="" className="company-logo" />
-                        ) : (
-                            <div className="company-logo-placeholder">
-                                {(job.company || '?')[0].toUpperCase()}
-                            </div>
-                        )}
-                        <div>
-                            <h2>{job.title}</h2>
-                            <div className="company-name">{job.company}</div>
-                        </div>
-                    </div>
-
-                    <div className="modal-tags">
-                        {job.location && (
-                            <span className="meta-tag"><FiMapPin size={12} /> {job.location}</span>
-                        )}
-                        {job.remote && <span className="meta-tag remote"><FiHome size={12} /> Remote</span>}
-                        {job.employmentType && (
-                            <span className="meta-tag"><FiBriefcase size={12} /> {job.employmentType}</span>
-                        )}
-                        {job.salary && job.salary !== 'Not specified' && (
-                            <span className="meta-tag"><FiDollarSign size={12} /> {formatSalary(job.salary)}</span>
-                        )}
-                        {job.datePosted && (
-                            <span className="meta-tag"><FiClock size={12} /> {new Date(job.datePosted).toLocaleDateString()}</span>
-                        )}
-                    </div>
+            <div
+                className="modal-content ds-sheet"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="job-detail-title"
+                onClick={(e) => e.stopPropagation()}
+                data-lenis-prevent
+            >
+                <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                    <span className="ds-mono self-center px-6 sm:px-8 truncate">job / {(job.company || 'details').toLowerCase()}</span>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white"
+                    >
+                        <FiX size={18} />
+                    </button>
                 </div>
 
-                {/* Profile Alignment & Synergy Analysis */}
-                {(loadingMatch || matchData) && (
-                    <div className="bg-[#FAF8F5] rounded-lg p-5 border border-[#D8D4CC] mb-6">
-                        {/* Header */}
-                        <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#D8D4CC]">
-                            <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
-                                    [ Profile Alignment Analysis ]
-                                </span>
-                                <h3 className="text-sm font-black uppercase tracking-wider text-[#171717] m-0">
-                                    Candidate Fit Evaluation
-                                </h3>
+                <div className="ds-sheet-body" data-lenis-prevent>
+                    {/* Title */}
+                    <header className="ds-sheet-section !pt-8">
+                        <div className="flex items-start gap-4">
+                            <CompanyMark logo={job.companyLogo} company={job.company} />
+                            <div className="min-w-0">
+                                <h2 id="job-detail-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#171717]">
+                                    {job.title}
+                                </h2>
+                                <p className="m-0 mt-2 text-[16px] font-medium text-[#CA3C0A]">{job.company}</p>
                             </div>
-                            {loadingMatch ? (
-                                <span className="text-xs font-mono text-neutral-400 animate-pulse">Evaluating fit...</span>
-                            ) : matchData ? (
-                                <div className="text-right">
-                                    <div className="flex items-baseline gap-1 justify-end">
-                                        <span className="text-2xl font-mono font-black text-[#171717] leading-none">
-                                            {matchData.score}%
-                                        </span>
-                                        <span className="text-[10px] font-mono font-bold uppercase text-neutral-400">Match</span>
-                                    </div>
-                                    <span className={`inline-block text-[9.5px] font-mono font-bold uppercase px-1.5 py-0.2 rounded mt-1 ${
-                                        matchData.score >= 70
-                                            ? 'bg-[#171717] text-white'
-                                            : matchData.score >= 40
-                                            ? 'bg-[#FFF0E8] text-[#CA3C0A] border border-[#CA3C0A]/30'
-                                            : 'bg-neutral-200 text-neutral-700'
-                                    }`}>
-                                        {matchData.score >= 70 ? 'Strong Fit' : matchData.score >= 40 ? 'Moderate Fit' : 'Skill Overlap'}
-                                    </span>
-                                </div>
-                            ) : null}
                         </div>
+                        {meta.length > 0 && <p className="ds-mono ds-mono-muted mt-5 mb-0">{meta.join(' · ')}</p>}
+                        {salary && <p className="m-0 mt-2 text-[16px] font-semibold">{salary}</p>}
+                    </header>
 
-                        {/* Progress Meter */}
-                        {matchData && !loadingMatch && (
-                            <div className="w-full bg-[#E8E4DC] h-1.5 rounded-full overflow-hidden mt-3 mb-3.5">
-                                <div 
-                                    className="bg-[#CA3C0A] h-full transition-all duration-500 rounded-full"
-                                    style={{ width: `${Math.min(100, Math.max(0, matchData.score))}%` }}
-                                />
-                            </div>
-                        )}
-
-                        {matchData && (
-                            <div>
-                                {matchData.reasons?.length > 0 && matchData.reasons[0]?.includes('Unable to analyze') ? (
-                                    <div className="py-4 text-center">
-                                        <p className="text-xs text-neutral-500 mb-2">Analysis rate limit reached.</p>
-                                        <button
-                                            className="h-8 px-3 rounded-md bg-white border border-[#D8D4CC] text-xs font-bold text-[#171717] hover:bg-neutral-100 inline-flex items-center gap-1.5 cursor-pointer"
-                                            onClick={() => { setMatchData(null); fetchMatchScore(); }}
-                                            disabled={loadingMatch}
-                                        >
-                                            <FiRefreshCw size={12} /> Retry Analysis
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {/* Key Strengths & Alignment Points */}
-                                        {matchData.reasons?.length > 0 && (
-                                            <div className="space-y-2.5 my-3">
-                                                {matchData.reasons.map((r, i) => (
-                                                    <div key={i} className="flex items-start gap-2.5 text-xs sm:text-[13px] text-neutral-800 leading-relaxed">
-                                                        <span className="font-mono text-[9.5px] font-bold text-[#CA3C0A] bg-[#FFF0E8] px-1.5 py-0.5 rounded border border-[#CA3C0A]/20 shrink-0 mt-0.5">
-                                                            0{i + 1}
-                                                        </span>
-                                                        <p className="m-0 text-neutral-800 font-medium">{r}</p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Target Skills to Expand */}
-                                        {matchData.missingSkills?.length > 0 && (
-                                            <div className="pt-3 border-t border-[#D8D4CC] mt-3">
-                                                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-neutral-500 block mb-2">
-                                                    Target Skills to Expand
-                                                </span>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {matchData.missingSkills.map((s, i) => (
-                                                        <span key={i} className="font-mono text-[11px] font-semibold bg-white text-[#171717] border border-[#D8D4CC] rounded-md px-2 py-0.5">
-                                                            + {s}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Hiring Synthesis & Advice */}
-                                        {matchData.recommendation && (
-                                            <div className="bg-white rounded-md p-3.5 border border-[#D8D4CC] border-l-[3px] border-l-[#171717] mt-3.5">
-                                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#171717] block mb-1">
-                                                    Hiring Synthesis & Advice
-                                                </span>
-                                                <p className="text-xs sm:text-[12.5px] text-neutral-700 leading-relaxed m-0 font-normal">
-                                                    {matchData.recommendation}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </>
+                    {/* Match analysis */}
+                    {(loadingMatch || matchData) && (
+                        <section className="ds-sheet-section bg-white" aria-busy={loadingMatch}>
+                            <div className="flex items-end justify-between gap-6">
+                                <div>
+                                    <p className="ds-mono ds-mono-muted m-0 mb-2">your match</p>
+                                    {loadingMatch ? (
+                                        <p className="m-0 text-[40px] font-semibold leading-none text-[#D8D4CC] animate-pulse">—</p>
+                                    ) : (
+                                        <p className="m-0 flex items-baseline gap-2">
+                                            <span className="font-[900] leading-none tracking-[-0.04em]" style={{ fontSize: 'clamp(48px, 7vw, 72px)', fontStretch: '125%' }}>{score}</span>
+                                            <span className="ds-mono ds-mono-muted">/100</span>
+                                        </p>
+                                    )}
+                                </div>
+                                {!loadingMatch && !analysisFailed && (
+                                    <span className="ds-mono flex items-center gap-2 pb-2">
+                                        <span className="ds-square" /> {fitLabel}
+                                    </span>
                                 )}
                             </div>
-                        )}
-                    </div>
-                )}
+                            <div className="mt-5 h-1.5 bg-[#EFECE6]">
+                                {!loadingMatch && <div className="h-full bg-[#CA3C0A] report-bar" style={{ width: `${score}%` }} />}
+                            </div>
 
-                {/* Description */}
-                <div className="modal-section">
-                    <h3>Job Description</h3>
-                    <p className="job-description-paragraph">
-                        {formatDescription(job.description)}
-                    </p>
-                </div>
-
-                {/* Highlights */}
-                {job.highlights?.Qualifications?.length > 0 && (
-                    <div className="modal-section qualifications-section">
-                        <h3>Qualifications</h3>
-                        <ul>
-                            {job.highlights.Qualifications.slice(0, 8).map((q, i) => (
-                                <li key={i}>{q}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                {job.highlights?.Responsibilities?.length > 0 && (
-                    <div className="modal-section responsibilities-section">
-                        <h3>Responsibilities</h3>
-                        <ul>
-                            {job.highlights.Responsibilities.slice(0, 8).map((r, i) => (
-                                <li key={i}>{r}</li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                {/* Required Skills */}
-                {job.requiredSkills?.length > 0 && (
-                    <div className="modal-section skills-required-section">
-                        <h3>Required Skills</h3>
-                        <div className="skill-tags-modal">
-                            {job.requiredSkills.map((s, i) => (
-                                <span key={i} className="skill-tag-modal-item">{s}</span>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Actions */}
-                <div className="modal-ai-actions">
-                    {/* ATS Check */}
-                    {resumeData ? (
-                        <button
-                            className="btn btn-secondary ats-check-btn-custom"
-                            onClick={() => setShowATS(true)}
-                        >
-                            <FileCheck size={14} />
-                            ATS Check
-                        </button>
-                    ) : null}
-                    {/* Cover Letter Generator */}
-                    {!coverLetter && !loadingCover ? (
-                        <button
-                            className="btn btn-secondary ai-action-btn-custom"
-                            onClick={handleGenerateCoverLetter}
-                            disabled={loadingCover}
-                        >
-                            <FiFileText size={14} />
-                            Generate Cover Letter
-                        </button>
-                    ) : null}
-                    {!recruiterDM && !loadingDM ? (
-                        <button
-                            className="btn btn-secondary ai-action-btn-custom"
-                            onClick={handleGenerateRecruiterDM}
-                            disabled={loadingDM}
-                        >
-                            <FiMessageSquare size={14} />
-                            Generate LinkedIn DM
-                        </button>
-                    ) : null}
-                </div>
-
-                {/* Cover Letter Output */}
-                {(loadingCover || coverLetter) && (
-                    <div className="ai-result-card-custom">
-                        <div className="ai-result-header">
-                            <h3>
-                                <FiFileText size={16} /> AI Cover Letter
-                            </h3>
-                            {coverLetter && !loadingCover && (
-                                <div className="ai-result-actions">
+                            {matchData && analysisFailed && (
+                                <div className="mt-5 flex items-center justify-between gap-4">
+                                    <p className="m-0 text-[15px] text-[#4A4540]">The match analysis is busy right now.</p>
                                     <button
-                                        className="btn btn-secondary btn-sm copy-btn-custom"
-                                        onClick={handleCopyCoverLetter}
+                                        type="button"
+                                        className="ds-btn ds-btn-line !min-h-[40px] !text-[14px]"
+                                        onClick={() => { setMatchData(null); fetchMatchScore(); }}
+                                        disabled={loadingMatch}
                                     >
-                                        {copied ? <><FiCheck size={12} /> Copied!</> : <><FiCopy size={12} /> Copy</>}
-                                    </button>
-                                    <button
-                                        className="btn btn-secondary btn-sm regenerate-btn-custom"
-                                        onClick={handleGenerateCoverLetter}
-                                    >
-                                        Regenerate
+                                        Try again <FiRefreshCw size={14} />
                                     </button>
                                 </div>
                             )}
-                        </div>
-                        {loadingCover ? (
-                            <div className="ai-result-loading">
-                                <div className="spinner" />
-                                <p>Writing your personalized cover letter...</p>
-                            </div>
-                        ) : (
-                            <div className="ai-result-text-area">
-                                {coverLetter}
-                            </div>
-                        )}
-                    </div>
-                )}
 
-                {/* Recruiter DM Output */}
-                {(loadingDM || recruiterDM) && (
-                    <div className="ai-result-card-custom">
-                        <div className="ai-result-header">
-                            <h3>
-                                <FiMessageSquare size={16} /> LinkedIn DM
-                            </h3>
-                            {recruiterDM && !loadingDM && (
-                                <div className="ai-result-actions">
-                                    <button
-                                        className="btn btn-secondary btn-sm copy-btn-custom"
-                                        onClick={handleCopyDM}
-                                    >
-                                        {copiedDM ? <><FiCheck size={12} /> Copied!</> : <><FiCopy size={12} /> Copy</>}
-                                    </button>
-                                    <button
-                                        className="btn btn-secondary btn-sm regenerate-btn-custom"
-                                        onClick={handleGenerateRecruiterDM}
-                                    >
-                                        Regenerate
-                                    </button>
-                                </div>
+                            {matchData && !analysisFailed && (
+                                <>
+                                    {matchData.reasons?.length > 0 && (
+                                        <ol className="list-none m-0 mt-6 p-0">
+                                            {matchData.reasons.map((r, i) => (
+                                                <li key={i} className="grid grid-cols-[32px_1fr] gap-2 py-3 border-0 border-t border-[#EFECE6] text-[15px] leading-relaxed text-[#2A2622]">
+                                                    <span className="ds-mono text-[#CA3C0A] pt-0.5">0{i + 1}</span>
+                                                    <span>{r}</span>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    )}
+
+                                    {matchData.missingSkills?.length > 0 && (
+                                        <div className="mt-5">
+                                            <p className="ds-mono ds-mono-muted m-0 mb-3">skills to add</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {matchData.missingSkills.map((s, i) => (
+                                                    <span key={i} className="ds-tag">+ {s}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {matchData.recommendation && (
+                                        <div className="mt-6 pl-4 border-0 border-l-2 border-[#171717]">
+                                            <p className="ds-mono ds-mono-muted m-0 mb-1">advice</p>
+                                            <p className="m-0 text-[15px] leading-relaxed text-[#2A2622]">{matchData.recommendation}</p>
+                                        </div>
+                                    )}
+                                </>
                             )}
-                        </div>
-                        {loadingDM ? (
-                            <div className="ai-result-loading">
-                                <div className="spinner" />
-                                <p>Crafting your networking message...</p>
-                            </div>
-                        ) : (
-                            <div className="ai-result-text-area">
-                                {recruiterDM}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Primary Actions */}
-                <div className="modal-primary-actions">
-                    {job.applyLink && (
-                        <a href={job.applyLink} target="_blank" rel="noopener noreferrer" className="btn btn-primary modal-apply-btn">
-                            Apply Now <FiExternalLink size={14} />
-                        </a>
+                        </section>
                     )}
-                    <button className="btn btn-secondary modal-save-btn" onClick={handleSave} disabled={isSaved}>
-                        <FiBookmark size={14} fill={isSaved ? 'currentColor' : 'none'} />
-                        {isSaved ? 'Saved!' : 'Save Job'}
+
+                    {/* AI tools */}
+                    <section aria-label="Application tools" className="border-0 border-b border-[#D8D4CC]">
+                        <div className={`ds-gridlines grid-cols-1 ${resumeData ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+                            {resumeData && (
+                                <button type="button" className={toolBtn} onClick={() => setShowATS(true)}>
+                                    <span>
+                                        <span className="block text-[16px] font-semibold text-[#171717]">ATS check</span>
+                                        <span className="ds-mono ds-mono-muted block mt-1">score your resume</span>
+                                    </span>
+                                    <FileCheck size={18} className="shrink-0 text-[#CA3C0A]" />
+                                </button>
+                            )}
+                            <button type="button" className={toolBtn} onClick={handleGenerateCoverLetter} disabled={loadingCover}>
+                                <span>
+                                    <span className="block text-[16px] font-semibold text-[#171717]">{coverLetter ? 'Rewrite cover letter' : 'Cover letter'}</span>
+                                    <span className="ds-mono ds-mono-muted block mt-1">{loadingCover ? 'writing…' : 'draft for this job'}</span>
+                                </span>
+                                <FiFileText size={18} className="shrink-0 text-[#CA3C0A]" />
+                            </button>
+                            <button type="button" className={toolBtn} onClick={handleGenerateRecruiterDM} disabled={loadingDM}>
+                                <span>
+                                    <span className="block text-[16px] font-semibold text-[#171717]">{recruiterDM ? 'Rewrite message' : 'LinkedIn message'}</span>
+                                    <span className="ds-mono ds-mono-muted block mt-1">{loadingDM ? 'writing…' : 'note to the recruiter'}</span>
+                                </span>
+                                <FiMessageSquare size={18} className="shrink-0 text-[#CA3C0A]" />
+                            </button>
+                        </div>
+                    </section>
+
+                    {(loadingCover || coverLetter) && (
+                        renderOutput({ title: 'cover letter', loading: loadingCover, loadingText: 'writing your cover letter…', text: coverLetter, copiedState: copied, onCopy: handleCopyCoverLetter, onRegenerate: handleGenerateCoverLetter })
+                    )}
+
+                    {(loadingDM || recruiterDM) && (
+                        renderOutput({ title: 'linkedin message', loading: loadingDM, loadingText: 'writing your message…', text: recruiterDM, copiedState: copiedDM, onCopy: handleCopyDM, onRegenerate: handleGenerateRecruiterDM })
+                    )}
+
+                    {/* Description */}
+                    <section className="ds-sheet-section">
+                        <h3 className="ds-mono ds-mono-muted m-0 mb-4">about the role</h3>
+                        <div className="ds-prose">{formatDescription(job.description)}</div>
+                    </section>
+
+                    {job.highlights?.Qualifications?.length > 0 && (
+                        <section className="ds-sheet-section">
+                            <h3 className="ds-mono ds-mono-muted m-0 mb-2">qualifications</h3>
+                            <ul className="ds-list">
+                                {job.highlights.Qualifications.slice(0, 8).map((q, i) => <li key={i}>{q}</li>)}
+                            </ul>
+                        </section>
+                    )}
+
+                    {job.highlights?.Responsibilities?.length > 0 && (
+                        <section className="ds-sheet-section">
+                            <h3 className="ds-mono ds-mono-muted m-0 mb-2">responsibilities</h3>
+                            <ul className="ds-list">
+                                {job.highlights.Responsibilities.slice(0, 8).map((r, i) => <li key={i}>{r}</li>)}
+                            </ul>
+                        </section>
+                    )}
+
+                    {job.requiredSkills?.length > 0 && (
+                        <section className="ds-sheet-section">
+                            <h3 className="ds-mono ds-mono-muted m-0 mb-3">skills</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {job.requiredSkills.map((s, i) => <span key={i} className="ds-tag">{s}</span>)}
+                            </div>
+                        </section>
+                    )}
+                </div>
+
+                {/* Pinned actions */}
+                <div className="shrink-0 grid grid-cols-2 border-0 border-t border-[#D8D4CC]">
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={isSaved}
+                        className="ds-btn !min-h-[64px] !px-6 sm:!px-8 bg-[#F7F5F2] text-[#171717] hover:bg-white disabled:!opacity-100"
+                    >
+                        {isSaved ? 'Saved to tracker' : 'Save job'}
+                        <FiBookmark size={18} fill={isSaved ? 'currentColor' : 'none'} />
                     </button>
+                    {job.applyLink ? (
+                        <a
+                            href={job.applyLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ds-btn ds-btn-accent !min-h-[64px] !px-6 sm:!px-8 no-underline"
+                        >
+                            Apply now <FiArrowUpRight size={18} className="ds-btn-arrow" />
+                        </a>
+                    ) : (
+                        <span className="ds-btn !min-h-[64px] !px-6 sm:!px-8 bg-[#EFECE6] text-[#6F6A65] cursor-default">
+                            No apply link
+                        </span>
+                    )}
                 </div>
             </div>
 
             {showATS && (
-                <ATSScorer 
+                <ATSScorer
                     job={job}
                     resumeData={resumeData}
                     onClose={() => setShowATS(false)}

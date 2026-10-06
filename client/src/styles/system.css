@@ -585,3 +585,280 @@
 @media (max-height: 620px) {
   .auth-step { padding-top: 14px; padding-bottom: 14px; }
 }
+
+/* =========================================================================
+   Sheets: every modal opens as a full-height panel from the right
+   ========================================================================= */
+.modal-overlay {
+  justify-content: flex-end !important;
+  align-items: stretch !important;
+  padding: 0 !important;
+  background: rgba(23, 23, 23, 0.42) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.modal-content {
+  width: 100% !important;
+  max-width: min(760px, 100vw) !important;
+  height: 100% !important;
+  max-height: none !important;
+  background: var(--bg-primary) !important;
+  border: none !important;
+  border-left: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  box-shadow: -32px 0 64px -40px rgba(23, 23, 23, 0.45) !important;
+  animation: ds-sheet-in 0.32s var(--ease-out) !important;
+}
+
+@keyframes ds-sheet-in {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+.modal-close {
+  top: 0 !important;
+  right: 0 !important;
+  width: 56px !important;
+  height: 56px !important;
+  border: none !important;
+  border-left: 1px solid var(--line) !important;
+  border-bottom: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+/* Sheets that lay out their own ruled cells */
+.modal-content.ds-sheet {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ds-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ds-sheet-section {
+  padding: 28px 32px;
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  .ds-sheet-section { padding: 22px 20px; }
+}
+
+.ds-prose {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #4A4540;
+  white-space: pre-line;
+}
+
+.ds-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ds-list > li {
+  position: relative;
+  padding: 10px 0 10px 22px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  line-height: 1.55;
+  color: #2A2622;
+}
+
+.ds-list > li:first-child { border-top: none; }
+
+.ds-list > li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 19px;
+  width: 7px;
+  height: 7px;
+  background: var(--accent-primary);
+}
+
+.ds-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+}
+
+.ds-output {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #2A2622;
+  white-space: pre-wrap;
+  background: var(--bg-surface);
+  border: 1px solid var(--line);
+  padding: 20px;
+}
+
+/* Feedback widget sits below sheets and dialogs */
+.feedback-floating-btn,
+.feedback-panel {
+  z-index: 900;
+}
+
+/* Classic sheets: keep header text clear of the close cell */
+.modal-content:not(.ds-sheet) > .modal-header {
+  padding-right: 48px;
+}
+
+/* =========================================================================
+   Form controls: white fields, hairline border, ink focus with accent rule
+   ========================================================================= */
+.ds-label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  color: var(--text-secondary);
+}
+
+.premium-input-container,
+.skills-container,
+.form-input-custom {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.form-input-custom {
+  height: 48px !important;
+  color: var(--text-primary) !important;
+  font-size: 15px !important;
+}
+
+.premium-input-field {
+  height: 46px;
+  font-size: 15px;
+}
+
+.skills-container { min-height: 48px; }
+
+.premium-input-container:hover,
+.skills-container:hover,
+.form-input-custom:hover {
+  border-color: #8A8580 !important;
+}
+
+.premium-input-container.focused,
+.skills-container.focused,
+.form-input-custom:focus-visible,
+.form-input-custom[aria-expanded="true"] {
+  border-color: var(--text-primary) !important;
+  box-shadow: inset 0 -2px 0 var(--accent-primary) !important;
+  outline: none !important;
+}
+
+.premium-input-container.focused .premium-input-icon { color: var(--text-primary); }
+
+/* Selected values read as normal text, not as an error/alert colour */
+.form-input-custom.active,
+.filter-select-custom.active {
+  background: var(--bg-surface) !important;
+  border-color: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.form-input-custom.active svg,
+.filter-select-custom.active svg { color: var(--text-primary) !important; }
+
+.filter-select-custom {
+  border-width: 1px !important;
+  border-radius: 0 !important;
+}
+
+.dropdown-menu-custom,
+.pdp-dropdown {
+  border-radius: 0 !important;
+  border: 1px solid var(--text-primary) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.skill-badge {
+  height: 28px;
+  padding: 0 6px 0 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 1px solid var(--line);
+  border-radius: 0;
+}
+
+/* Switch: squared track, accent knob when on */
+.switch-track {
+  width: 40px;
+  height: 22px;
+  border-radius: 0;
+  background: var(--bg-surface);
+  border: 1px solid #8A8580;
+}
+
+.switch-track:hover { background: var(--bg-primary); }
+
+.switch-track.active {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.switch-knob {
+  width: 14px;
+  height: 14px;
+  top: 3px;
+  left: 3px;
+  border-radius: 0;
+  background: #8A8580;
+  box-shadow: none;
+}
+
+.switch-track.active .switch-knob {
+  background: var(--accent-primary);
+  transform: translateX(18px);
+}
+
+.ds-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+/* Profile form grid inside a section */
+.ds-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 20px;
+}
+
+.ds-fields > .ds-span { grid-column: 1 / -1; }
+
+@media (max-width: 640px) {
+  .ds-fields { grid-template-columns: 1fr; }
+}

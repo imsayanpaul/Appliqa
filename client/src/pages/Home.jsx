@@ -459,7 +459,7 @@ function Home({ user, resumeData, onResumeAnalyzed }) {
             <section id="resume-scan" aria-labelledby="scan-heading" className="ds-frame ds-rule-b scroll-mt-20">
                 <div className="ds-cell ds-rule-b flex flex-wrap items-end justify-between gap-4 !pt-14">
                     <h2 id="scan-heading" className="ds-slash m-0">resume-scan</h2>
-                    <p className="ds-mono ds-mono-muted m-0">pdf or image · read in your browser</p>
+                    <p className="ds-mono ds-mono-muted m-0">pdf or txt · read in your browser</p>
                 </div>
                 <div className="ds-cell">
                     <Suspense fallback={<div className="h-[220px] border border-dashed border-[#D8D4CC]" />}>

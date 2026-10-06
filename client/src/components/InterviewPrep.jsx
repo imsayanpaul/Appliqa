@@ -104,15 +104,13 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                 {/* Header */}
                 <div className="modal-header pb-4 border-b border-neutral-100">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-md bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center flex-shrink-0 border border-[#CA3C0A]/20">
+                        <div className="w-11 h-11 bg-white text-[#CA3C0A] flex items-center justify-center flex-shrink-0 border border-[#D8D4CC]">
                             <FiVideo size={20} />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#CA3C0A] block mb-0.5 font-mono">
-                                [ AI Interview Copilot ]
-                            </span>
-                            <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight leading-tight m-0">
-                                Interview Prep & STAR Guide
+                            <span className="ds-mono text-[#CA3C0A] block mb-1">interview prep</span>
+                            <h2 className="text-[24px] sm:text-[28px] font-semibold text-[#171717] tracking-[-0.025em] leading-tight m-0">
+                                Prepare for this interview
                             </h2>
                             <p className="text-xs text-neutral-500 font-medium mt-1 truncate">
                                 {job.title} <span className="text-neutral-300">·</span> {job.company}
