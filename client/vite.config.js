@@ -19,25 +19,17 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            // Group core React and routing together
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor-react';
-            }
-            // Group database client
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase';
-            }
-            // Group animation libraries
-            if (id.includes('framer-motion') || id.includes('gsap')) {
-              return 'vendor-animations';
-            }
-            // Group charting libraries
-            if (id.includes('recharts')) {
-              return 'vendor-charts';
-            }
-            // Let Rollup automatically handle and code-split other libraries (like pdfjs-dist and tesseract.js)
-          }
+          if (!id.includes('node_modules')) return;
+          // Match exact package names. A plain includes('react') would also pull
+          // react-dropzone, react-icons, lucide-react etc. into the always-loaded chunk.
+          const parts = id.split('node_modules/').pop().split('/');
+          const name = parts[0].startsWith('@') ? `${parts[0]}/${parts[1]}` : parts[0];
+          if (['react', 'react-dom', 'scheduler', 'react-router', 'react-router-dom'].includes(name)) return 'vendor-react';
+          if (name.startsWith('@supabase/')) return 'vendor-supabase';
+          if (['framer-motion', 'motion-dom', 'motion-utils'].includes(name)) return 'vendor-motion';
+          if (name === 'recharts' || name.startsWith('d3-') || name === 'victory-vendor') return 'vendor-charts';
+          // Everything else (pdfjs, tesseract, dropzone, icons...) is left to Rollup,
+          // which places it with the pages that actually import it.
         }
       }
     }
