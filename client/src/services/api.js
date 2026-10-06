@@ -71,10 +71,31 @@ api.interceptors.request.use(async (config) => {
 });
 
 // Jobs
+// Queries searched in the last minute: the server saves history after it
+// answers, so a refresh right away may not include them yet
+const recentLocalQueries = new Map();
+const withRecentLocal = (data) => {
+  const now = Date.now();
+  const history = data?.history || [];
+  const extra = [];
+  for (const [query, at] of recentLocalQueries) {
+    if (now - at > 60000) { recentLocalQueries.delete(query); continue; }
+    if (!history.some((h) => h.query?.trim().toLowerCase() === query.toLowerCase())) extra.push({ query, created_at: new Date(at).toISOString() });
+  }
+  extra.sort((a, b) => b.created_at.localeCompare(a.created_at)); // newest first
+  return extra.length ? { ...data, history: [...extra, ...history] } : data;
+};
+
 export const searchJobs = (params) => {
-  // Invalidate search history cache so it pulls the latest history when returning Home
-  searchHistoryCache = null;
-  sessionStorage.removeItem('appliqa_search_history');
+  // Put the query at the top of the cached history so Home shows it straight
+  // away; the next history fetch confirms it with the server in the background
+  const query = params?.query?.trim();
+  if (query) recentLocalQueries.set(query, Date.now());
+  if (query && searchHistoryCache?.data?.history) {
+    const rest = searchHistoryCache.data.history.filter((h) => h.query?.trim().toLowerCase() !== query.toLowerCase());
+    searchHistoryCache = { data: { ...searchHistoryCache.data, history: [{ query, created_at: new Date().toISOString() }, ...rest] } };
+    try { sessionStorage.setItem('appliqa_search_history', JSON.stringify(searchHistoryCache)); } catch { /* storage full */ }
+  }
   return api.get('/jobs/search', { params });
 };
 
@@ -210,26 +231,31 @@ export const getAchievementFinderChat = (data) => api.post('/ai/achievement-find
 export const createOrUpdateUser = (data) => api.post('/user/profile', data);
 export const getUserProfile = () => api.get('/user/profile'); // Backend uses token
 export const incrementStat = (stat) => api.post('/user/increment-stat', { stat });
-export const getSearchHistory = async () => {
+// Cached history, read synchronously so a page can render it on first paint
+export const peekSearchHistory = () => searchHistoryCache?.data?.history || null;
+
+export const getSearchHistory = async (onFresh) => {
   if (searchHistoryCache) {
     // Return cached data immediately, fetch fresh copy in the background
     api.get('/user/history')
       .then(res => {
-        searchHistoryCache = { data: res.data };
-        sessionStorage.setItem('appliqa_search_history', JSON.stringify({ data: res.data }));
+        searchHistoryCache = { data: withRecentLocal(res.data) };
+        sessionStorage.setItem('appliqa_search_history', JSON.stringify(searchHistoryCache));
+        onFresh?.(searchHistoryCache);
       })
       .catch(() => {});
     return searchHistoryCache;
   }
 
   const res = await api.get('/user/history');
-  searchHistoryCache = { data: res.data };
-  sessionStorage.setItem('appliqa_search_history', JSON.stringify({ data: res.data }));
-  return res;
+  searchHistoryCache = { data: withRecentLocal(res.data) };
+  sessionStorage.setItem('appliqa_search_history', JSON.stringify(searchHistoryCache));
+  return searchHistoryCache;
 };
 
 export const deleteSearchHistory = async (query) => {
   const clean = query?.trim();
+  for (const q of recentLocalQueries.keys()) if (q.toLowerCase() === clean?.toLowerCase()) recentLocalQueries.delete(q);
   if (searchHistoryCache && searchHistoryCache.data?.history) {
     searchHistoryCache.data.history = searchHistoryCache.data.history.filter(
       h => h.query?.trim().toLowerCase() !== clean.toLowerCase()
@@ -251,6 +277,7 @@ export const deleteSearchHistory = async (query) => {
 };
 
 export const clearAllSearchHistory = async () => {
+  recentLocalQueries.clear();
   searchHistoryCache = { data: { success: true, history: [] } };
   sessionStorage.setItem('appliqa_search_history', JSON.stringify(searchHistoryCache));
   localStorage.removeItem('appliqa_recent_searches');

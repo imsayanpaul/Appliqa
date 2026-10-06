@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiArrowUpRight, FiArrowRight, FiX, FiCheck, FiMinus } from 'react-icons/fi';
 const ResumeUpload = lazy(() => import('../components/ResumeUpload'));
 import RecommendedJobs from '../components/RecommendedJobs';
-import { smartSearch, getSearchHistory, deleteSearchHistory, clearAllSearchHistory, getSuggestedRoles, getSavedJobs } from '../services/api';
+import { smartSearch, getSearchHistory, peekSearchHistory, deleteSearchHistory, clearAllSearchHistory, getSuggestedRoles, getSavedJobs } from '../services/api';
 import { readProfiles, formatUpdated } from '../lib/resumeProfiles';
 
 const STEPS = [
@@ -112,13 +112,32 @@ function ExampleReport() {
     );
 }
 
+// Up to 8 queries, newest first, ignoring case duplicates
+const dedupeQueries = (list) => {
+    const seen = new Set();
+    const out = [];
+    for (const q of list) {
+        const clean = q?.trim();
+        if (clean && !seen.has(clean.toLowerCase())) {
+            seen.add(clean.toLowerCase());
+            out.push(clean);
+        }
+        if (out.length >= 8) break;
+    }
+    return out;
+};
+
 function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
     const navigate = useNavigate();
     const [query, setQuery] = useState('');
     const [aiMode, setAiMode] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [recentSearches, setRecentSearches] = useState([]);
+    // Start from the cached history so the row doesn't pop in a second later
+    const [recentSearches, setRecentSearches] = useState(() => {
+        if (user) return dedupeQueries((peekSearchHistory() || []).map((h) => h.query));
+        try { return dedupeQueries(JSON.parse(localStorage.getItem('appliqa_recent_searches') || '[]')); } catch { return []; }
+    });
     const [suggestedRoles, setSuggestedRoles] = useState(DEFAULT_ROLES);
     const [trackerCounts, setTrackerCounts] = useState(null);
 
@@ -158,23 +177,12 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
 
     // Search history: API for signed-in users, localStorage for guests
     useEffect(() => {
-        const dedupe = (list) => {
-            const seen = new Set();
-            const out = [];
-            for (const q of list) {
-                const clean = q?.trim();
-                if (clean && !seen.has(clean.toLowerCase())) {
-                    seen.add(clean.toLowerCase());
-                    out.push(clean);
-                }
-                if (out.length >= 8) break;
-            }
-            return out;
-        };
+        const dedupe = dedupeQueries;
+        const apply = (res) => setRecentSearches(dedupe((res?.data?.history || []).map(h => h.query)));
 
         if (user) {
-            getSearchHistory()
-                .then(res => setRecentSearches(dedupe((res.data?.history || []).map(h => h.query))))
+            getSearchHistory(apply)
+                .then(apply)
                 .catch(err => console.error('Failed to fetch search history from API:', err));
         } else {
             try {
