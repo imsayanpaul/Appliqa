@@ -1107,3 +1107,74 @@ textarea.resume-input-field { line-height: 1.6; }
 /* Keep the feedback button clear of bottom composers (advisor) */
 .feedback-raised .feedback-floating-btn { bottom: 84px; }
 .feedback-raised .feedback-panel { bottom: 136px; }
+
+/* Small screens: feedback lives in the navbar, the panel drops down from it */
+.nav-feedback { display: flex; }
+@media (max-width: 899.98px) {
+  .feedback-floating-btn { display: none !important; }
+  .feedback-panel,
+  .feedback-raised .feedback-panel {
+    top: calc(var(--nav-h) + 8px);
+    bottom: auto;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-height: calc(100dvh - var(--nav-h) - 24px);
+    overflow-y: auto;
+    border-radius: 0;
+  }
+}
+@media (min-width: 900px) {
+  .nav-feedback { display: none; }
+}
+
+/* Toast: hairline card, ink border, coloured rule on the left */
+.ds-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2000;
+  width: 380px;
+  display: flex;
+  align-items: stretch;
+  background: #FFFFFF;
+  border: 1px solid var(--text-primary);
+  box-shadow: 0 16px 32px -16px rgba(23, 23, 23, 0.35);
+  color: var(--text-primary);
+}
+.ds-toast-rule { width: 4px; flex-shrink: 0; background: var(--accent-primary); }
+.ds-toast[data-type="error"] .ds-toast-rule { background: #B91C1C; }
+.ds-toast[data-type="success"] .ds-toast-rule { background: #15803D; }
+.ds-toast-body { flex: 1; min-width: 0; padding: 14px 16px; }
+.ds-toast-msg { margin: 6px 0 0; font-size: 15px; line-height: 1.45; font-weight: 500; word-break: break-word; }
+.ds-toast-action {
+  margin-top: 10px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  cursor: pointer;
+}
+.ds-toast-action:hover { color: var(--text-primary); }
+.ds-toast-close {
+  width: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--line);
+  color: var(--text-secondary, #6F6A65);
+  cursor: pointer;
+}
+.ds-toast-close:hover { background: var(--bg-primary); color: var(--text-primary); }
+@media (max-width: 767.98px) {
+  .ds-toast { left: 16px; right: 16px; bottom: 16px; width: auto; }
+}

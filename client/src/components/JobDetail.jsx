@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { FiX, FiBookmark, FiFileText, FiCopy, FiCheck, FiMessageSquare, FiRefreshCw, FiArrowUpRight } from 'react-icons/fi';
 import { FileCheck } from 'lucide-react';
@@ -9,6 +10,8 @@ import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
 import { formatSalary } from '../lib/format';
 
 function JobDetail({ job, user, resumeData, onClose }) {
+    const navigate = useNavigate();
+    const goToSignIn = () => { onClose?.(); navigate('/profile'); };
     const [matchData, setMatchData] = useState(null);
     const [loadingMatch, setLoadingMatch] = useState(false);
     const [isSaved, setIsSaved] = useState(!!job._id);
@@ -373,7 +376,15 @@ function JobDetail({ job, user, resumeData, onClose }) {
                         {isSaved ? 'Saved to tracker' : 'Save job'}
                         <FiBookmark size={18} fill={isSaved ? 'currentColor' : 'none'} />
                     </button>
-                    {job.applyLink ? (
+                    {!user ? (
+                        <button
+                            type="button"
+                            onClick={goToSignIn}
+                            className="ds-btn ds-btn-accent !min-h-[64px] !px-6 sm:!px-8"
+                        >
+                            Sign in to apply <FiArrowUpRight size={18} className="ds-btn-arrow" />
+                        </button>
+                    ) : job.applyLink ? (
                         <a
                             href={job.applyLink}
                             target="_blank"

@@ -611,21 +611,21 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             <span className="ds-mono text-white/60">your account</span>
                             <span className="ds-mono text-white/60 flex items-center gap-2">free <span className="ds-square" /></span>
                         </div>
-                        <ol className="list-none m-0 p-0 flex-1 flex flex-col justify-center">
+                        <ol className="list-none m-0 p-0 flex-1 min-h-0 flex flex-col">
                             {[
                                 ["Upload your resume once", "Every search and score is matched against it."],
                                 ["Save jobs to a tracker", "Move them from saved to applied to offer."],
                                 ["Generate applications", "Cover letters and recruiter messages per job."],
                                 ["Plan your next step", "Career paths, skill gaps and interview prep."],
                             ].map(([title, body], i) => (
-                                <li key={title} className="auth-step px-8 py-6 border-0 border-t border-white/15 last:border-b">
+                                <li key={title} className="auth-step flex-1 min-h-0 flex flex-col justify-center px-8 py-3 border-0 border-t border-white/15 first:border-t-0">
                                     <span className="ds-mono text-[#FF6A33]">0{i + 1}</span>
                                     <p className="m-0 mt-2 text-[22px] font-medium tracking-[-0.015em]">{title}</p>
                                     <p className="m-0 mt-1 text-[15px] text-white/60">{body}</p>
                                 </li>
                             ))}
                         </ol>
-                        <p aria-hidden="true" className="auth-wordmark ds-display !text-white m-0 px-8 pb-6 select-none whitespace-nowrap overflow-hidden" style={{ fontSize: "calc((min(50vw, 720px) - 64px) / 5.14)" }}>
+                        <p aria-hidden="true" className="auth-wordmark ds-display !text-white m-0 px-8 pb-6 pt-4 border-0 border-t border-white/15 shrink-0 select-none whitespace-nowrap overflow-hidden" style={{ fontSize: "calc((min(50vw, 720px) - 64px) / 5.14)" }}>
                             Appliqa<span className="text-[#FF6A33]">.</span>
                         </p>
                     </div>

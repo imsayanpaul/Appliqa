@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiChevronDown, FiCalendar, FiChevronRight, FiArrowUpRight } from 'react-icons/fi';
+import { FiSearch, FiBriefcase, FiBookmark, FiUser, FiUpload, FiZap, FiTrendingUp, FiX, FiMapPin, FiCheckCircle, FiAlertCircle, FiInfo, FiStar, FiChevronDown, FiCalendar, FiChevronRight, FiArrowUpRight, FiMessageSquare } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 
@@ -190,24 +190,26 @@ function AppContent() {
     }, [showOnboardingPrompt]);
     
     // Custom Alert State
-    const [customAlert, setCustomAlert] = useState({ show: false, message: '', title: 'Notification', type: 'info' });
+    const [customAlert, setCustomAlert] = useState({ show: false, message: '', title: 'Notice', type: 'info', action: null });
 
     // Override window.alert
     useEffect(() => {
         window.alert = (message) => {
             const msgLower = (message || '').toLowerCase();
             let type = 'info';
-            let title = 'Notification';
+            let title = 'Notice';
             
             if (msgLower.includes('success') || msgLower.includes('created') || msgLower.includes('saved')) {
                 type = 'success';
-                title = 'Success';
+                title = 'Done';
             } else if (msgLower.includes('fail') || msgLower.includes('could not') || msgLower.includes('error') || msgLower.includes('missing')) {
                 type = 'error';
                 title = 'Error';
             }
             
-            setCustomAlert({ show: true, message, title, type });
+            // Sign-in prompts get a direct link to the sign-in page
+            const action = /\bsign in\b/i.test(message || '') ? { label: 'Sign in', path: '/profile' } : null;
+            setCustomAlert({ show: true, message, title, type, action });
         };
     }, []);
 
@@ -692,6 +694,14 @@ function AppContent() {
                         )}
                         <button
                             type="button"
+                            className="navbar-mobile-toggle nav-feedback"
+                            onClick={() => window.dispatchEvent(new CustomEvent('appliqa:open-feedback', { detail: { toggle: true } }))}
+                            aria-label="Send feedback"
+                        >
+                            <FiMessageSquare size={19} />
+                        </button>
+                        <button
+                            type="button"
                             className="navbar-mobile-toggle"
                             onClick={toggleMenu}
                             aria-label="Open menu"
@@ -1036,96 +1046,42 @@ function AppContent() {
 
             <AnimatePresence>
                 {customAlert.show && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20, x: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, x: 20, scale: 0.95 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                        onClick={() => setCustomAlert(prev => ({ ...prev, show: false }))}
-                        style={{
-                            position: 'fixed',
-                            bottom: isMobileViewport ? '16px' : '24px',
-                            left: isMobileViewport ? '16px' : 'auto',
-                            right: isMobileViewport ? '16px' : '24px',
-                            width: isMobileViewport ? 'auto' : '360px',
-                            background: '#FFFFFF',
-                            border: '1.5px solid #D8D4CC',
-                            borderRadius: '8px',
-                            padding: '14px 16px',
-                            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)',
-                            zIndex: 2000,
-                            display: 'flex',
-                            gap: '12px',
-                            alignItems: 'flex-start',
-                            cursor: 'pointer',
-                        }}
+                    <motion.div
+                        role={customAlert.type === 'error' ? 'alert' : 'status'}
+                        className="ds-toast"
+                        data-type={customAlert.type}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 16 }}
+                        transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}
                     >
-                        {/* Icon wrapper */}
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '6px',
-                            background: customAlert.type === 'error' ? '#FEF2F2' : customAlert.type === 'success' ? '#FFF0E8' : '#EFF6FF',
-                            border: `1px solid ${customAlert.type === 'error' ? '#FECACA' : customAlert.type === 'success' ? '#CA3C0A40' : '#BFDBFE'}`,
-                            color: customAlert.type === 'error' ? '#EF4444' : customAlert.type === 'success' ? '#CA3C0A' : '#2563EB',
-                            flexShrink: 0,
-                        }}>
-                            {customAlert.type === 'success' ? (
-                                <FiCheckCircle size={16} />
-                            ) : customAlert.type === 'error' ? (
-                                <FiAlertCircle size={16} />
-                            ) : (
-                                <FiInfo size={16} />
+                        <span className="ds-toast-rule" aria-hidden="true" />
+                        <div className="ds-toast-body">
+                            <p className="ds-mono ds-mono-muted m-0 flex items-center gap-2">
+                                {customAlert.type === 'success' ? <FiCheckCircle size={13} /> : customAlert.type === 'error' ? <FiAlertCircle size={13} /> : <FiInfo size={13} />}
+                                {customAlert.title.toLowerCase()}
+                            </p>
+                            <p className="ds-toast-msg">{customAlert.message}</p>
+                            {customAlert.action && (
+                                <button
+                                    type="button"
+                                    className="ds-toast-action"
+                                    onClick={() => {
+                                        setCustomAlert(prev => ({ ...prev, show: false }));
+                                        navigate(customAlert.action.path);
+                                    }}
+                                >
+                                    {customAlert.action.label} <FiArrowUpRight size={15} aria-hidden="true" />
+                                </button>
                             )}
                         </div>
-
-                        {/* Content */}
-                        <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
-                            <h4 style={{
-                                fontSize: '13px',
-                                fontWeight: 700,
-                                color: '#171717',
-                                letterSpacing: '-0.01em',
-                                margin: '0 0 3px 0',
-                            }}>
-                                {customAlert.title}
-                            </h4>
-                            <p style={{
-                                color: '#66615C',
-                                fontSize: '12px',
-                                lineHeight: '1.45',
-                                margin: 0,
-                                wordBreak: 'break-word',
-                            }}>
-                                {customAlert.message}
-                            </p>
-                        </div>
-
-                        {/* Small Close Button */}
                         <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setCustomAlert(prev => ({ ...prev, show: false }));
-                            }}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#8A8580',
-                                cursor: 'pointer',
-                                padding: '4px',
-                                marginRight: '-4px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'color 0.15s',
-                            }}
-                            onMouseOver={(e) => e.target.style.color = '#171717'}
-                            onMouseOut={(e) => e.target.style.color = '#8A8580'}
+                            type="button"
+                            className="ds-toast-close"
+                            aria-label="Dismiss notification"
+                            onClick={() => setCustomAlert(prev => ({ ...prev, show: false }))}
                         >
-                            <FiX size={14} />
+                            <FiX size={16} />
                         </button>
                     </motion.div>
                 )}

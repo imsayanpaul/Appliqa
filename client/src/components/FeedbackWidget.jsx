@@ -15,7 +15,7 @@ function FeedbackWidget({ user }) {
     useEffect(() => {
         const open = (e) => {
             if (e.detail?.category) setCategory(e.detail.category);
-            setIsOpen(true);
+            setIsOpen((o) => (e.detail?.toggle ? !o : true));
         };
         window.addEventListener('appliqa:open-feedback', open);
         return () => window.removeEventListener('appliqa:open-feedback', open);
