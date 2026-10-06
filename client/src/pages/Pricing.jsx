@@ -109,7 +109,7 @@ export default function Pricing({ user, session }) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-10 pb-20 w-full">
                 {/* Header Section */}
                 <div className="text-center max-w-3xl mx-auto mb-12">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0E8] border border-[#F45B25]/20 text-[#F45B25] text-xs font-bold uppercase tracking-wider mb-4">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF0E8] border border-[#CA3C0A]/20 text-[#CA3C0A] text-xs font-bold uppercase tracking-wider mb-4">
                         <FiZap size={12} />
                         <span>Predictable Career Investment</span>
                     </div>
@@ -135,7 +135,7 @@ export default function Pricing({ user, session }) {
                             className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 ${annual ? 'bg-[#171717] text-white shadow-xs' : 'bg-transparent text-[#66615C] hover:text-[#171717]'}`}
                         >
                             <span>Annual Billing</span>
-                            <span className="bg-[#F45B25] text-white text-[10px] font-black px-2 py-0.5 rounded-full">Save 20%</span>
+                            <span className="bg-[#CA3C0A] text-white text-[10px] font-black px-2 py-0.5 rounded-full">Save 20%</span>
                         </button>
                     </div>
                 </div>
@@ -149,12 +149,12 @@ export default function Pricing({ user, session }) {
                                 key={plan.id}
                                 className={`relative rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all ${
                                     plan.popular
-                                        ? 'bg-[#171717] text-white shadow-2xl border-2 border-[#F45B25] scale-[1.02]'
+                                        ? 'bg-[#171717] text-white shadow-2xl border-2 border-[#CA3C0A] scale-[1.02]'
                                         : 'bg-white text-[#171717] border border-[#D8D4CC] shadow-sm hover:shadow-md'
                                 }`}
                             >
                                 {plan.popular && (
-                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#F45B25] to-[#FF8C42] text-white text-[11px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md">
+                                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#CA3C0A] to-[#FF8C42] text-white text-[11px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md">
                                         ★ Most Popular Choice
                                     </div>
                                 )}
@@ -184,7 +184,7 @@ export default function Pricing({ user, session }) {
                                         </p>
                                         {plan.features.map((feat) => (
                                             <div key={feat} className="flex items-start gap-2.5 text-xs sm:text-sm">
-                                                <FiCheck className={`shrink-0 mt-0.5 ${plan.popular ? 'text-[#F45B25]' : 'text-[#171717]'}`} size={16} />
+                                                <FiCheck className={`shrink-0 mt-0.5 ${plan.popular ? 'text-[#CA3C0A]' : 'text-[#171717]'}`} size={16} />
                                                 <span className={plan.popular ? 'text-white/90' : 'text-[#171717]'}>{feat}</span>
                                             </div>
                                         ))}
@@ -197,7 +197,7 @@ export default function Pricing({ user, session }) {
                                         onClick={() => handleSelectPlan(plan.id)}
                                         className={`w-full py-3 px-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border-none cursor-pointer ${
                                             plan.popular
-                                                ? 'bg-[#F45B25] hover:bg-[#D94B1F] text-white shadow-lg shadow-[#F45B25]/30'
+                                                ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white shadow-lg shadow-[#CA3C0A]/30'
                                                 : 'bg-[#171717] hover:bg-neutral-800 text-white'
                                         }`}
                                     >
@@ -213,7 +213,7 @@ export default function Pricing({ user, session }) {
                 {/* Trust & Guarantee Banner */}
                 <div className="mt-14 max-w-3xl mx-auto bg-white border border-[#D8D4CC] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center shrink-0">
                             <FiShield size={20} />
                         </div>
                         <div>

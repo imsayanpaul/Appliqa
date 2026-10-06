@@ -46,7 +46,7 @@ function Footer() {
   ];
 
   return (
-    <footer className="w-full bg-[#F45B25] text-[#171717] pt-16 pb-8 px-6 sm:px-10 md:px-16 overflow-hidden relative select-none">
+    <footer className="w-full bg-[#CA3C0A] text-[#171717] pt-16 pb-8 px-6 sm:px-10 md:px-16 overflow-hidden relative select-none">
       <div className="max-w-7xl mx-auto">
         {/* Top Section: Tagline & Links */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 pb-10">
@@ -114,10 +114,10 @@ function Footer() {
             <span>Powered by Next-Gen AI Matching & ATS Scoring Engine</span>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2 justify-center">
-            <span onClick={() => handleNav('/')} className="hover:text-[#171717] transition-colors cursor-pointer">About Appliqa</span>
-            <span onClick={() => {}} className="hover:text-[#171717] transition-colors cursor-pointer">Privacy Policy</span>
-            <span onClick={() => {}} className="hover:text-[#171717] transition-colors cursor-pointer">Terms of Service</span>
-            <span onClick={() => {}} className="hover:text-[#171717] transition-colors cursor-pointer">Security</span>
+            <button type="button" onClick={() => handleNav('/')} className="hover:text-[#171717] transition-colors cursor-pointer">About Appliqa</button>
+            <button type="button" onClick={() => handleNav('/privacy')} className="hover:text-[#171717] transition-colors cursor-pointer">Privacy Policy</button>
+            <button type="button" onClick={() => handleNav('/terms')} className="hover:text-[#171717] transition-colors cursor-pointer">Terms of Service</button>
+            <button type="button" onClick={() => handleNav('/security')} className="hover:text-[#171717] transition-colors cursor-pointer">Security</button>
           </div>
         </div>
       </div>

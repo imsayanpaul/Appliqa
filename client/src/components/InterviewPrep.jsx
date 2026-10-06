@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useEscapeKey } from '../lib/useEscapeKey';
 import { FiX, FiCopy, FiCheck, FiVideo, FiBookOpen, FiTarget, FiMessageCircle, FiAward } from 'react-icons/fi';
 import { generateInterviewPrep, saveInterviewPrep } from '../services/api';
 
@@ -6,6 +7,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
     const [prepData, setPrepData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
+    useEscapeKey(onClose);
 
     useEffect(() => {
         // If job already has saved prep, load it
@@ -94,7 +96,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
 
     return (
         <div className="modal-overlay" onClick={onClose} data-lenis-prevent>
-            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }} data-lenis-prevent>
+            <div className="modal-content" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }} data-lenis-prevent>
                 <button className="modal-close" onClick={onClose} aria-label="Close modal">
                     <FiX size={15} />
                 </button>
@@ -102,11 +104,11 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                 {/* Header */}
                 <div className="modal-header pb-4 border-b border-neutral-100">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-md bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center flex-shrink-0 border border-[#F45B25]/20">
+                        <div className="w-10 h-10 rounded-md bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center flex-shrink-0 border border-[#CA3C0A]/20">
                             <FiVideo size={20} />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#F45B25] block mb-0.5 font-mono">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#CA3C0A] block mb-0.5 font-mono">
                                 [ AI Interview Copilot ]
                             </span>
                             <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight leading-tight m-0">
@@ -134,7 +136,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                 {/* Loading */}
                 {loading && (
                     <div className="text-center py-16 px-4">
-                        <div className="w-10 h-10 border-3 border-neutral-200 border-t-[#F45B25] rounded-full animate-spin mx-auto mb-4" />
+                        <div className="w-10 h-10 border-3 border-neutral-200 border-t-[#CA3C0A] rounded-full animate-spin mx-auto mb-4" />
                         <h3 className="text-base font-bold text-[#171717]">Generating your tailored interview prep...</h3>
                         <p className="text-xs text-neutral-500 mt-1">Analyzing candidate resume synergies, behavioral STAR questions, and technical topics.</p>
                     </div>
@@ -148,9 +150,9 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                         {prepData.questions?.length > 0 && (
                             <div>
                                 <div className="flex items-center gap-2 mb-3.5">
-                                    <div className="w-1 h-3.5 bg-[#F45B25] rounded-full" />
+                                    <div className="w-1 h-3.5 bg-[#CA3C0A] rounded-full" />
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
-                                        <FiMessageCircle size={14} className="text-[#F45B25]" /> Likely Questions & STAR Frameworks
+                                        <FiMessageCircle size={14} className="text-[#CA3C0A]" /> Likely Questions & STAR Frameworks
                                     </h3>
                                 </div>
 
@@ -162,7 +164,7 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                                                 <h4 className="text-sm sm:text-base font-bold text-[#171717] leading-snug m-0">
                                                     {i + 1}. {q.question}
                                                 </h4>
-                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E8] text-[#F45B25] border border-[#F45B25]/20 shrink-0 font-mono">
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#FFF0E8] text-[#CA3C0A] border border-[#CA3C0A]/20 shrink-0 font-mono">
                                                     {q.type || 'Behavioral'}
                                                 </span>
                                             </div>
@@ -185,8 +187,8 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
 
                                             {/* Sample Answer Box */}
                                             {q.sampleAnswer && (
-                                                <div className="bg-[#FAF8F5] rounded-md p-3.5 border border-[#D8D4CC] border-l-3 border-l-[#F45B25] mt-2.5">
-                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#F45B25] font-mono mb-1 flex items-center gap-1.5">
+                                                <div className="bg-[#FAF8F5] rounded-md p-3.5 border border-[#D8D4CC] border-l-3 border-l-[#CA3C0A] mt-2.5">
+                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-[#CA3C0A] font-mono mb-1 flex items-center gap-1.5">
                                                         <span>💡</span> Suggested Answer Framework
                                                     </div>
                                                     <p className="text-xs sm:text-[13px] text-neutral-800 leading-relaxed font-normal italic m-0">
@@ -204,9 +206,9 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                         {prepData.technicalTopics?.length > 0 && (
                             <div>
                                 <div className="flex items-center gap-2 mb-3.5">
-                                    <div className="w-1 h-3.5 bg-[#F45B25] rounded-full" />
+                                    <div className="w-1 h-3.5 bg-[#CA3C0A] rounded-full" />
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
-                                        <FiBookOpen size={14} className="text-[#F45B25]" /> Technical Concepts to Review
+                                        <FiBookOpen size={14} className="text-[#CA3C0A]" /> Technical Concepts to Review
                                     </h3>
                                 </div>
 
@@ -241,9 +243,9 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                             {prepData.companyInsights?.length > 0 && (
                                 <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
                                     <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-1 h-3 bg-[#F45B25] rounded-full" />
+                                        <div className="w-1 h-3 bg-[#CA3C0A] rounded-full" />
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
-                                            <FiTarget size={14} className="text-[#F45B25]" /> Company Insights
+                                            <FiTarget size={14} className="text-[#CA3C0A]" /> Company Insights
                                         </h3>
                                     </div>
                                     <div className="space-y-2">
@@ -259,14 +261,14 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                             {prepData.tips?.length > 0 && (
                                 <div className="bg-white rounded-lg p-5 border border-[#D8D4CC]">
                                     <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-1 h-3 bg-[#F45B25] rounded-full" />
+                                        <div className="w-1 h-3 bg-[#CA3C0A] rounded-full" />
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1.5 m-0 font-mono">
-                                            <FiAward size={14} className="text-[#F45B25]" /> Interview Pro Tips
+                                            <FiAward size={14} className="text-[#CA3C0A]" /> Interview Pro Tips
                                         </h3>
                                     </div>
                                     <div className="space-y-2">
                                         {prepData.tips.map((t, i) => (
-                                            <div key={i} className="text-xs text-neutral-700 pl-2.5 border-l-2 border-[#F45B25]/40 leading-relaxed">
+                                            <div key={i} className="text-xs text-neutral-700 pl-2.5 border-l-2 border-[#CA3C0A]/40 leading-relaxed">
                                                 {t}
                                             </div>
                                         ))}

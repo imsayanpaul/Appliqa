@@ -60,12 +60,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         alignItems: 'center',
                         gap: '6px',
                         background: '#FFF0E8',
-                        border: '1px solid rgba(244, 91, 37, 0.3)',
+                        border: '1px solid rgba(202, 60, 10, 0.3)',
                         borderRadius: '4px',
                         padding: '4px 10px',
                         fontSize: '11px',
                         fontWeight: '700',
-                        color: '#F45B25',
+                        color: '#CA3C0A',
                         textTransform: 'uppercase',
                         letterSpacing: '0.04em',
                         marginBottom: '20px'
@@ -74,7 +74,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             width: '6px',
                             height: '6px',
                             borderRadius: '50%',
-                            backgroundColor: '#F45B25'
+                            backgroundColor: '#CA3C0A'
                         }} />
                         Desktop Recommended
                     </div>
@@ -88,10 +88,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         height: '56px',
                         borderRadius: '8px',
                         background: '#FFF0E8',
-                        border: '1px solid rgba(244, 91, 37, 0.25)',
+                        border: '1px solid rgba(202, 60, 10, 0.25)',
                         margin: '0 auto 20px auto'
                     }}>
-                        <Monitor size={28} className="text-[#F45B25]" />
+                        <Monitor size={28} className="text-[#CA3C0A]" />
                     </div>
 
                     <h2 style={{
@@ -138,7 +138,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 transition: 'all 0.15s ease'
                             }}
                             onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#F45B25';
+                                e.currentTarget.style.background = '#CA3C0A';
                             }}
                             onMouseOut={(e) => {
                                 e.currentTarget.style.background = '#171717';
@@ -1024,7 +1024,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     <div className="resume-creator-header-actions border-b border-[#D8D4CC] px-6 py-3.5 bg-white flex items-center justify-end gap-2">
                         <button 
                             onClick={() => setShowTailorModal(true)}
-                            className="h-8 px-3 rounded-md bg-[#FFF0E8] hover:bg-[#FFE4D6] text-[#F45B25] text-xs font-bold transition-all border border-[#F45B25]/30 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                            className="h-8 px-3 rounded-md bg-[#FFF0E8] hover:bg-[#FFE4D6] text-[#CA3C0A] text-xs font-bold transition-all border border-[#CA3C0A]/30 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                             style={{ boxShadow: 'none' }}
                             title="Calibrate resume keywords to match a target job"
                         >
@@ -1044,10 +1044,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             disabled={syncing}
                             className={`h-8 px-3.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 whitespace-nowrap border-none shadow-sm ${
                                 saved
-                                    ? 'bg-[#F45B25] text-white shadow-[#F45B25]/30'
+                                    ? 'bg-[#CA3C0A] text-white shadow-[#CA3C0A]/30'
                                     : isDirty
-                                    ? 'bg-[#F45B25] hover:bg-[#d94815] text-white shadow-[#F45B25]/25 animate-pulse'
-                                    : 'bg-[#171717] hover:bg-[#F45B25] text-white'
+                                    ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white shadow-[#CA3C0A]/25 animate-pulse'
+                                    : 'bg-[#171717] hover:bg-[#CA3C0A] text-white'
                             }`}
                             style={{ boxShadow: 'none' }}
                             title="Save & sync resume changes to account profile (Ctrl+S)"
@@ -1095,10 +1095,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             : 'text-[#8A8580] hover:text-[#171717]'
                                     }`}
                                 >
-                                    <Icon size={13} className={isActive ? 'text-[#F45B25]' : 'text-[#8A8580]'} />
+                                    <Icon size={13} className={isActive ? 'text-[#CA3C0A]' : 'text-[#8A8580]'} />
                                     <span>{tab.name}</span>
                                     {isActive && (
-                                        <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#F45B25] rounded-t-full" />
+                                        <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#CA3C0A] rounded-t-full" />
                                     )}
                                 </button>
                             );
@@ -1267,7 +1267,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                         disabled={!summary.trim()}
                                         className="h-8 px-3 rounded-md bg-[#FAF8F5] hover:bg-[#171717] text-[#171717] hover:text-white text-xs font-bold border border-[#D8D4CC] hover:border-[#171717] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group"
                                     >
-                                        <Sliders size={13} className="text-[#F45B25] group-hover:text-white transition-colors" />
+                                        <Sliders size={13} className="text-[#CA3C0A] group-hover:text-white transition-colors" />
                                         <span>Enhance Summary with AI</span>
                                     </button>
                                 </div>
@@ -1371,10 +1371,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                 <button
                                                     type="button"
                                                     onClick={() => handleStartChatbot(expIdx)}
-                                                    className="h-7 px-2.5 rounded-md bg-[#FAF8F5] hover:bg-[#FFF0E8] text-[#171717] hover:text-[#F45B25] text-[11px] font-bold border border-[#D8D4CC] hover:border-[#F45B25]/40 transition-all flex items-center gap-1.5 cursor-pointer"
+                                                    className="h-7 px-2.5 rounded-md bg-[#FAF8F5] hover:bg-[#FFF0E8] text-[#171717] hover:text-[#CA3C0A] text-[11px] font-bold border border-[#D8D4CC] hover:border-[#CA3C0A]/40 transition-all flex items-center gap-1.5 cursor-pointer"
                                                     style={{ boxShadow: 'none' }}
                                                 >
-                                                    <MessageSquare size={12} className="text-[#F45B25]" />
+                                                    <MessageSquare size={12} className="text-[#CA3C0A]" />
                                                     <span>Brainstorm Impact Bullets</span>
                                                 </button>
                                             </div>
@@ -1694,7 +1694,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             </button>
                             <button 
                                 onClick={handleDownloadPDF}
-                                className="h-8 px-3.5 rounded-md bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all border border-[#171717] flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                                className="h-8 px-3.5 rounded-md bg-[#171717] hover:bg-[#CA3C0A] text-white text-xs font-bold transition-all border border-[#171717] flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                                 style={{ boxShadow: 'none' }}
                             >
                                 <Download size={13} />
@@ -1715,7 +1715,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             >
                                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-100 relative z-10">
                                     <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-[#F45B25] shrink-0" />
+                                        <span className="w-2 h-2 rounded-full bg-[#CA3C0A] shrink-0" />
                                         <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#171717] m-0">
                                             ATS OPTIMIZATION & KEYWORD SCANNER
                                         </h3>
@@ -1807,7 +1807,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                         </div>
                                                     </div>
                                                     <div>
-                                                        <div className="text-[10px] font-mono font-bold text-[#F45B25] uppercase tracking-wider mb-1">Missing Keywords ({atsResult.keywords?.missing?.length || 0})</div>
+                                                        <div className="text-[10px] font-mono font-bold text-[#CA3C0A] uppercase tracking-wider mb-1">Missing Keywords ({atsResult.keywords?.missing?.length || 0})</div>
                                                         <div className="flex flex-wrap gap-1">
                                                             {atsResult.keywords?.missing?.slice(0, 8).map(k => {
                                                                 const isAdded = skills.includes(k);
@@ -1838,7 +1838,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                             </div>
                                         ) : (
                                             <div className="ats-scanner-placeholder">
-                                                <div className="w-12 h-12 rounded-md bg-[#FFF0E8] border border-[#F45B25]/20 flex items-center justify-center text-[#F45B25] mb-3">
+                                                <div className="w-12 h-12 rounded-md bg-[#FFF0E8] border border-[#CA3C0A]/20 flex items-center justify-center text-[#CA3C0A] mb-3">
                                                     <FileCheck size={24} className="stroke-[2]" />
                                                 </div>
                                                 <span className="text-xs font-bold text-[#171717]">No score computed yet</span>
@@ -1857,7 +1857,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                     {imp.priority === 'high' ? (
                                                         <AlertCircle size={13} className="text-rose-500 shrink-0 mt-0.5" />
                                                     ) : (
-                                                        <CheckCircle2 size={13} className="text-[#F45B25] shrink-0 mt-0.5" />
+                                                        <CheckCircle2 size={13} className="text-[#CA3C0A] shrink-0 mt-0.5" />
                                                     )}
                                                     <span className="text-neutral-800 leading-relaxed font-medium">{imp.tip || imp}</span>
                                                 </div>
@@ -2171,7 +2171,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         {/* Header */}
                         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
                             <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
                                     [ Bullet Point Enhancer ]
                                 </span>
                                 <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
@@ -2244,7 +2244,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             {/* Variations list */}
                             {enhancerData.variations.length > 0 && (
                                 <div className="space-y-3 pt-4 border-t border-neutral-100">
-                                    <label className="block text-[10px] font-mono font-bold text-[#F45B25] uppercase tracking-wider">Select Enhanced Variation</label>
+                                    <label className="block text-[10px] font-mono font-bold text-[#CA3C0A] uppercase tracking-wider">Select Enhanced Variation</label>
                                     <div className="space-y-2">
                                         {enhancerData.variations.map((variant, i) => (
                                             <button
@@ -2253,7 +2253,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                 className="resume-modal-variation-btn group"
                                             >
                                                 <span className="flex-1 pr-4 leading-relaxed font-medium">{variant}</span>
-                                                <ArrowRight size={13} className="shrink-0 text-neutral-400 group-hover:text-[#F45B25] transition-colors" />
+                                                <ArrowRight size={13} className="shrink-0 text-neutral-400 group-hover:text-[#CA3C0A] transition-colors" />
                                             </button>
                                         ))}
                                     </div>
@@ -2275,7 +2275,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     >
                         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
                             <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
                                     [ Resume Parser ]
                                 </span>
                                 <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
@@ -2310,7 +2310,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             </div>
 
                             {uploadStatus && (
-                                <div className="flex items-center gap-2 text-xs text-[#F45B25] font-medium bg-[#FFF0E8] p-3 rounded-md border border-[#F45B25]/20">
+                                <div className="flex items-center gap-2 text-xs text-[#CA3C0A] font-medium bg-[#FFF0E8] p-3 rounded-md border border-[#CA3C0A]/20">
                                     <RefreshCw className="animate-spin" size={14} />
                                     <span>{uploadStatus}</span>
                                 </div>
@@ -2337,7 +2337,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     >
                         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 bg-[#FAF8F5]">
                             <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
                                     [ Target Alignment ]
                                 </span>
                                 <h3 className="text-base font-bold text-[#171717] tracking-tight leading-none m-0">
@@ -2371,7 +2371,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             </div>
 
                             {tailoring ? (
-                                <div className="flex items-center gap-2.5 text-xs text-[#F45B25] font-medium bg-[#FFF0E8] p-3.5 rounded-md border border-[#F45B25]/20">
+                                <div className="flex items-center gap-2.5 text-xs text-[#CA3C0A] font-medium bg-[#FFF0E8] p-3.5 rounded-md border border-[#CA3C0A]/20">
                                     <RefreshCw className="animate-spin" size={14} />
                                     <span>Orchestrating AI resume tailoring... mapping coordinates and metrics...</span>
                                 </div>
@@ -2403,7 +2403,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         {/* Chat Header */}
                         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4 bg-[#FAF8F5] relative z-10">
                             <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
                                     [ Bullet Architect ]
                                 </span>
                                 <h3 className="text-xs font-mono font-bold text-[#171717] uppercase tracking-wider m-0">
@@ -2440,9 +2440,9 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                             {chatbotLoading && (
                                 <div className="flex justify-start">
                                     <div className="chat-bubble-ai px-4 py-3 flex items-center gap-1.5 shrink-0 bg-[#FAF8F5] border border-[#D8D4CC]">
-                                        <span className="h-1.5 w-1.5 bg-[#F45B25] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <span className="h-1.5 w-1.5 bg-[#F45B25] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <span className="h-1.5 w-1.5 bg-[#F45B25] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                        <span className="h-1.5 w-1.5 bg-[#CA3C0A] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                        <span className="h-1.5 w-1.5 bg-[#CA3C0A] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                        <span className="h-1.5 w-1.5 bg-[#CA3C0A] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                                     </div>
                                 </div>
                             )}
@@ -2452,11 +2452,11 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         {/* Suggested Bullet Display Card */}
                         {chatbotSuggestedBullet && (
                             <div className="chat-drawer-suggestion-card space-y-2.5 relative z-10">
-                                <div className="flex items-center gap-1 text-[10px] font-mono font-bold text-[#F45B25] uppercase tracking-wider">
+                                <div className="flex items-center gap-1 text-[10px] font-mono font-bold text-[#CA3C0A] uppercase tracking-wider">
                                     <Sparkle size={11} />
                                     <span>Formulated XYZ Bullet Point</span>
                                 </div>
-                                <div className="text-xs text-[#171717] bg-white border border-[#F45B25]/25 p-3 rounded-md leading-relaxed italic font-medium">
+                                <div className="text-xs text-[#171717] bg-white border border-[#CA3C0A]/25 p-3 rounded-md leading-relaxed italic font-medium">
                                     "{chatbotSuggestedBullet}"
                                 </div>
                                 <button
@@ -2503,7 +2503,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         style={{ width: 'min(92vw, 560px)' }}
                     >
                         <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#F45B25] animate-ping shrink-0" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#CA3C0A] animate-ping shrink-0" />
                             <span className="text-xs font-medium text-white/90 truncate">
                                 You have unsaved resume changes
                             </span>
@@ -2516,7 +2516,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                 type="button"
                                 onClick={handleSync}
                                 disabled={syncing}
-                                className="h-8 px-4 rounded-xl bg-[#F45B25] hover:bg-[#d94815] text-white text-xs font-bold border-none transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-md shadow-[#F45B25]/30"
+                                className="h-8 px-4 rounded-xl bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold border-none transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-md shadow-[#CA3C0A]/30"
                             >
                                 {syncing ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} />}
                                 <span>Save Changes</span>

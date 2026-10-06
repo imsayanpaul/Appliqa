@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useEscapeKey } from '../lib/useEscapeKey';
 import { FiX, FiExternalLink, FiBookmark, FiMapPin, FiDollarSign, FiClock, FiBriefcase, FiFileText, FiCopy, FiCheck, FiZap, FiHome, FiInfo, FiMessageSquare, FiRefreshCw } from 'react-icons/fi';
 import { FileCheck } from 'lucide-react';
 import { saveJob, getSavedJobs, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
@@ -10,6 +11,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
     const [isSaved, setIsSaved] = useState(!!job._id);
     const [savedJobId, setSavedJobId] = useState(job._id || null);
     const [showATS, setShowATS] = useState(false);
+    useEscapeKey(onClose);
     const [coverLetter, setCoverLetter] = useState(job.coverLetter || '');
     const [loadingCover, setLoadingCover] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -148,7 +150,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
 
     return (
         <div className="modal-overlay" onClick={onClose} data-lenis-prevent>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()} data-lenis-prevent>
+            <div className="modal-content" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()} data-lenis-prevent>
                 <button className="modal-close" onClick={onClose}>
                     <FiX />
                 </button>
@@ -192,7 +194,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
                         {/* Header */}
                         <div className="flex items-start justify-between gap-4 pb-3 border-b border-[#D8D4CC]">
                             <div>
-                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-0.5">
+                                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-0.5">
                                     [ Profile Alignment Analysis ]
                                 </span>
                                 <h3 className="text-sm font-black uppercase tracking-wider text-[#171717] m-0">
@@ -213,7 +215,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
                                         matchData.score >= 70
                                             ? 'bg-[#171717] text-white'
                                             : matchData.score >= 40
-                                            ? 'bg-[#FFF0E8] text-[#F45B25] border border-[#F45B25]/30'
+                                            ? 'bg-[#FFF0E8] text-[#CA3C0A] border border-[#CA3C0A]/30'
                                             : 'bg-neutral-200 text-neutral-700'
                                     }`}>
                                         {matchData.score >= 70 ? 'Strong Fit' : matchData.score >= 40 ? 'Moderate Fit' : 'Skill Overlap'}
@@ -226,7 +228,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
                         {matchData && !loadingMatch && (
                             <div className="w-full bg-[#E8E4DC] h-1.5 rounded-full overflow-hidden mt-3 mb-3.5">
                                 <div 
-                                    className="bg-[#F45B25] h-full transition-all duration-500 rounded-full"
+                                    className="bg-[#CA3C0A] h-full transition-all duration-500 rounded-full"
                                     style={{ width: `${Math.min(100, Math.max(0, matchData.score))}%` }}
                                 />
                             </div>
@@ -252,7 +254,7 @@ function JobDetail({ job, user, resumeData, onClose }) {
                                             <div className="space-y-2.5 my-3">
                                                 {matchData.reasons.map((r, i) => (
                                                     <div key={i} className="flex items-start gap-2.5 text-xs sm:text-[13px] text-neutral-800 leading-relaxed">
-                                                        <span className="font-mono text-[9.5px] font-bold text-[#F45B25] bg-[#FFF0E8] px-1.5 py-0.5 rounded border border-[#F45B25]/20 shrink-0 mt-0.5">
+                                                        <span className="font-mono text-[9.5px] font-bold text-[#CA3C0A] bg-[#FFF0E8] px-1.5 py-0.5 rounded border border-[#CA3C0A]/20 shrink-0 mt-0.5">
                                                             0{i + 1}
                                                         </span>
                                                         <p className="m-0 text-neutral-800 font-medium">{r}</p>

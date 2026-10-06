@@ -35,13 +35,13 @@ function Hero() {
           <h2 className="text-4xl sm:text-6xl md:text-7xl tracking-tight text-center font-black text-[#171717] leading-[1.08] m-0">
             <span>Outsmart the hiring algorithm with</span>
             <span 
-              className="relative flex w-full h-[56px] sm:h-[72px] md:h-[96px] justify-center overflow-hidden text-center text-[#F45B25] mt-1" 
+              className="relative flex w-full h-[56px] sm:h-[72px] md:h-[96px] justify-center overflow-hidden text-center text-[#CA3C0A] mt-1" 
               style={{ minHeight: '56px' }}
             >
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
                   key={titleNumber}
-                  className="absolute font-black whitespace-nowrap text-[#F45B25] top-0"
+                  className="absolute font-black whitespace-nowrap text-[#CA3C0A] top-0"
                   initial={{ y: 25, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -25, opacity: 0 }}
@@ -61,7 +61,7 @@ function Hero() {
         <div className="flex flex-row items-center justify-center gap-3 mt-3">
           <button 
             onClick={() => navigate("/profile")}
-            className="px-8 py-4 rounded-2xl bg-[#171717] hover:bg-[#F45B25] text-white text-sm font-bold transition-all duration-200 border-none cursor-pointer flex items-center gap-2.5 shadow-xl shadow-neutral-900/10 hover:shadow-[#F45B25]/25"
+            className="px-8 py-4 rounded-2xl bg-[#171717] hover:bg-[#CA3C0A] text-white text-sm font-bold transition-all duration-200 border-none cursor-pointer flex items-center gap-2.5 shadow-xl shadow-neutral-900/10 hover:shadow-[#CA3C0A]/25"
             style={{ height: '52px', minWidth: '160px' }}
           >
             <span>Get Started</span>

@@ -91,14 +91,14 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
                             {job.companyLogo ? (
                                 <img src={job.companyLogo} alt="" className="w-full h-full object-contain object-center rounded-sm" />
                             ) : (
-                                <div className="w-full h-full rounded-sm bg-[#FFF0E8] flex items-center justify-center text-[#F45B25] font-black text-sm">
+                                <div className="w-full h-full rounded-sm bg-[#FFF0E8] flex items-center justify-center text-[#CA3C0A] font-black text-sm">
                                     {(job.company || '?')[0].toUpperCase()}
                                 </div>
                             )}
                         </div>
                         {/* Title & Company */}
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-base font-bold text-[#171717] tracking-tight leading-snug group-hover:text-[#F45B25] transition-colors duration-200 line-clamp-1" title={job.title}>
+                            <h3 className="text-base font-bold text-[#171717] tracking-tight leading-snug group-hover:text-[#CA3C0A] transition-colors duration-200 line-clamp-1" title={job.title}>
                                 {job.title}
                             </h3>
                             <div className="flex items-center gap-2 mt-0.5">
@@ -115,7 +115,7 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
                     {/* Bookmark Button */}
                     <button
                         className={`w-8 h-8 rounded-md border border-neutral-200 bg-[#F7F5F2] hover:bg-[#FFF0E8] cursor-pointer transition-all flex items-center justify-center flex-shrink-0 ${
-                            isSaved ? 'text-[#F45B25] bg-[#FFF0E8] border-[#F45B25]/30' : 'text-[#8A8580] hover:text-[#F45B25]'
+                            isSaved ? 'text-[#CA3C0A] bg-[#FFF0E8] border-[#CA3C0A]/30' : 'text-[#8A8580] hover:text-[#CA3C0A]'
                         }`}
                         onClick={handleSave}
                         title={isSaved ? 'Saved' : 'Save job'}
@@ -133,7 +133,7 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
                         </span>
                     )}
                     {job.remote && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#FFF0E8] text-[#F45B25] font-bold border border-[rgba(244,91,37,0.2)]">
+                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#FFF0E8] text-[#CA3C0A] font-bold border border-[rgba(202,60,10,0.2)]">
                             <FiHome size={11} /> Remote
                         </span>
                     )}
@@ -166,7 +166,7 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
                     {job.requiredSkills && job.requiredSkills.length > 0 ? (
                         <>
                             {job.requiredSkills.slice(0, 2).map((skill, i) => (
-                                <span key={i} className="text-[11px] px-2.5 py-0.5 rounded-md border border-[rgba(244,91,37,0.2)] bg-[#FFF0E8] text-[#171717] font-semibold truncate max-w-[110px]" title={skill}>
+                                <span key={i} className="text-[11px] px-2.5 py-0.5 rounded-md border border-[rgba(202,60,10,0.2)] bg-[#FFF0E8] text-[#171717] font-semibold truncate max-w-[110px]" title={skill}>
                                     {skill}
                                 </span>
                             ))}
@@ -184,9 +184,9 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
                 </div>
 
                 {/* Details Trigger Button */}
-                <div className="text-xs text-[#171717] font-bold flex items-center gap-1 transition-all duration-200 group-hover:text-[#F45B25] group-hover:translate-x-0.5 ease-out">
+                <div className="text-xs text-[#171717] font-bold flex items-center gap-1 transition-all duration-200 group-hover:text-[#CA3C0A] group-hover:translate-x-0.5 ease-out">
                     <span>View Role</span>
-                    <FiArrowRight size={13} className="text-[#F45B25]" />
+                    <FiArrowRight size={13} className="text-[#CA3C0A]" />
                 </div>
             </div>
         </div>

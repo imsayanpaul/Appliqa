@@ -81,7 +81,7 @@ function RecommendedJobs({ user, resumeData }) {
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
                 <div>
-                    <p className="text-xs tracking-widest uppercase mb-1 font-bold text-[#F45B25]">
+                    <p className="text-xs tracking-widest uppercase mb-1 font-bold text-[#CA3C0A]">
                         [ Live Opportunities ]
                     </p>
                     <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#171717]">
@@ -90,7 +90,7 @@ function RecommendedJobs({ user, resumeData }) {
                     <p className="text-xs sm:text-sm text-[#66615C] mt-1 font-medium">
                         {isPersonalized ? (
                             <>
-                                Tailored for your profile: <span className="text-[#F45B25] font-bold">{targetRole} {userLocation && `· ${userLocation}`}</span>
+                                Tailored for your profile: <span className="text-[#CA3C0A] font-bold">{targetRole} {userLocation && `· ${userLocation}`}</span>
                             </>
                         ) : (
                             <>Live verified tech openings synced in real-time</>
@@ -99,7 +99,7 @@ function RecommendedJobs({ user, resumeData }) {
                 </div>
                 <button
                     onClick={() => navigate(`/search?query=${encodeURIComponent(targetRole)}`)}
-                    className="text-xs font-bold text-[#F45B25] hover:underline bg-transparent border-none cursor-pointer inline-flex items-center gap-1.5"
+                    className="text-xs font-bold text-[#CA3C0A] hover:underline bg-transparent border-none cursor-pointer inline-flex items-center gap-1.5"
                 >
                     View All Opportunities <FiArrowRight size={14} />
                 </button>
@@ -151,7 +151,7 @@ function RecommendedJobs({ user, resumeData }) {
                 </div>
             ) : (
                 <div className="p-8 rounded-2xl bg-white border border-neutral-200/80 text-center text-sm text-[#66615C]">
-                    <FiZap className="mx-auto text-[#F45B25] mb-2" size={24} />
+                    <FiZap className="mx-auto text-[#CA3C0A] mb-2" size={24} />
                     <p className="font-semibold text-[#171717]">No live recommendations cached at this moment.</p>
                     <button
                         onClick={() => navigate(`/search?query=${encodeURIComponent(targetRole)}`)}

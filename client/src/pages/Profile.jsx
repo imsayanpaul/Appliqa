@@ -548,7 +548,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             {authMode === 'login' && (
                                 <div style={{ display: 'flex', alignItems: 'center', fontSize: '12px', paddingTop: '2px' }}>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#64748B', userSelect: 'none' }}>
-                                        <input type="checkbox" name="rememberMe" style={{ accentColor: '#F45B25', cursor: 'pointer' }} />
+                                        <input type="checkbox" name="rememberMe" style={{ accentColor: '#CA3C0A', cursor: 'pointer' }} />
                                         <span>Keep me signed in</span>
                                     </label>
                                 </div>
@@ -676,7 +676,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             <h1 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight m-0">
                                 {form.name || 'Candidate Profile'}
                             </h1>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-[#FFF0E8] text-[#F45B25] text-[10px] font-mono font-bold uppercase tracking-wider border border-[#F45B25]/20">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-[#FFF0E8] text-[#CA3C0A] text-[10px] font-mono font-bold uppercase tracking-wider border border-[#CA3C0A]/20">
                                 {form.desiredRole || 'Tech Candidate'}
                             </span>
                         </div>
@@ -717,10 +717,10 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             disabled={saving}
                             className={`h-9 px-4 rounded-md text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shrink-0 border-none shadow-sm ${
                                 saved
-                                    ? 'bg-[#F45B25] text-white shadow-[#F45B25]/30'
+                                    ? 'bg-[#CA3C0A] text-white shadow-[#CA3C0A]/30'
                                     : isDirty
-                                    ? 'bg-[#F45B25] hover:bg-[#d94815] text-white shadow-[#F45B25]/30 animate-pulse'
-                                    : 'bg-[#171717] hover:bg-[#F45B25] text-white'
+                                    ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white shadow-[#CA3C0A]/30 animate-pulse'
+                                    : 'bg-[#171717] hover:bg-[#CA3C0A] text-white'
                             }`}
                             title="Save profile changes (Ctrl+S)"
                         >
@@ -761,7 +761,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 <motion.div variants={cardVariants}>
                     <PremiumCard>
                         <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
                                 01 // PERSONAL IDENTITY & CONTACT
                             </span>
                         </div>
@@ -800,7 +800,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 <motion.div variants={cardVariants}>
                     <PremiumCard>
                         <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
                                 02 // CAREER TARGETING & COMPENSATION
                             </span>
                         </div>
@@ -940,7 +940,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 <motion.div variants={cardVariants}>
                     <PremiumCard>
                         <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
                                 03 // SKILLS & TECH ECOSYSTEM
                             </span>
                         </div>
@@ -1029,7 +1029,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 <motion.div variants={cardVariants}>
                     <PremiumCard>
                         <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
                                 04 // CAREER STATUS & EDUCATION
                             </span>
                         </div>
@@ -1096,7 +1096,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 <motion.div variants={cardVariants}>
                     <PremiumCard>
                         <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-[#FAF8F5]">
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25]">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A]">
                                 05 // PORTFOLIO & PROFILES
                             </span>
                         </div>
@@ -1145,12 +1145,12 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 <div className="flex items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-[#D8D4CC] shadow-sm flex-wrap">
                     <div className="text-xs text-[#66615C] flex items-center gap-2">
                         {saved ? (
-                            <span className="text-[#F45B25] font-bold inline-flex items-center gap-1.5">
+                            <span className="text-[#CA3C0A] font-bold inline-flex items-center gap-1.5">
                                 <FiCheck size={16} /> Profile settings successfully synced!
                             </span>
                         ) : isDirty ? (
-                            <span className="text-[#F45B25] font-semibold inline-flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-[#F45B25] animate-pulse" /> You have unsaved changes.
+                            <span className="text-[#CA3C0A] font-semibold inline-flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-[#CA3C0A] animate-pulse" /> You have unsaved changes.
                             </span>
                         ) : (
                             <span>All profile changes automatically update your ATS and job match algorithms.</span>
@@ -1165,8 +1165,8 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                             disabled={saving}
                             className={`h-11 px-7 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2 border-none shrink-0 shadow-lg ${
                                 isDirty 
-                                    ? 'bg-[#F45B25] hover:bg-[#d94815] text-white shadow-[#F45B25]/25' 
-                                    : 'bg-[#171717] hover:bg-[#F45B25] text-white shadow-neutral-900/10'
+                                    ? 'bg-[#CA3C0A] hover:bg-[#B73609] text-white shadow-[#CA3C0A]/25' 
+                                    : 'bg-[#171717] hover:bg-[#CA3C0A] text-white shadow-neutral-900/10'
                             }`}
                         >
                             {saving ? (
@@ -1199,7 +1199,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                         style={{ width: 'min(92vw, 560px)' }}
                     >
                         <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#F45B25] animate-ping shrink-0" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#CA3C0A] animate-ping shrink-0" />
                             <span className="text-xs font-medium text-white/90 truncate">
                                 You have unsaved profile changes
                             </span>
@@ -1212,7 +1212,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={saving}
-                                className="h-8 px-4 rounded-xl bg-[#F45B25] hover:bg-[#d94815] text-white text-xs font-bold border-none transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-md shadow-[#F45B25]/30"
+                                className="h-8 px-4 rounded-xl bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold border-none transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-md shadow-[#CA3C0A]/30"
                             >
                                 {saving ? <FiSave size={13} className="animate-spin" /> : <FiSave size={13} />}
                                 <span>Save Changes</span>
@@ -1225,7 +1225,7 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
             {/* ── Dedicated Full-Width Synchronized Resume Section ── */}
             <motion.div variants={cardVariants} className="mt-14 pt-10 border-t border-[#D8D4CC]">
                 <div className="mb-6">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-1">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-1">
                         AI RESUME PROFILE
                     </span>
                     <h2 className="text-xl sm:text-2xl font-black text-[#171717] tracking-tight m-0">

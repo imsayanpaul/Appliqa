@@ -264,7 +264,7 @@ export function AuthSkeleton() {
             </div>
 
             {/* Solid Theme Submit Button */}
-            <div className="h-12 w-full bg-[#F45B25]/25 rounded-lg mt-2" />
+            <div className="h-12 w-full bg-[#CA3C0A]/25 rounded-lg mt-2" />
           </div>
 
           {/* Divider */}
@@ -434,7 +434,7 @@ export function PricingSkeleton() {
         {/* 3 Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {[1, 2, 3].map(i => (
-            <div key={i} className={`bg-white rounded-3xl p-8 border ${i === 2 ? 'border-[#F45B25]/40 shadow-lg' : 'border-[#D8D4CC] shadow-xs'} space-y-6 flex flex-col justify-between text-left min-h-[460px]`}>
+            <div key={i} className={`bg-white rounded-3xl p-8 border ${i === 2 ? 'border-[#CA3C0A]/40 shadow-lg' : 'border-[#D8D4CC] shadow-xs'} space-y-6 flex flex-col justify-between text-left min-h-[460px]`}>
               <div className="space-y-4">
                 <div className="h-5 w-28 bg-neutral-200/80 rounded-md" />
                 <div className="h-10 w-24 bg-neutral-200/90 rounded-xl" />

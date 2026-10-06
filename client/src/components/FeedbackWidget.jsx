@@ -11,6 +11,16 @@ function FeedbackWidget({ user }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
+    // Allow other pages to open the widget (e.g. "Contact us" on legal pages)
+    useEffect(() => {
+        const open = (e) => {
+            if (e.detail?.category) setCategory(e.detail.category);
+            setIsOpen(true);
+        };
+        window.addEventListener('appliqa:open-feedback', open);
+        return () => window.removeEventListener('appliqa:open-feedback', open);
+    }, []);
+
     // Sync email when user profile loads
     useEffect(() => {
         if (user?.email) {
@@ -69,10 +79,10 @@ function FeedbackWidget({ user }) {
     const categories = ['General', 'Bug Report', 'Feature Request', 'Other'];
 
     const renderEmojiIcon = (val, isSelected) => {
-        const strokeColor = isSelected ? '#F45B25' : '#8A8580';
+        const strokeColor = isSelected ? '#CA3C0A' : '#8A8580';
         const fillColor = isSelected ? '#FFF0E8' : 'transparent';
-        const eyeColor = isSelected ? '#F45B25' : '#8A8580';
-        const starFillColor = isSelected ? '#F45B25' : 'transparent';
+        const eyeColor = isSelected ? '#CA3C0A' : '#8A8580';
+        const starFillColor = isSelected ? '#CA3C0A' : 'transparent';
         
         switch (val) {
             case 1: // Crying / Very Sad
@@ -115,7 +125,7 @@ function FeedbackWidget({ user }) {
                         <polygon 
                             points="9,7.5 9.8,9.2 11.6,9.2 10.2,10.3 10.7,12.1 9,11 7.3,12.1 7.8,10.3 6.4,9.2 8.2,9.2" 
                             fill={starFillColor} 
-                            stroke={isSelected ? '#F45B25' : '#8A8580'} 
+                            stroke={isSelected ? '#CA3C0A' : '#8A8580'} 
                             strokeWidth="1" 
                             strokeLinejoin="round"
                         />
@@ -123,7 +133,7 @@ function FeedbackWidget({ user }) {
                         <polygon 
                             points="15,7.5 15.8,9.2 17.6,9.2 16.2,10.3 16.7,12.1 15,11 13.3,12.1 13.8,10.3 12.4,9.2 14.2,9.2" 
                             fill={starFillColor} 
-                            stroke={isSelected ? '#F45B25' : '#8A8580'} 
+                            stroke={isSelected ? '#CA3C0A' : '#8A8580'} 
                             strokeWidth="1" 
                             strokeLinejoin="round"
                         />
@@ -152,7 +162,7 @@ function FeedbackWidget({ user }) {
                 <div className="feedback-panel">
                     {submitted ? (
                         <div className="feedback-success-card">
-                            <FiCheckCircle size={40} className="feedback-success-icon" style={{ color: '#F45B25' }} />
+                            <FiCheckCircle size={40} className="feedback-success-icon" style={{ color: '#CA3C0A' }} />
                             <h4>Thank you!</h4>
                             <p>Your feedback helps us make Appliqa better for everyone.</p>
                         </div>
@@ -160,7 +170,7 @@ function FeedbackWidget({ user }) {
                         <form onSubmit={handleSubmit}>
                             <div className="feedback-header">
                                 <h3>
-                                    <FiMessageSquare size={18} color="#F45B25" />
+                                    <FiMessageSquare size={18} color="#CA3C0A" />
                                     <span>Share Feedback</span>
                                 </h3>
                                 <button 

@@ -88,7 +88,7 @@ export function Dropdown({
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center justify-center flex-shrink-0"
                 >
-                    <FiChevronDown size={13} className={hasValue ? 'text-[#F45B25]' : 'text-[#8A8580]'} />
+                    <FiChevronDown size={13} className={hasValue ? 'text-[#CA3C0A]' : 'text-[#8A8580]'} />
                 </motion.div>
             </button>
 
@@ -119,7 +119,7 @@ export function Dropdown({
                                         onClick={() => handleSelect(option.value)}
                                         className={`w-full text-left px-3.5 py-2 text-xs rounded-lg transition-all duration-150 border-0 cursor-pointer ${
                                             isSelected 
-                                                ? 'bg-[#FFF0E8] text-[#F45B25] font-bold' 
+                                                ? 'bg-[#FFF0E8] text-[#CA3C0A] font-bold' 
                                                 : 'bg-transparent text-[#171717] hover:bg-[#F7F5F2] font-medium'
                                         }`}
                                     >

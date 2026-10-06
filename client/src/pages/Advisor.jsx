@@ -302,8 +302,8 @@ function Advisor({ user, resumeData }) {
                             <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
                                 Active Profile
                             </span>
-                            <span className="flex items-center gap-1 text-[10px] font-semibold text-[#F45B25]">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-pulse" />
+                            <span className="flex items-center gap-1 text-[10px] font-semibold text-[#CA3C0A]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-pulse" />
                                 <span>Synced</span>
                             </span>
                         </div>
@@ -311,7 +311,7 @@ function Advisor({ user, resumeData }) {
                         {resumeData ? (
                             <div className="p-3 rounded-xl bg-[#FAF8F5] border border-neutral-200/80 space-y-2">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 rounded-lg bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center shrink-0">
+                                    <div className="w-7 h-7 rounded-lg bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center shrink-0">
                                         <FiFileText size={14} />
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -334,7 +334,7 @@ function Advisor({ user, resumeData }) {
                                 <p className="text-xs text-neutral-500 mb-2 font-medium">No resume attached.</p>
                                 <button
                                     onClick={() => navigate('/profile')}
-                                    className="w-full py-1.5 px-3 rounded-lg bg-[#FFF0E8] text-[#F45B25] text-xs font-bold transition-all border border-[#F45B25]/20 cursor-pointer flex items-center justify-center gap-1"
+                                    className="w-full py-1.5 px-3 rounded-lg bg-[#FFF0E8] text-[#CA3C0A] text-xs font-bold transition-all border border-[#CA3C0A]/20 cursor-pointer flex items-center justify-center gap-1"
                                 >
                                     <span>Upload Resume</span>
                                     <FiArrowRight size={12} />
@@ -357,7 +357,7 @@ function Advisor({ user, resumeData }) {
                                         key={index}
                                         type="button"
                                         onClick={() => handleSendMessage(`How can I best demonstrate my expertise in ${skill} for target roles?`)}
-                                        className="px-2 py-1 rounded-lg bg-[#FAF8F5] hover:bg-[#FFF0E8] hover:text-[#F45B25] hover:border-[#F45B25] text-neutral-800 text-[11px] font-medium border border-[#D8D4CC] transition-all cursor-pointer"
+                                        className="px-2 py-1 rounded-lg bg-[#FAF8F5] hover:bg-[#FFF0E8] hover:text-[#CA3C0A] hover:border-[#CA3C0A] text-neutral-800 text-[11px] font-medium border border-[#D8D4CC] transition-all cursor-pointer"
                                         title={`Ask advisor about ${skill}`}
                                     >
                                         {skill}
@@ -383,11 +383,11 @@ function Advisor({ user, resumeData }) {
                                     key={i}
                                     onClick={() => handleSendMessage(play.prompt)}
                                     disabled={loading}
-                                    className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#FFF8F5] text-neutral-800 hover:text-[#171717] text-xs font-medium border border-[#D8D4CC] hover:border-[#F45B25] transition-all cursor-pointer flex items-center justify-between gap-1.5 group disabled:opacity-50"
+                                    className="w-full text-left p-2.5 rounded-xl bg-white hover:bg-[#FFF8F5] text-neutral-800 hover:text-[#171717] text-xs font-medium border border-[#D8D4CC] hover:border-[#CA3C0A] transition-all cursor-pointer flex items-center justify-between gap-1.5 group disabled:opacity-50"
                                     style={{ boxShadow: 'none' }}
                                 >
                                     <span className="truncate">{play.label}</span>
-                                    <FiArrowRight size={11} className="text-neutral-400 group-hover:text-[#F45B25] shrink-0" />
+                                    <FiArrowRight size={11} className="text-neutral-400 group-hover:text-[#CA3C0A] shrink-0" />
                                 </button>
                             ))}
                         </div>
@@ -409,7 +409,7 @@ function Advisor({ user, resumeData }) {
                 {/* Top Workspace Header Bar */}
                 <div className="h-14 px-6 bg-white border-b border-neutral-200 flex items-center justify-between shrink-0 z-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center font-bold">
+                        <div className="w-8 h-8 rounded-lg bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center font-bold">
                             <FiTrendingUp size={16} />
                         </div>
                         <div>
@@ -427,7 +427,7 @@ function Advisor({ user, resumeData }) {
                             className="px-3 py-1.5 rounded-xl bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-bold border border-[#D8D4CC] transition-all cursor-pointer flex items-center gap-1.5"
                             style={{ boxShadow: 'none' }}
                         >
-                            <FiPlus size={13} className="text-[#F45B25]" />
+                            <FiPlus size={13} className="text-[#CA3C0A]" />
                             <span>New Chat</span>
                         </button>
                     </div>
@@ -459,15 +459,15 @@ function Advisor({ user, resumeData }) {
                                     <button
                                         key={i}
                                         onClick={() => handleSendMessage(item.query)}
-                                        className="p-4 rounded-2xl bg-white hover:bg-[#FFFDFB] border border-[#D8D4CC] hover:border-[#F45B25] text-neutral-800 transition-all text-left group cursor-pointer flex flex-col justify-between"
+                                        className="p-4 rounded-2xl bg-white hover:bg-[#FFFDFB] border border-[#D8D4CC] hover:border-[#CA3C0A] text-neutral-800 transition-all text-left group cursor-pointer flex flex-col justify-between"
                                         style={{ boxShadow: 'none' }}
                                     >
                                         <div>
                                             <div className="flex items-center justify-between mb-1.5">
-                                                <h4 className="text-xs font-bold text-[#171717] group-hover:text-[#F45B25] transition-colors">
+                                                <h4 className="text-xs font-bold text-[#171717] group-hover:text-[#CA3C0A] transition-colors">
                                                     {item.title}
                                                 </h4>
-                                                <FiArrowRight size={13} className="text-neutral-400 group-hover:text-[#F45B25] group-hover:translate-x-0.5 transition-all" />
+                                                <FiArrowRight size={13} className="text-neutral-400 group-hover:text-[#CA3C0A] group-hover:translate-x-0.5 transition-all" />
                                             </div>
                                             <p className="text-[11px] text-neutral-500 leading-relaxed m-0">
                                                 {item.desc}
@@ -496,8 +496,8 @@ function Advisor({ user, resumeData }) {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25]" />
-                                                    <span className="text-[#F45B25]">Advisor</span>
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A]" />
+                                                    <span className="text-[#CA3C0A]">Advisor</span>
                                                 </>
                                             )}
                                         </div>
@@ -525,21 +525,21 @@ function Advisor({ user, resumeData }) {
                             {/* Loading State */}
                             {loading && (
                                 <div className="flex flex-col items-start">
-                                    <div className="flex items-center gap-1.5 mb-1 text-[10px] font-bold uppercase tracking-wider text-[#F45B25]">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-pulse" />
+                                    <div className="flex items-center gap-1.5 mb-1 text-[10px] font-bold uppercase tracking-wider text-[#CA3C0A]">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-pulse" />
                                         <span>Analyzing Profile Context...</span>
                                     </div>
                                     <div className="p-4 rounded-2xl rounded-tl-xs bg-white border border-[#D8D4CC] flex items-center gap-1.5" style={{ boxShadow: 'none' }}>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-bounce" style={{ animationDelay: '300ms' }} />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-bounce" style={{ animationDelay: '0ms' }} />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-bounce" style={{ animationDelay: '150ms' }} />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-bounce" style={{ animationDelay: '300ms' }} />
                                     </div>
                                 </div>
                             )}
 
                             {error && (
-                                <div className="p-4 rounded-xl bg-[#FFF0E8] border border-[#F45B25]/30 text-xs font-semibold text-[#F45B25] flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[#F45B25]" />
+                                <div className="p-4 rounded-xl bg-[#FFF0E8] border border-[#CA3C0A]/30 text-xs font-semibold text-[#CA3C0A] flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-[#CA3C0A]" />
                                     <span>{error}</span>
                                 </div>
                             )}
@@ -555,7 +555,7 @@ function Advisor({ user, resumeData }) {
                                 e.preventDefault();
                                 handleSendMessage();
                             }}
-                            className="flex items-center gap-2 bg-[#FAF8F5] rounded-xl p-2 border border-[#D8D4CC] focus-within:border-[#F45B25] focus-within:ring-2 focus-within:ring-[#F45B25]/15 transition-all"
+                            className="flex items-center gap-2 bg-[#FAF8F5] rounded-xl p-2 border border-[#D8D4CC] focus-within:border-[#CA3C0A] focus-within:ring-2 focus-within:ring-[#CA3C0A]/15 transition-all"
                         >
                             <input 
                                 ref={inputRef}
@@ -569,7 +569,7 @@ function Advisor({ user, resumeData }) {
                             <button
                                 type="submit"
                                 disabled={loading || !inputValue.trim()}
-                                className="px-4 py-2 rounded-lg bg-[#F45B25] hover:bg-[#E04D1B] text-white text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                                className="px-4 py-2 rounded-lg bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                             >
                                 <span>Send</span>
                                 <FiSend size={11} />

@@ -132,17 +132,17 @@ function SearchResults({ user, resumeData }) {
                             type="button"
                             onClick={() => setAiMode(!aiMode)}
                             className={`px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border-none cursor-pointer whitespace-nowrap ${
-                                aiMode ? 'bg-[#FFF0E8] text-[#F45B25]' : 'bg-neutral-100 text-[#66615C] hover:text-[#171717]'
+                                aiMode ? 'bg-[#FFF0E8] text-[#CA3C0A]' : 'bg-neutral-100 text-[#66615C] hover:text-[#171717]'
                             }`}
                             title="Toggle AI Smart Search"
                         >
-                            <FiZap size={13} className={aiMode ? 'text-[#F45B25]' : 'text-[#66615C]'} />
+                            <FiZap size={13} className={aiMode ? 'text-[#CA3C0A]' : 'text-[#66615C]'} />
                             <span>AI Search</span>
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 sm:px-6 py-2.5 rounded-xl bg-[#F45B25] hover:bg-[#D94B1F] text-white text-xs font-bold flex items-center gap-1.5 transition-all border-none cursor-pointer shadow-md shadow-[#F45B25]/20 whitespace-nowrap"
+                            className="px-4 sm:px-6 py-2.5 rounded-xl bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold flex items-center gap-1.5 transition-all border-none cursor-pointer shadow-md shadow-[#CA3C0A]/20 whitespace-nowrap"
                         >
                             <span>{loading ? '...' : 'Search'}</span>
                             <FiArrowRight size={14} />
@@ -230,7 +230,7 @@ function SearchResults({ user, resumeData }) {
                 {/* Results Header */}
                 <div className="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-neutral-200/80">
                     <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#F45B25] animate-pulse" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#CA3C0A] animate-pulse" />
                         <span className="text-sm font-bold text-[#171717]">
                             {loading ? 'Searching opportunities...' : `${jobs.length} Opportunities Found ${query ? `for "${query}"` : ''}`}
                         </span>
@@ -314,7 +314,7 @@ function SearchResults({ user, resumeData }) {
                     <div className="flex justify-center items-center mt-12 mb-6">
                         {loadingMore ? (
                             <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white border border-[#D8D4CC] shadow-sm text-xs font-mono text-[#171717]">
-                                <span className="w-3.5 h-3.5 rounded-full border-2 border-neutral-200 border-t-[#F45B25] animate-spin shrink-0" />
+                                <span className="w-3.5 h-3.5 rounded-full border-2 border-neutral-200 border-t-[#CA3C0A] animate-spin shrink-0" />
                                 <span className="tracking-wider">FETCHING MORE ROLES...</span>
                             </div>
                         ) : (
@@ -327,7 +327,7 @@ function SearchResults({ user, resumeData }) {
                                 className="h-10 px-6 rounded-md bg-[#FAF8F5] hover:bg-[#171717] text-[#171717] hover:text-white border border-[#D8D4CC] hover:border-[#171717] text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm group"
                             >
                                 <span>Load More Roles</span>
-                                <FiArrowRight size={13} className="text-[#F45B25] group-hover:text-white transition-colors" />
+                                <FiArrowRight size={13} className="text-[#CA3C0A] group-hover:text-white transition-colors" />
                             </button>
                         )}
                     </div>

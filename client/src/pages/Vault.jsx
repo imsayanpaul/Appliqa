@@ -10,11 +10,11 @@ export default function Vault({ user }) {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full bg-white rounded-2xl p-8 border border-[#D8D4CC] shadow-xs text-center space-y-4"
       >
-        <div className="w-14 h-14 rounded-xl bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center mx-auto border border-[#F45B25]/20 shadow-xs">
+        <div className="w-14 h-14 rounded-xl bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center mx-auto border border-[#CA3C0A]/20 shadow-xs">
           <Shield size={28} />
         </div>
         <div className="space-y-1.5">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block">
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block">
             CANDIDATE REPOSITORY
           </span>
           <h1 className="text-2xl font-black text-[#171717] tracking-tight m-0">

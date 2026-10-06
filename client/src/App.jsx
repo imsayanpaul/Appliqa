@@ -32,6 +32,7 @@ const Advisor = lazyWithRetry(() => import('./pages/Advisor'));
 const ResumeCreator = lazyWithRetry(() => import('./pages/ResumeCreator'));
 const Pricing = lazyWithRetry(() => import('./pages/Pricing'));
 const Vault = lazyWithRetry(() => import('./pages/Vault'));
+const Legal = lazyWithRetry(() => import('./pages/Legal'));
 
 import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
@@ -105,6 +106,8 @@ function AppContent() {
 
     useEffect(() => {
         if (!mainRef.current || !contentRef.current) return;
+        // Keep native scrolling for users who ask the OS to reduce motion
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
         const lenis = new Lenis({
             wrapper: mainRef.current,
@@ -353,7 +356,10 @@ function AppContent() {
             '/advisor': 'Appliqa - Career Advisor',
             '/resume-creator': 'Appliqa - AI Resume Builder',
             '/vault': 'Appliqa - My Vault',
-            '/profile': 'Appliqa - Profile Settings'
+            '/profile': 'Appliqa - Profile Settings',
+            '/privacy': 'Appliqa - Privacy Policy',
+            '/terms': 'Appliqa - Terms of Service',
+            '/security': 'Appliqa - Security'
         };
         const baseTitle = routeTitles[location.pathname] || 'Appliqa - Job Search';
         document.title = baseTitle;
@@ -399,6 +405,7 @@ function AppContent() {
             }
             if (!session) {
                 updateUserState(null);
+                if (event === 'SIGNED_OUT') setResumeData(null);
             }
         });
 
@@ -612,7 +619,7 @@ function AppContent() {
             <header className={`app-navbar ${scrolled ? 'scrolled' : ''}`}>
                 <div className="navbar-container">
                     {/* Brand Logo */}
-                    <div className="navbar-brand-container" onClick={() => handleNavClick('/')}>
+                    <div className="navbar-brand-container" role="link" tabIndex={0} aria-label="Appliqa home" onClick={() => handleNavClick('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavClick('/'); } }}>
                         <motion.div
                             className="logo-icon-motion"
                             whileHover={{ scale: 1.03 }}
@@ -714,7 +721,7 @@ function AppContent() {
                     >
                         {/* Drawer Header with Logo & Close Button */}
                         <div className="navbar-mobile-header">
-                            <div className="navbar-brand-container" onClick={() => handleNavClick('/')} style={{ cursor: 'pointer' }}>
+                            <div className="navbar-brand-container" role="link" tabIndex={0} aria-label="Appliqa home" onClick={() => handleNavClick('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavClick('/'); } }} style={{ cursor: 'pointer' }}>
                                 <svg 
                                     xmlns="http://www.w3.org/2000/svg" 
                                     viewBox="0 0 20831.25 5423.16" 
@@ -819,6 +826,10 @@ function AppContent() {
                                 <Pricing user={user} session={session} />
                             } />
                             
+                            <Route path="/privacy" element={<Legal />} />
+                            <Route path="/terms" element={<Legal />} />
+                            <Route path="/security" element={<Legal />} />
+
                             {/* Protected Routes */}
                             <Route path="/saved" element={
                                 <ProtectedRoute session={session} authResolved={authResolved}><SavedJobs user={user} resumeData={resumeData} /></ProtectedRoute>
@@ -903,8 +914,8 @@ function AppContent() {
                             height: '38px', 
                             borderRadius: '6px', 
                             background: '#FFF0E8', 
-                            border: '1px solid rgba(244, 91, 37, 0.25)', 
-                            color: '#F45B25',
+                            border: '1px solid rgba(202, 60, 10, 0.25)', 
+                            color: '#CA3C0A',
                             flexShrink: 0
                         }}>
                             <FiMapPin size={17} />
@@ -939,7 +950,7 @@ function AppContent() {
                                 cursor: 'pointer'
                             }}
                             onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#F45B25';
+                                e.currentTarget.style.background = '#CA3C0A';
                             }}
                             onMouseOut={(e) => {
                                 e.currentTarget.style.background = '#171717';
@@ -1109,8 +1120,8 @@ function AppContent() {
                             height: '32px',
                             borderRadius: '6px',
                             background: customAlert.type === 'error' ? '#FEF2F2' : customAlert.type === 'success' ? '#FFF0E8' : '#EFF6FF',
-                            border: `1px solid ${customAlert.type === 'error' ? '#FECACA' : customAlert.type === 'success' ? '#F45B2540' : '#BFDBFE'}`,
-                            color: customAlert.type === 'error' ? '#EF4444' : customAlert.type === 'success' ? '#F45B25' : '#2563EB',
+                            border: `1px solid ${customAlert.type === 'error' ? '#FECACA' : customAlert.type === 'success' ? '#CA3C0A40' : '#BFDBFE'}`,
+                            color: customAlert.type === 'error' ? '#EF4444' : customAlert.type === 'success' ? '#CA3C0A' : '#2563EB',
                             flexShrink: 0,
                         }}>
                             {customAlert.type === 'success' ? (
@@ -1199,7 +1210,7 @@ class ErrorBoundary extends React.Component {
             return (
                 <div className="min-h-screen bg-[#FAF8F5] text-[#171717] flex flex-col items-center justify-center p-6 text-center">
                     <div className="max-w-md bg-white p-8 rounded-3xl border border-neutral-200/80 shadow-xl space-y-4">
-                        <div className="w-12 h-12 rounded-2xl bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center mx-auto text-xl font-bold">!</div>
+                        <div className="w-12 h-12 rounded-2xl bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center mx-auto text-xl font-bold">!</div>
                         <h2 className="text-xl font-extrabold text-[#171717]">
                             {isChunkError ? 'New App Version Available' : 'Something went wrong'}
                         </h2>
@@ -1212,7 +1223,7 @@ class ErrorBoundary extends React.Component {
                             onClick={() => {
                                 window.location.reload();
                             }}
-                            className="px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all border-none cursor-pointer shadow-md"
+                            className="px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-[#CA3C0A] text-white text-xs font-bold transition-all border-none cursor-pointer shadow-md"
                         >
                             Reload Application
                         </button>

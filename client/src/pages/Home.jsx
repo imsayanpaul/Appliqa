@@ -256,7 +256,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
             <div className="relative">
                 <div className="relative z-10 rounded-3xl bg-[#171717] p-8 sm:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-10 overflow-hidden shadow-2xl">
                     <div className="flex-1 max-w-lg">
-                        <span className="text-2xl sm:text-3xl font-mono font-black text-[#F45B25] tracking-widest block mb-4">
+                        <span className="text-2xl sm:text-3xl font-mono font-black text-[#CA3C0A] tracking-widest block mb-4">
                             {currentStep.number}
                         </span>
                         <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
@@ -267,7 +267,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                         </p>
                         <button
                             onClick={currentStep.action}
-                            className="px-6 py-3 rounded-xl bg-[#F45B25] hover:bg-[#D94B1F] text-white text-xs font-bold transition-all border-none cursor-pointer shadow-lg shadow-[#F45B25]/20"
+                            className="px-6 py-3 rounded-xl bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold transition-all border-none cursor-pointer shadow-lg shadow-[#CA3C0A]/20"
                         >
                             {currentStep.buttonText}
                         </button>
@@ -277,7 +277,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                     <div className="w-full md:w-auto flex-shrink-0">
                         <div className="rounded-2xl bg-white p-7 text-[#171717] shadow-2xl max-w-sm w-full border border-neutral-100">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="w-14 h-14 rounded-full bg-[#FFF0E8] border border-[rgba(244,91,37,0.3)] flex items-center justify-center text-[#F45B25] font-black text-xl">
+                                <div className="w-14 h-14 rounded-full bg-[#FFF0E8] border border-[rgba(202,60,10,0.3)] flex items-center justify-center text-[#CA3C0A] font-black text-xl">
                                     AP
                                 </div>
                                 <div>
@@ -288,7 +288,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                             </div>
                             <div className="flex flex-wrap gap-1.5 mb-5">
                                 {currentStep.candidate.skills.map((skill, i) => (
-                                    <span key={i} className="px-2.5 py-1 rounded-lg bg-[#FFF0E8] text-[#F45B25] text-xs font-semibold border border-[rgba(244,91,37,0.2)]">
+                                    <span key={i} className="px-2.5 py-1 rounded-lg bg-[#FFF0E8] text-[#CA3C0A] text-xs font-semibold border border-[rgba(202,60,10,0.2)]">
                                         {skill}
                                     </span>
                                 ))}
@@ -302,8 +302,8 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                 </div>
 
                 {/* Orange Baseline Shadow Shelf */}
-                <div className="absolute -bottom-3 left-4 right-4 h-6 rounded-2xl bg-[#F45B25] z-0" />
-                <div className="absolute -bottom-6 left-8 right-8 h-6 rounded-2xl bg-[#D94B1F]/30 -z-10" />
+                <div className="absolute -bottom-3 left-4 right-4 h-6 rounded-2xl bg-[#CA3C0A] z-0" />
+                <div className="absolute -bottom-6 left-8 right-8 h-6 rounded-2xl bg-[#B73609]/30 -z-10" />
             </div>
         </section>
     );
@@ -505,7 +505,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
             {/* ── Mobile & Tablet Layout: Clean Wrapped Pills (Centered, Zero Cutoff) ── */}
             <div className="lg:hidden w-full pt-1.5 pb-1 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto flex flex-col items-center justify-center text-center" style={{ minHeight: '68px', contain: 'layout style' }}>
                 <div className="flex items-center justify-center gap-1.5 mb-1.5 px-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] animate-pulse shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] animate-pulse shrink-0" />
                     <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#66615C]">Trending Searches</span>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
@@ -523,7 +523,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                                     <span
                                         className={`inline-flex items-center justify-center text-[8.5px] sm:text-[9px] font-black mr-1 sm:mr-1.5 px-1.5 py-0.5 rounded-[3px] leading-none shrink-0 ${
                                             rank === 1
-                                                ? 'bg-[#F45B25] text-white'
+                                                ? 'bg-[#CA3C0A] text-white'
                                                 : 'bg-[#ECE8E1] text-[#171717]'
                                         }`}
                                     >
@@ -541,7 +541,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
             <div className="hidden lg:flex w-full pt-4 pb-1 px-6 max-w-7xl mx-auto items-center justify-center" style={{ minHeight: '48px', contain: 'layout style' }}>
                 <div className="inline-flex items-center flex-wrap justify-center gap-2 px-3.5 py-1.5 rounded-lg bg-white/95 backdrop-blur-md border border-[#D8D4CC] shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-[#171717] mr-1 flex-shrink-0">
-                        <span className="w-2 h-2 rounded-full bg-[#F45B25] animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-[#CA3C0A] animate-pulse" />
                         <span className="tracking-wide text-[11.5px] uppercase font-bold text-[#66615C]">Trending:</span>
                     </div>
                     {suggestedRoles.map((tag, idx) => {
@@ -562,7 +562,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                                     <span
                                         className={`inline-flex items-center justify-center text-[9.5px] font-black mr-1.5 px-1.5 py-0.5 rounded-[3px] leading-none transition-colors ${
                                             rank === 1
-                                                ? 'bg-[#F45B25] text-white group-hover:bg-white group-hover:text-[#F45B25]'
+                                                ? 'bg-[#CA3C0A] text-white group-hover:bg-white group-hover:text-[#CA3C0A]'
                                                 : 'bg-[#ECE8E1] text-[#171717] group-hover:bg-white/20 group-hover:text-white'
                                         }`}
                                     >
@@ -578,7 +578,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
 
             <section className="w-full pt-1.5 sm:pt-3 pb-8 sm:pb-12 px-3 sm:px-6 md:px-8 max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 rounded-3xl overflow-hidden shadow-2xl border border-neutral-200/80 lg:min-h-[520px]">
-                    <div className="lg:col-span-7 bg-[#F45B25] p-5 sm:p-10 md:p-14 text-white flex flex-col justify-between relative h-full">
+                    <div className="lg:col-span-7 bg-[#CA3C0A] p-5 sm:p-10 md:p-14 text-white flex flex-col justify-between relative h-full">
                         <div>
                             <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] mb-2 sm:mb-6">
                                 Outsmart the ATS.<br />
@@ -607,12 +607,12 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
                                         type="button"
                                         onClick={() => setAiMode(!aiMode)}
                                         className={`flex-1 sm:flex-initial justify-center px-3 py-2.5 sm:py-2 rounded-xl text-xs font-bold transition-all border-none cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${aiMode
-                                                ? 'bg-[#FFF0E8] text-[#F45B25]'
+                                                ? 'bg-[#FFF0E8] text-[#CA3C0A]'
                                                 : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                             }`}
                                         title="Toggle AI Smart Search"
                                     >
-                                        <FiZap size={13} className={aiMode ? 'text-[#F45B25]' : 'text-neutral-500'} />
+                                        <FiZap size={13} className={aiMode ? 'text-[#CA3C0A]' : 'text-neutral-500'} />
                                         <span>AI Search</span>
                                     </button>
                                     <button
@@ -698,7 +698,7 @@ function Home({ user, session, authResolved, resumeData, onResumeAnalyzed }) {
             <section id="resume-intelligence-section" className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mb-24">
                 <div className="mb-6 flex justify-between items-center flex-wrap gap-4">
                     <div>
-                        <p className="text-xs tracking-widest uppercase mb-1 font-bold text-[#F45B25]">[ Deep LLM & OCR Engine ]</p>
+                        <p className="text-xs tracking-widest uppercase mb-1 font-bold text-[#CA3C0A]">[ Deep LLM & OCR Engine ]</p>
                         <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#171717]">
                             Resume Intelligence & ATS Audit
                         </h2>

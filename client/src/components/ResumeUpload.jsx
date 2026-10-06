@@ -255,7 +255,7 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
             <div className="w-full max-w-[540px] mx-auto rounded-lg border border-[#D8D4CC] bg-white p-6" style={{ boxShadow: 'none' }}>
                 {/* Header */}
                 <div className="mb-5">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#F45B25] block mb-1">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] block mb-1">
                         RESUME SCANNER
                     </span>
                     <p className="text-xs text-[#66615C]">Upload your resume to extract skills, experience, and get matched career roles.</p>
@@ -264,7 +264,7 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                 {/* Dropzone */}
                 <div
                     {...getRootProps()}
-                    className={`w-full flex flex-col justify-center items-center rounded-md border-2 border-dashed bg-[#FAF8F5] px-6 py-10 transition-all duration-150 cursor-pointer ${isDragActive ? 'border-[#F45B25] bg-[#FFF0E8]' : 'border-[#D8D4CC] hover:border-[#171717] hover:bg-[#F7F5F2]'} ${uploading || analyzing ? 'opacity-50 pointer-events-none' : ''}`}
+                    className={`w-full flex flex-col justify-center items-center rounded-md border-2 border-dashed bg-[#FAF8F5] px-6 py-10 transition-all duration-150 cursor-pointer ${isDragActive ? 'border-[#CA3C0A] bg-[#FFF0E8]' : 'border-[#D8D4CC] hover:border-[#171717] hover:bg-[#F7F5F2]'} ${uploading || analyzing ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                     <input {...getInputProps()} />
                     <div className="flex flex-col items-center gap-3 text-center">
@@ -274,7 +274,7 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                         <div>
                             <p className="text-sm font-semibold text-[#171717]">
                                 Drop your resume here or{' '}
-                                <span className="text-[#F45B25] font-bold">browse</span>
+                                <span className="text-[#CA3C0A] font-bold">browse</span>
                             </p>
                             <p className="text-[11px] text-[#8A8580] mt-1">PDF or TXT · 5 MB max</p>
                         </div>
@@ -297,7 +297,7 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                                 <span className={
                                     statusText === 'Completed' ? 'text-emerald-600 font-bold' :
                                     statusText === 'Failed' ? 'text-rose-500 font-bold' :
-                                    'text-[#F45B25] font-bold animate-pulse'
+                                    'text-[#CA3C0A] font-bold animate-pulse'
                                 }>
                                     {statusText}
                                 </span>
@@ -359,7 +359,7 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                     {/* Header */}
                     <div className="flex items-center justify-between flex-wrap gap-4 mb-6 pb-4 border-b border-neutral-200/80">
                         <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-[#F45B25] mb-1 font-mono">
+                            <p className="text-xs font-bold uppercase tracking-wider text-[#CA3C0A] mb-1 font-mono">
                                 [ Candidate Profile Dossier ]
                             </p>
                             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171717]">
@@ -378,7 +378,7 @@ function ResumeUpload({ onResumeAnalyzed, existingData = null, user = null }) {
                                     const queryRole = savedRole || analysis.suggestedRoles?.[0] || 'Software Engineer';
                                     navigate(`/search?query=${encodeURIComponent(queryRole)}`);
                                 }}
-                                className="px-4 py-1.5 rounded-full bg-[#171717] hover:bg-[#F45B25] text-white text-xs font-bold transition-all border-none cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
+                                className="px-4 py-1.5 rounded-full bg-[#171717] hover:bg-[#CA3C0A] text-white text-xs font-bold transition-all border-none cursor-pointer inline-flex items-center gap-1.5 shadow-2xs"
                             >
                                 Match Jobs <ArrowUpRight size={13} />
                             </button>

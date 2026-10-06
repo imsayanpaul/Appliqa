@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useEscapeKey } from '../lib/useEscapeKey';
 import { 
     FiTrash2, FiBookmark, FiUser, FiGrid, FiSend, FiVideo, FiCheckCircle, 
     FiXCircle, FiMapPin, FiDollarSign, FiZap, FiFileText, FiCopy, FiCheck, 
@@ -35,9 +36,9 @@ const STATUS_CONFIG = {
     interview: { 
         label: 'Interview', 
         badgeBg: 'bg-[#FFF0E8]', 
-        badgeText: 'text-[#F45B25]', 
-        badgeBorder: 'border-[#F45B25]/30',
-        dotColor: 'bg-[#F45B25]',
+        badgeText: 'text-[#CA3C0A]', 
+        badgeBorder: 'border-[#CA3C0A]/30',
+        dotColor: 'bg-[#CA3C0A]',
         icon: FiVideo 
     },
     offer: { 
@@ -45,7 +46,7 @@ const STATUS_CONFIG = {
         badgeBg: 'bg-[#171717]', 
         badgeText: 'text-white', 
         badgeBorder: 'border-[#171717]',
-        dotColor: 'bg-[#F45B25]',
+        dotColor: 'bg-[#CA3C0A]',
         icon: FiAward 
     },
     rejected: { 
@@ -82,6 +83,7 @@ function SavedJobs({ user, resumeData }) {
     const [selectedJob, setSelectedJob] = useState(null);
     const [prepJob, setPrepJob] = useState(null);
     const [coverLetterJob, setCoverLetterJob] = useState(null);
+    useEscapeKey(() => setCoverLetterJob(null), !!coverLetterJob);
     const [clCopied, setClCopied] = useState(false);
 
     // Custom Job Modal State (Add & Edit)
@@ -312,7 +314,7 @@ function SavedJobs({ user, resumeData }) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-8">
                 {/* Section Header */}
                 <div className="mb-6">
-                    <p className="text-xs font-bold uppercase tracking-widest text-[#F45B25] mb-1">
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#CA3C0A] mb-1">
                         [ Pipeline Intelligence ]
                     </p>
                     <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#171717] leading-tight m-0">
@@ -361,13 +363,13 @@ function SavedJobs({ user, resumeData }) {
                     <button
                         type="button"
                         onClick={handleOpenAddModal}
-                        className="group h-[38px] px-3.5 rounded-lg bg-white hover:bg-[#FAF8F5] text-[#171717] hover:text-[#F45B25] text-xs font-bold transition-all duration-150 flex items-center justify-center gap-2 border border-[#D8D4CC] hover:border-[#F45B25]/50 cursor-pointer shadow-xs active:scale-[0.98] shrink-0"
+                        className="group h-[38px] px-3.5 rounded-lg bg-white hover:bg-[#FAF8F5] text-[#171717] hover:text-[#CA3C0A] text-xs font-bold transition-all duration-150 flex items-center justify-center gap-2 border border-[#D8D4CC] hover:border-[#CA3C0A]/50 cursor-pointer shadow-xs active:scale-[0.98] shrink-0"
                     >
-                        <span className="w-5 h-5 rounded-[4px] bg-[#FFF0E8] text-[#F45B25] border border-[#F45B25]/30 flex items-center justify-center transition-transform group-hover:scale-105">
+                        <span className="w-5 h-5 rounded-[4px] bg-[#FFF0E8] text-[#CA3C0A] border border-[#CA3C0A]/30 flex items-center justify-center transition-transform group-hover:scale-105">
                             <FiPlus size={13} className="stroke-[3]" />
                         </span>
                         <span>Add Custom Job</span>
-                        <span className="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded-[3px] bg-[#FAF8F5] text-[#66615C] border border-[#D8D4CC] group-hover:border-[#F45B25]/30 group-hover:text-[#F45B25] transition-colors">
+                        <span className="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded-[3px] bg-[#FAF8F5] text-[#66615C] border border-[#D8D4CC] group-hover:border-[#CA3C0A]/30 group-hover:text-[#CA3C0A] transition-colors">
                             + NEW
                         </span>
                     </button>
@@ -410,14 +412,14 @@ function SavedJobs({ user, resumeData }) {
                                                             {job.companyLogo ? (
                                                                 <img src={job.companyLogo} alt="" className="w-full h-full object-contain object-center rounded-sm" />
                                                             ) : (
-                                                                <div className="w-full h-full rounded-sm bg-[#FFF0E8] flex items-center justify-center text-[#F45B25] font-black text-sm">
+                                                                <div className="w-full h-full rounded-sm bg-[#FFF0E8] flex items-center justify-center text-[#CA3C0A] font-black text-sm">
                                                                     {(job.company || '?')[0].toUpperCase()}
                                                                 </div>
                                                             )}
                                                         </div>
                                                         {/* Title & Company */}
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 className="text-base font-bold text-[#171717] tracking-tight leading-snug group-hover:text-[#F45B25] transition-colors duration-200 line-clamp-1" title={job.title}>
+                                                            <h3 className="text-base font-bold text-[#171717] tracking-tight leading-snug group-hover:text-[#CA3C0A] transition-colors duration-200 line-clamp-1" title={job.title}>
                                                                 {job.title}
                                                             </h3>
                                                             <p className="text-xs text-neutral-500 font-semibold truncate mt-0.5">
@@ -441,7 +443,7 @@ function SavedJobs({ user, resumeData }) {
                                                         </span>
                                                     )}
                                                     {hasSalary && (
-                                                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#FFF8F5] text-[#F45B25] font-bold border border-[#F45B25]/20">
+                                                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-md bg-[#FFF8F5] text-[#CA3C0A] font-bold border border-[#CA3C0A]/20">
                                                             <FiDollarSign size={11} /> {job.salary}
                                                         </span>
                                                     )}
@@ -468,7 +470,7 @@ function SavedJobs({ user, resumeData }) {
                                                     {/* Interview Prep button */}
                                                     {job.status === 'interview' && (
                                                         <button
-                                                            className="h-8 w-8 rounded-md bg-[#FFF0E8] text-[#F45B25] hover:bg-[#F45B25] hover:text-white border border-[#F45B25]/20 flex items-center justify-center transition-all cursor-pointer flex-shrink-0"
+                                                            className="h-8 w-8 rounded-md bg-[#FFF0E8] text-[#CA3C0A] hover:bg-[#CA3C0A] hover:text-white border border-[#CA3C0A]/20 flex items-center justify-center transition-all cursor-pointer flex-shrink-0"
                                                             onClick={(e) => { e.stopPropagation(); setPrepJob(job); }}
                                                             title="Launch Interview Prep & STAR Questions"
                                                             style={{ boxShadow: 'none', boxSizing: 'border-box' }}
@@ -495,7 +497,7 @@ function SavedJobs({ user, resumeData }) {
                                                             href={job.applyLink} 
                                                             target="_blank" 
                                                             rel="noopener noreferrer" 
-                                                            className="h-8 px-3.5 rounded-md bg-[#F45B25] hover:bg-[#D94B1F] text-white text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 no-underline flex-shrink-0 leading-none"
+                                                            className="h-8 px-3.5 rounded-md bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold transition-all inline-flex items-center justify-center gap-1.5 no-underline flex-shrink-0 leading-none"
                                                             style={{ boxShadow: 'none', boxSizing: 'border-box' }}
                                                         >
                                                             <span>Apply</span>
@@ -508,7 +510,7 @@ function SavedJobs({ user, resumeData }) {
                                                         <button 
                                                             onClick={(e) => { e.stopPropagation(); handleOpenEditModal(job); }} 
                                                             title="Edit Custom Opportunity" 
-                                                            className="h-8 w-8 rounded-md bg-[#FAF8F5] hover:bg-[#FFF0E8] text-neutral-400 hover:text-[#F45B25] border border-neutral-200/60 hover:border-[#F45B25]/30 flex items-center justify-center transition-all cursor-pointer flex-shrink-0"
+                                                            className="h-8 w-8 rounded-md bg-[#FAF8F5] hover:bg-[#FFF0E8] text-neutral-400 hover:text-[#CA3C0A] border border-neutral-200/60 hover:border-[#CA3C0A]/30 flex items-center justify-center transition-all cursor-pointer flex-shrink-0"
                                                             style={{ boxShadow: 'none', boxSizing: 'border-box' }}
                                                         >
                                                             <FiEdit2 size={13} />
@@ -563,7 +565,7 @@ function SavedJobs({ user, resumeData }) {
                 {/* Cover Letter Modal */}
                 {coverLetterJob && (
                     <div className="modal-overlay" onClick={() => setCoverLetterJob(null)} data-lenis-prevent>
-                        <div className="modal-content max-w-2xl bg-white rounded-3xl p-8 border border-neutral-200 shadow-2xl" onClick={e => e.stopPropagation()} data-lenis-prevent>
+                        <div className="modal-content max-w-2xl bg-white rounded-3xl p-8 border border-neutral-200 shadow-2xl" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} data-lenis-prevent>
                             <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-100">
                                 <div>
                                     <h3 className="text-xl font-bold text-[#171717]">Saved Cover Letter</h3>
@@ -588,7 +590,7 @@ function SavedJobs({ user, resumeData }) {
                                     }}
                                     className="px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-neutral-800 text-white text-xs font-bold inline-flex items-center gap-2 border-none cursor-pointer"
                                 >
-                                    {clCopied ? <FiCheck size={14} className="text-[#F45B25]" /> : <FiCopy size={14} />}
+                                    {clCopied ? <FiCheck size={14} className="text-[#CA3C0A]" /> : <FiCopy size={14} />}
                                     {clCopied ? 'Copied to Clipboard!' : 'Copy Cover Letter'}
                                 </button>
                             </div>
@@ -612,7 +614,7 @@ function SavedJobs({ user, resumeData }) {
                                     {/* Fixed Modal Header */}
                                     <div className="px-6 py-4 border-b border-[#D8D4CC] flex items-center justify-between bg-[#FAF8F5] shrink-0">
                                         <div>
-                                            <span className="text-[10.5px] font-mono font-bold uppercase tracking-widest text-[#F45B25] leading-normal block mb-0.5">
+                                            <span className="text-[10.5px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] leading-normal block mb-0.5">
                                                 {editingJobId ? 'EDIT APPLICATION DETAILS' : 'MANUAL APPLICATION ENTRY'}
                                             </span>
                                             <h2 className="text-lg font-black text-[#171717] m-0 leading-tight">
@@ -641,7 +643,7 @@ function SavedJobs({ user, resumeData }) {
                                                     <button
                                                         type="button"
                                                         onClick={handleAutoDetectFields}
-                                                        className="text-[10.5px] font-bold text-[#F45B25] hover:underline bg-transparent border-none cursor-pointer"
+                                                        className="text-[10.5px] font-bold text-[#CA3C0A] hover:underline bg-transparent border-none cursor-pointer"
                                                     >
                                                         Auto-Fill Fields →
                                                     </button>
@@ -651,14 +653,14 @@ function SavedJobs({ user, resumeData }) {
                                                     value={rawPasteText}
                                                     onChange={(e) => setRawPasteText(e.target.value)}
                                                     placeholder="Paste job description or details here, then click Auto-Fill..."
-                                                    className="w-full text-xs p-2.5 rounded-[5px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] resize-none focus:outline-none focus:border-[#F45B25] focus:ring-1 focus:ring-[#F45B25]/20"
+                                                    className="w-full text-xs p-2.5 rounded-[5px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] resize-none focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20"
                                                 />
                                             </div>
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                                 <div className="space-y-1">
                                                     <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                        Job Title / Role <span className="text-[#F45B25]">*</span>
+                                                        Job Title / Role <span className="text-[#CA3C0A]">*</span>
                                                     </label>
                                                     <input
                                                         type="text"
@@ -666,12 +668,12 @@ function SavedJobs({ user, resumeData }) {
                                                         value={customJob.title}
                                                         onChange={(e) => setCustomJob({ ...customJob, title: e.target.value })}
                                                         placeholder="e.g. Senior Frontend Architect"
-                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#F45B25] focus:ring-1 focus:ring-[#F45B25]/20 transition-all shadow-2xs"
+                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
                                                     />
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                        Company Name <span className="text-[#F45B25]">*</span>
+                                                        Company Name <span className="text-[#CA3C0A]">*</span>
                                                     </label>
                                                     <input
                                                         type="text"
@@ -679,7 +681,7 @@ function SavedJobs({ user, resumeData }) {
                                                         value={customJob.company}
                                                         onChange={(e) => setCustomJob({ ...customJob, company: e.target.value })}
                                                         placeholder="e.g. Stripe, Google, Startup"
-                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#F45B25] focus:ring-1 focus:ring-[#F45B25]/20 transition-all shadow-2xs"
+                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
                                                     />
                                                 </div>
                                             </div>
@@ -694,7 +696,7 @@ function SavedJobs({ user, resumeData }) {
                                                         value={customJob.location}
                                                         onChange={(e) => setCustomJob({ ...customJob, location: e.target.value })}
                                                         placeholder="e.g. Remote, San Francisco, CA"
-                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#F45B25] focus:ring-1 focus:ring-[#F45B25]/20 transition-all shadow-2xs"
+                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
                                                     />
                                                 </div>
                                                 <div className="space-y-1">
@@ -706,7 +708,7 @@ function SavedJobs({ user, resumeData }) {
                                                         value={customJob.salary}
                                                         onChange={(e) => setCustomJob({ ...customJob, salary: e.target.value })}
                                                         placeholder="e.g. $140,000 - $180,000 / yr"
-                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#F45B25] focus:ring-1 focus:ring-[#F45B25]/20 transition-all shadow-2xs"
+                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
                                                     />
                                                 </div>
                                             </div>
@@ -720,7 +722,7 @@ function SavedJobs({ user, resumeData }) {
                                                     value={customJob.applyLink}
                                                     onChange={(e) => setCustomJob({ ...customJob, applyLink: e.target.value })}
                                                     placeholder="https://company.com/careers/job-123"
-                                                    className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#F45B25] focus:ring-1 focus:ring-[#F45B25]/20 transition-all shadow-2xs"
+                                                    className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
                                                 />
                                             </div>
 
@@ -759,7 +761,7 @@ function SavedJobs({ user, resumeData }) {
                                                     value={customJob.description}
                                                     onChange={(e) => setCustomJob({ ...customJob, description: e.target.value })}
                                                     placeholder="Key requirements, interview notes, recruiter contacts, or referral details..."
-                                                    className="w-full text-xs p-3 rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] resize-none focus:outline-none focus:border-[#F45B25] focus:ring-1 focus:ring-[#F45B25]/20 transition-all shadow-2xs"
+                                                    className="w-full text-xs p-3 rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] resize-none focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
                                                 />
                                             </div>
                                         </div>
@@ -776,7 +778,7 @@ function SavedJobs({ user, resumeData }) {
                                             <button
                                                 type="submit"
                                                 disabled={savingCustom || !customJob.title.trim()}
-                                                className="h-9 px-5 rounded-[6px] bg-[#F45B25] hover:bg-[#d94815] text-white text-xs font-bold transition-all border border-[#F45B25] cursor-pointer disabled:opacity-50 shadow-xs active:scale-[0.98] flex items-center gap-1.5"
+                                                className="h-9 px-5 rounded-[6px] bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold transition-all border border-[#CA3C0A] cursor-pointer disabled:opacity-50 shadow-xs active:scale-[0.98] flex items-center gap-1.5"
                                             >
                                                 {savingCustom ? (
                                                     <>

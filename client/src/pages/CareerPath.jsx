@@ -85,14 +85,14 @@ function CareerPath({ user, resumeData }) {
 
     const getMatchColor = (percent) => {
         if (percent >= 80) return {
-            bg: 'bg-[#FFF0E8] text-[#F45B25] border-[#F45B25]/30',
-            bar: 'bg-[#F45B25]',
-            text: 'text-[#F45B25]'
+            bg: 'bg-[#FFF0E8] text-[#CA3C0A] border-[#CA3C0A]/30',
+            bar: 'bg-[#CA3C0A]',
+            text: 'text-[#CA3C0A]'
         };
         if (percent >= 65) return {
-            bg: 'bg-[#FFF8F5] text-[#F45B25] border-[#F45B25]/20',
-            bar: 'bg-[#F45B25]',
-            text: 'text-[#F45B25]'
+            bg: 'bg-[#FFF8F5] text-[#CA3C0A] border-[#CA3C0A]/20',
+            bar: 'bg-[#CA3C0A]',
+            text: 'text-[#CA3C0A]'
         };
         return {
             bg: 'bg-neutral-100 text-[#171717] border-neutral-200',
@@ -110,12 +110,12 @@ function CareerPath({ user, resumeData }) {
                     className="max-w-lg w-full bg-white rounded-lg p-6 sm:p-8 border border-[#D8D4CC] shadow-md text-center"
                 >
                     {/* Category Eyebrow */}
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#F45B25] mb-4">
+                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#CA3C0A] mb-4">
                         [ Pathway Intelligence Engine ]
                     </p>
 
                     {/* Visual Icon Badge */}
-                    <div className="w-14 h-14 rounded-lg bg-[#FFF0E8] border border-[#F45B25]/20 text-[#F45B25] flex items-center justify-center mx-auto mb-4">
+                    <div className="w-14 h-14 rounded-lg bg-[#FFF0E8] border border-[#CA3C0A]/20 text-[#CA3C0A] flex items-center justify-center mx-auto mb-4">
                         <FiMap size={26} strokeWidth={2} />
                     </div>
 
@@ -130,15 +130,15 @@ function CareerPath({ user, resumeData }) {
                     {/* Feature Highlights Bento Box */}
                     <div className="bg-[#FAF8F5] border border-[#D8D4CC]/70 rounded-md p-3.5 mb-6 text-left space-y-2">
                         <div className="flex items-center gap-2.5 text-xs text-[#171717] font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] shrink-0" />
                             <span><strong>Role Trajectory Map:</strong> Multi-tier promotion ladder & next logical roles</span>
                         </div>
                         <div className="flex items-center gap-2.5 text-xs text-[#171717] font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] shrink-0" />
                             <span><strong>Compensation Benchmarks:</strong> Live market salary brackets per level</span>
                         </div>
                         <div className="flex items-center gap-2.5 text-xs text-[#171717] font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#F45B25] shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#CA3C0A] shrink-0" />
                             <span><strong>Skill Gap Bridges:</strong> High-impact skills & credentials to unlock each tier</span>
                         </div>
                     </div>
@@ -147,7 +147,7 @@ function CareerPath({ user, resumeData }) {
                     <div className="space-y-2">
                         <button
                             onClick={() => navigate('/profile')}
-                            className="w-full py-3 px-5 rounded-md bg-[#171717] hover:bg-[#F45B25] text-white font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 border-none cursor-pointer shadow-xs"
+                            className="w-full py-3 px-5 rounded-md bg-[#171717] hover:bg-[#CA3C0A] text-white font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 border-none cursor-pointer shadow-xs"
                         >
                             <span>Set Up Profile & Resume</span>
                             <FiArrowRight size={15} />
@@ -232,10 +232,10 @@ function CareerPath({ user, resumeData }) {
                     </div>
                 ) : error ? (
                     <div className="bg-white rounded-3xl p-12 text-center border border-neutral-200 shadow-sm">
-                        <p className="text-sm font-semibold text-[#F45B25] mb-4">{error}</p>
+                        <p className="text-sm font-semibold text-[#CA3C0A] mb-4">{error}</p>
                         <button
                             onClick={fetchCareerPath}
-                            className="px-6 py-2.5 rounded-xl bg-[#F45B25] text-white text-xs font-bold border-none cursor-pointer"
+                            className="px-6 py-2.5 rounded-xl bg-[#CA3C0A] text-white text-xs font-bold border-none cursor-pointer"
                         >
                             Try Again
                         </button>
@@ -250,12 +250,12 @@ function CareerPath({ user, resumeData }) {
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div className="flex items-start sm:items-center gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-[#FFF0E8] text-[#F45B25] flex items-center justify-center shrink-0 shadow-sm">
+                                    <div className="w-12 h-12 rounded-xl bg-[#FFF0E8] text-[#CA3C0A] flex items-center justify-center shrink-0 shadow-sm">
                                         <FiBriefcase size={22} />
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#F45B25]">
+                                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#CA3C0A]">
                                                 Current Baseline Role
                                             </span>
                                             <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-700 text-[10px] font-bold uppercase">
@@ -346,7 +346,7 @@ function CareerPath({ user, resumeData }) {
                                                         <span className="capitalize">{path.level}</span>
                                                     </div>
                                                     {path.salary_range && (
-                                                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#FFF8F5] border border-[#F45B25]/20 text-[11px] font-bold text-[#F45B25]">
+                                                        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#FFF8F5] border border-[#CA3C0A]/20 text-[11px] font-bold text-[#CA3C0A]">
                                                             <span>₹ {path.salary_range}</span>
                                                         </div>
                                                     )}
@@ -356,14 +356,14 @@ function CareerPath({ user, resumeData }) {
                                                 <div className="mt-auto mb-4">
                                                     <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-500 mb-1">
                                                         <span>Skill Readiness</span>
-                                                        <span className="text-[#F45B25] font-bold">{path.match_percent}%</span>
+                                                        <span className="text-[#CA3C0A] font-bold">{path.match_percent}%</span>
                                                     </div>
                                                     <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                                                         <motion.div
                                                             initial={{ width: 0 }}
                                                             animate={{ width: `${path.match_percent}%` }}
                                                             transition={{ duration: 0.7, delay: 0.1 * i }}
-                                                            className="h-full rounded-full bg-[#F45B25]"
+                                                            className="h-full rounded-full bg-[#CA3C0A]"
                                                         />
                                                     </div>
                                                 </div>
@@ -373,7 +373,7 @@ function CareerPath({ user, resumeData }) {
                                                     {path.skills_have?.length > 0 && (
                                                         <div>
                                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[#171717] flex items-center gap-1 mb-1.5">
-                                                                <FiCheck size={11} className="text-[#F45B25]" /> Skills You Master
+                                                                <FiCheck size={11} className="text-[#CA3C0A]" /> Skills You Master
                                                             </span>
                                                             <div className="flex flex-wrap gap-1">
                                                                 {path.skills_have.map((s, j) => (
@@ -387,12 +387,12 @@ function CareerPath({ user, resumeData }) {
 
                                                     {path.skills_needed?.length > 0 && (
                                                         <div>
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#F45B25] flex items-center gap-1 mb-1.5">
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#CA3C0A] flex items-center gap-1 mb-1.5">
                                                                 <FiTarget size={11} /> Skills to Bridge Gap
                                                             </span>
                                                             <div className="flex flex-wrap gap-1">
                                                                 {path.skills_needed.map((s, j) => (
-                                                                    <span key={j} className="px-2 py-0.5 rounded bg-[#FFF0E8] text-[#F45B25] text-[11px] font-medium border border-[#F45B25]/20">
+                                                                    <span key={j} className="px-2 py-0.5 rounded bg-[#FFF0E8] text-[#CA3C0A] text-[11px] font-medium border border-[#CA3C0A]/20">
                                                                         {s}
                                                                     </span>
                                                                 ))}
@@ -429,7 +429,7 @@ function CareerPath({ user, resumeData }) {
                                 className="bg-white rounded-xl p-6 sm:p-8 border border-neutral-200 shadow-sm"
                             >
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-[#F45B25] text-white flex items-center justify-center shrink-0 shadow-md">
+                                    <div className="w-10 h-10 rounded-xl bg-[#CA3C0A] text-white flex items-center justify-center shrink-0 shadow-md">
                                         <FiTrendingUp size={20} />
                                     </div>
                                     <div className="flex-1 min-w-0">

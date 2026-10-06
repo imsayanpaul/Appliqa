@@ -46,6 +46,13 @@ supabase.auth.onAuthStateChange((event, session) => {
     sessionStorage.removeItem('appliqa_saved_jobs');
     sessionStorage.removeItem('appliqa_suggested_roles');
     sessionStorage.removeItem('appliqa_search_history');
+    // Also clear persisted personal data (resume, advisor chat, career path, recent searches)
+    // so the next person using this browser can't see it
+    try {
+      Object.keys(localStorage)
+        .filter(key => key.startsWith('appliqa_'))
+        .forEach(key => localStorage.removeItem(key));
+    } catch (e) {}
   }
 });
 
