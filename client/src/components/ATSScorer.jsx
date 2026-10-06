@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { FiX, FiCheck, FiRefreshCw } from 'react-icons/fi';
 import { getATSScore } from '../services/api';
+import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
 
 function ATSScorer({ job, resumeData, onClose }) {
     const [atsData, setAtsData] = useState(null);
@@ -130,9 +131,9 @@ function ATSScorer({ job, resumeData, onClose }) {
                                     {found.length === 0 && <p className="m-0 text-[15px] text-[#4A4540]">No direct keyword matches.</p>}
                                 </div>
 
-                                <h3 className="ds-mono ds-mono-muted m-0 mt-6 mb-3">missing keywords · {missing.length}</h3>
+                                <h3 className="ds-mono ds-mono-muted m-0 mt-6 mb-3">missing keywords · {missing.length}<AddSkillHint /></h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {missing.map((kw, i) => <span key={`m-${i}`} className="ds-tag !border-[#CA3C0A] !text-[#CA3C0A]">+ {kw}</span>)}
+                                    {missing.map((kw, i) => <AddSkillTag key={`m-${i}`} skill={kw} />)}
                                     {missing.length === 0 && <p className="m-0 text-[15px] text-[#4A4540]">Your resume covers the job's key terms.</p>}
                                 </div>
                             </section>

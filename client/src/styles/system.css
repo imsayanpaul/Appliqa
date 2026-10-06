@@ -1103,3 +1103,7 @@ textarea.resume-input-field { line-height: 1.6; }
   background: var(--bg-surface) !important;
   box-shadow: none !important;
 }
+
+/* Keep the feedback button clear of bottom composers (advisor) */
+.feedback-raised .feedback-floating-btn { bottom: 84px; }
+.feedback-raised .feedback-panel { bottom: 136px; }

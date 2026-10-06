@@ -134,6 +134,15 @@ const safeParseJSON = (text, fallback) => {
   }
 };
 
+// The advisor appends "SKILLS_TO_ADD: a, b" when it recommends skills; split it out
+const extractSkillsLine = (raw) => {
+  const text = String(raw || "");
+  const match = text.match(/\n?\s*\**SKILLS_TO_ADD\**\s*:\s*(.+?)\s*$/i);
+  if (!match) return { text: text.trim(), skills: [] };
+  const skills = [...new Set(match[1].split(",").map((x) => x.replace(/[*_`.]+/g, "").trim()).filter((x) => x && x.length <= 60))].slice(0, 8);
+  return { text: text.slice(0, match.index).trim(), skills };
+};
+
 // Analyze resume text with AI
 router.post("/analyze-resume", async (req, res) => {
   try {
@@ -830,7 +839,7 @@ Here is the candidate's resume context:
 `;
     } else {
       resumeContext = `
-No resume has been uploaded yet. Provide helpful general career advice, and gently suggest they upload their resume on the homepage for personalized insights.
+No resume has been uploaded yet. Provide helpful general career advice, and gently suggest they add their resume on their Profile page for personalized insights.
 `;
     }
 
@@ -845,6 +854,11 @@ Style Guide:
 - Keep responses concise and focused on actionable steps.
 - Use markdown for readability.
 - If asked, mention you are integrated directly with Appliqa's job tracking and ATS checker features.
+
+Skill suggestions:
+- When you recommend specific skills, tools or technologies the candidate should add or learn, end your reply with ONE final line in exactly this format:
+SKILLS_TO_ADD: Skill One, Skill Two, Skill Three
+- Use short, resume-ready names (e.g. "Docker", "System Design"), at most 8, and only skills they don't already list. Omit the line if you are not recommending skills.
 `;
 
     const model = genAI.getGenerativeModel({
@@ -882,9 +896,9 @@ Style Guide:
     });
 
     const result = await chat.sendMessage(message);
-    const responseText = result.response.text();
+    const { text: responseText, skills: suggestedSkills } = extractSkillsLine(result.response.text());
 
-    res.json({ success: true, response: responseText });
+    res.json({ success: true, response: responseText, suggestedSkills });
   } catch (error) {
     sendServerError(res, error, "AI Career Advisor failed");
   }

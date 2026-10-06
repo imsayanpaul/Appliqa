@@ -38,7 +38,9 @@ import SplashScreen from './components/SplashScreen';
 import Footer from './components/ui/Footer';
 import { Logo } from './components/ui/Logo';
 import { useEscapeKey } from './lib/useEscapeKey';
-import { readProfiles, toAIResume } from './lib/resumeProfiles';
+import { readProfiles, writeProfiles, makeProfile, dataFromAnalysis, toAIResume } from './lib/resumeProfiles';
+import { normalizeProfile, profileToText } from './lib/resumeProfile';
+import { ResumeSkillsContext } from './lib/resumeSkills';
 import FeedbackWidget from './components/FeedbackWidget';
 import { supabase } from './services/supabase';
 import { getUserProfile, createOrUpdateUser } from './services/api';
@@ -293,6 +295,11 @@ function AppContent() {
         lastScrollTopRef.current = 0;
     }, [location.pathname]);
 
+    // Pages with a composer pinned to the bottom lift the feedback button above it
+    useEffect(() => {
+        document.body.classList.toggle('feedback-raised', location.pathname === '/advisor');
+    }, [location.pathname]);
+
     // Dynamic tab titles based on current route
     useEffect(() => {
         const routeTitles = {
@@ -456,6 +463,57 @@ function AppContent() {
         const primary = profiles.find((p) => p.id === primaryId);
         return primary ? toAIResume(primary.data, resumeData, primary.name) : resumeData;
     }, [user?.builderData, resumeData]);
+
+    // "+ skill" tags anywhere in the app add to the primary resume
+    const resumeDataRef = useRef(resumeData);
+    resumeDataRef.current = resumeData;
+    const skillQueueRef = useRef(Promise.resolve());
+    // Result of the last queued save; React state lags a render behind it
+    const pendingUserRef = useRef(null);
+    const pendingCountRef = useRef(0);
+    const primarySkills = useMemo(() => {
+        const { profiles, primaryId } = readProfiles(user?.builderData);
+        const primary = profiles.find((p) => p.id === primaryId);
+        return new Set((primary ? primary.data.skills || [] : resumeData?.skills || []).map((x) => String(x).toLowerCase()));
+    }, [user?.builderData, resumeData]);
+    const addSkillsToPrimary = useCallback((skills) => {
+        // Run one save at a time so quick clicks don't overwrite each other
+        const run = async () => {
+            const current = pendingUserRef.current || userRef.current;
+            if (!current) return;
+            let { profiles, primaryId } = readProfiles(current.builderData);
+            if (!profiles.length) {
+                const base = resumeDataRef.current ? dataFromAnalysis(resumeDataRef.current) : {};
+                profiles = [{ ...makeProfile('Main resume', base), id: 'main' }];
+                primaryId = 'main';
+            }
+            const primary = profiles.find((p) => p.id === primaryId) || profiles[0];
+            const existing = primary.data.skills || [];
+            const have = new Set(existing.map((x) => String(x).toLowerCase()));
+            const added = skills.map((x) => String(x).trim()).filter((x) => x && !have.has(x.toLowerCase()));
+            if (!added.length) return;
+            const data = { ...primary.data, skills: [...existing, ...added] };
+            data.rawText = profileToText(normalizeProfile(data), data.personalInfo || { name: current.name });
+            const next = profiles.map((p) => (p.id === primary.id ? { ...p, data, updatedAt: new Date().toISOString() } : p));
+            const res = await createOrUpdateUser({ builderData: writeProfiles(current.builderData, next, primary.id) });
+            if (res.data?.user) {
+                pendingUserRef.current = res.data.user;
+                updateUserState(res.data.user);
+            }
+        };
+        pendingCountRef.current += 1;
+        const task = skillQueueRef.current.then(run, run).finally(() => {
+            pendingCountRef.current -= 1;
+            if (pendingCountRef.current === 0) pendingUserRef.current = null;
+        });
+        skillQueueRef.current = task.catch(() => {});
+        return task;
+    }, [updateUserState]);
+    const resumeSkills = useMemo(() => ({
+        canAdd: !!session && !!user,
+        hasSkill: (skill) => primarySkills.has(String(skill).toLowerCase()),
+        addSkills: addSkillsToPrimary,
+    }), [session, user, primarySkills, addSkillsToPrimary]);
 
     const handleProfileUpdate = useCallback((updatedUser) => {
         updateUserState(updatedUser);
@@ -698,6 +756,7 @@ function AppContent() {
                 )}
             </AnimatePresence>
 
+            <ResumeSkillsContext.Provider value={resumeSkills}>
             <main id="main-content" tabIndex={-1} ref={mainRef} onScroll={handleScroll} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden', paddingTop: '64px' }}>
                 <div ref={contentRef} style={{ width: '100%', minHeight: '100%' }}>
                     <Suspense fallback={<PageSkeleton />}>
@@ -727,7 +786,7 @@ function AppContent() {
                                 <ProtectedRoute session={session} authResolved={authResolved}><CareerPath user={user} resumeData={aiResumeData} /></ProtectedRoute>
                             } />
                             <Route path="/advisor" element={
-                                <ProtectedRoute session={session} authResolved={authResolved}><Advisor user={user} resumeData={aiResumeData} /></ProtectedRoute>
+                                <ProtectedRoute session={session} authResolved={authResolved}><Advisor user={user} resumeData={aiResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
                             } />
                             <Route path="/resume-creator" element={
                                 <ProtectedRoute session={session} authResolved={authResolved}><ResumeCreator user={user} resumeData={resumeData} onResumeAnalyzed={updateResumeData} onUpdateUser={handleProfileUpdate} /></ProtectedRoute>
@@ -743,6 +802,7 @@ function AppContent() {
                     </Suspense>
                 </div>
             </main>
+            </ResumeSkillsContext.Provider>
 
             {showLocationPrompt && (
                 <div 

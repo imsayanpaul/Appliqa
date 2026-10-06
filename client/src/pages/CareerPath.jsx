@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiRefreshCw, FiArrowUpRight, FiArrowRight } from 'react-icons/fi';
 import { getCareerPath } from '../services/api';
+import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
 
 function CareerPath({ user, resumeData }) {
     const navigate = useNavigate();
@@ -193,9 +194,9 @@ function CareerPath({ user, resumeData }) {
                                             )}
                                             {path.skills_needed?.length > 0 && (
                                                 <div className="mt-4">
-                                                    <p className="ds-mono ds-mono-muted m-0 mb-2">to learn</p>
+                                                    <p className="ds-mono ds-mono-muted m-0 mb-2">to learn<AddSkillHint /></p>
                                                     <div className="flex flex-wrap gap-1.5">
-                                                        {path.skills_needed.map((s, j) => <span key={j} className="ds-tag !border-[#CA3C0A] !text-[#CA3C0A]">+ {s}</span>)}
+                                                        {path.skills_needed.map((s, j) => <AddSkillTag key={j} skill={s} />)}
                                                     </div>
                                                 </div>
                                             )}

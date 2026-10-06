@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiFileText, FiSend, FiPlus, FiArrowRight, FiArrowUpRight } from 'react-icons/fi';
-import { getAdvisorChat } from '../services/api';
+import { FiFileText, FiSend, FiPlus, FiArrowRight, FiArrowUpRight, FiBookmark, FiCheck, FiTrash2 } from 'react-icons/fi';
+import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
+import { getAdvisorChat, createOrUpdateUser } from '../services/api';
 
 // Markdown-to-HTML parser helper for structured advisor responses
 const renderMarkdown = (text) => {
@@ -118,7 +119,20 @@ const parseInline = (text) => {
     return parts.length > 0 ? parts : text;
 };
 
-function Advisor({ user, resumeData }) {
+const MAX_SAVED_CHATS = 20;
+
+const formatChatDate = (iso) => {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).toLowerCase();
+};
+
+const chatTitle = (messages) => {
+    const first = messages.find((m) => m.role === 'user')?.text || 'Career chat';
+    return first.length > 60 ? `${first.slice(0, 57).trimEnd()}…` : first;
+};
+
+function Advisor({ user, resumeData, onUpdateUser }) {
     const navigate = useNavigate();
     const chatContainerRef = useRef(null);
     const inputRef = useRef(null);
@@ -142,6 +156,10 @@ function Advisor({ user, resumeData }) {
         ];
     });
     const [inputValue, setInputValue] = useState('');
+    // Saved chats live on the account (inside builderData) so they survive sign-out
+    const savedChats = Array.isArray(user?.builderData?.advisorChats) ? user.builderData.advisorChats : [];
+    const [savedChatId, setSavedChatId] = useState(() => window.localStorage.getItem('appliqa_advisor_chat_id') || null);
+    const [saveState, setSaveState] = useState('idle'); // idle | saving | saved | error
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -240,7 +258,8 @@ function Advisor({ user, resumeData }) {
                     {
                         id: (Date.now() + 1).toString(),
                         role: 'assistant',
-                        text: response.data.response
+                        text: response.data.response,
+                        skills: Array.isArray(response.data.suggestedSkills) ? response.data.suggestedSkills : []
                     }
                 ];
                 setMessages(updatedMessages);
@@ -269,7 +288,62 @@ function Advisor({ user, resumeData }) {
         ];
         setMessages(initialGreeting);
         window.localStorage.setItem('appliqa_advisor_chat', JSON.stringify(initialGreeting));
+        window.localStorage.removeItem('appliqa_advisor_chat_id');
+        setSavedChatId(null);
+        setSaveState('idle');
         setError(null);
+    };
+
+    const persistChats = async (chats) => {
+        const res = await createOrUpdateUser({ builderData: { ...(user?.builderData || {}), advisorChats: chats } });
+        if (res.data?.user) onUpdateUser?.(res.data.user);
+    };
+
+    const handleSaveChat = async () => {
+        if (messages.length < 2 || saveState === 'saving') return;
+        setSaveState('saving');
+        try {
+            const now = new Date().toISOString();
+            const existing = savedChats.find((c) => c.id === savedChatId);
+            const entry = {
+                id: existing?.id || `chat_${Date.now().toString(36)}`,
+                title: existing?.title || chatTitle(messages),
+                createdAt: existing?.createdAt || now,
+                savedAt: now,
+                messages,
+            };
+            const others = savedChats.filter((c) => c.id !== entry.id);
+            await persistChats([entry, ...others].slice(0, MAX_SAVED_CHATS));
+            setSavedChatId(entry.id);
+            window.localStorage.setItem('appliqa_advisor_chat_id', entry.id);
+            setSaveState('saved');
+            setTimeout(() => setSaveState('idle'), 2500);
+        } catch (err) {
+            console.error('Saving chat failed:', err);
+            setSaveState('error');
+        }
+    };
+
+    const handleOpenChat = (chat) => {
+        setMessages(chat.messages);
+        setSavedChatId(chat.id);
+        window.localStorage.setItem('appliqa_advisor_chat', JSON.stringify(chat.messages));
+        window.localStorage.setItem('appliqa_advisor_chat_id', chat.id);
+        setError(null);
+        setSaveState('idle');
+    };
+
+    const handleDeleteChat = async (chat) => {
+        if (!window.confirm(`Delete the saved chat “${chat.title}”?`)) return;
+        try {
+            await persistChats(savedChats.filter((c) => c.id !== chat.id));
+            if (chat.id === savedChatId) {
+                setSavedChatId(null);
+                window.localStorage.removeItem('appliqa_advisor_chat_id');
+            }
+        } catch (err) {
+            console.error('Deleting chat failed:', err);
+        }
     };
 
     const isOnlyGreeting = messages.length === 1;
@@ -324,6 +398,35 @@ function Advisor({ user, resumeData }) {
                         </section>
                     )}
 
+                    {savedChats.length > 0 && (
+                        <section className="border-0 border-b border-[#D8D4CC]">
+                            <h2 className="ds-mono ds-mono-muted m-0 px-6 pt-5 pb-3">saved chats · {savedChats.length}</h2>
+                            <ul className="list-none m-0 p-0">
+                                {savedChats.map((chat) => (
+                                    <li key={chat.id} className={`flex items-stretch border-0 border-t border-[#D8D4CC] ${chat.id === savedChatId ? 'bg-white' : ''}`}>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleOpenChat(chat)}
+                                            disabled={loading}
+                                            className="flex-1 min-w-0 px-6 py-3 text-left bg-transparent hover:bg-white border-0 cursor-pointer disabled:opacity-50"
+                                        >
+                                            <span className="block text-[14px] font-medium text-[#171717] truncate">{chat.title}</span>
+                                            <span className="ds-mono ds-mono-muted block mt-0.5">{formatChatDate(chat.savedAt)}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteChat(chat)}
+                                            aria-label={`Delete saved chat ${chat.title}`}
+                                            className="w-11 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#6F6A65] hover:text-[#B91C1C] hover:bg-white"
+                                        >
+                                            <FiTrash2 size={14} />
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    )}
+
                     <section className="flex-1">
                         <h2 className="ds-mono ds-mono-muted m-0 px-6 pt-5 pb-3">quick prompts</h2>
                         <ul className="list-none m-0 p-0">
@@ -347,7 +450,20 @@ function Advisor({ user, resumeData }) {
                 {/* Conversation */}
                 <div className="flex-1 min-w-0 flex flex-col">
                     <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
-                        <h1 className="ds-mono self-center px-6 sm:px-8 m-0 font-normal">advisor / chat</h1>
+                        <h1 className="ds-mono self-center px-6 sm:px-8 m-0 font-normal truncate">
+                            advisor / {savedChatId && savedChats.some((c) => c.id === savedChatId) ? `saved · ${formatChatDate(savedChats.find((c) => c.id === savedChatId).savedAt)}` : 'chat'}
+                        </h1>
+                        <div className="flex items-stretch shrink-0">
+                        <button
+                            type="button"
+                            onClick={handleSaveChat}
+                            disabled={messages.length < 2 || saveState === 'saving' || !user}
+                            title={messages.length < 2 ? 'Ask something first' : 'Save this chat to your account'}
+                            className="ds-btn !min-h-0 !px-5 sm:!px-6 !text-[14px] bg-transparent text-[#171717] hover:bg-white border-0 border-l border-[#D8D4CC]"
+                        >
+                            {saveState === 'saving' ? 'Saving…' : saveState === 'saved' ? 'Saved' : saveState === 'error' ? 'Retry save' : savedChatId ? 'Update saved' : 'Save chat'}
+                            {saveState === 'saved' ? <FiCheck size={15} /> : <FiBookmark size={15} />}
+                        </button>
                         <button
                             type="button"
                             onClick={handleClearChat}
@@ -355,6 +471,7 @@ function Advisor({ user, resumeData }) {
                         >
                             New chat <FiPlus size={15} />
                         </button>
+                        </div>
                     </div>
 
                     <div ref={chatContainerRef} className="flex-1 overflow-y-auto" data-lenis-prevent aria-live="polite">
@@ -399,7 +516,17 @@ function Advisor({ user, resumeData }) {
                                             {msg.role === 'user' ? (
                                                 <p className="m-0 text-[16px] font-medium leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                                             ) : (
-                                                <div className="advisor-md">{renderMarkdown(msg.text)}</div>
+                                                <>
+                                                    <div className="advisor-md">{renderMarkdown(msg.text)}</div>
+                                                    {msg.skills?.length > 0 && (
+                                                        <div className="mt-4 pt-4 border-0 border-t border-dashed border-[#D8D4CC]">
+                                                            <p className="ds-mono ds-mono-muted m-0 mb-2">suggested skills<AddSkillHint /></p>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {msg.skills.map((skill) => <AddSkillTag key={skill} skill={skill} />)}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </li>

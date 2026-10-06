@@ -5,6 +5,7 @@ import { FileCheck } from 'lucide-react';
 import { saveJob, getSavedJobs, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
 import ATSScorer from './ATSScorer';
 import { CompanyMark } from './JobCard';
+import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
 import { formatSalary } from '../lib/format';
 
 function JobDetail({ job, user, resumeData, onClose }) {
@@ -270,10 +271,10 @@ function JobDetail({ job, user, resumeData, onClose }) {
 
                                     {matchData.missingSkills?.length > 0 && (
                                         <div className="mt-5">
-                                            <p className="ds-mono ds-mono-muted m-0 mb-3">skills to add</p>
+                                            <p className="ds-mono ds-mono-muted m-0 mb-3">skills to add<AddSkillHint /></p>
                                             <div className="flex flex-wrap gap-2">
                                                 {matchData.missingSkills.map((s, i) => (
-                                                    <span key={i} className="ds-tag">+ {s}</span>
+                                                    <AddSkillTag key={i} skill={s} />
                                                 ))}
                                             </div>
                                         </div>
