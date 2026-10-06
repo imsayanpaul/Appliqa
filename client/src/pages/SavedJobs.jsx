@@ -9,7 +9,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import JobDetail from '../components/JobDetail';
 import { CompanyMark } from '../components/JobCard';
 import InterviewPrep from '../components/InterviewPrep';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 const STATUS_CONFIG = {
     saved: { label: 'Saved', text: 'text-[#4A4540]', dot: 'bg-[#8A8580]' },
@@ -109,8 +109,10 @@ function SavedJobs({ user, resumeData }) {
         const salaryMatch = text.match(/(\$|₹|INR|USD|EUR|£)\s?[0-9,]+(\s*-\s*(\$|₹|INR|USD|EUR|£)?\s?[0-9,]+)?(\s*(k|k\/yr|\/yr|per year|LPA|lpa))?/i);
         if (salaryMatch) salary = salaryMatch[0];
 
-        const locMatch = text.match(/(Remote|Hybrid|On-site|New York|San Francisco|London|Bangalore|Kolkata|India|USA|UK|Canada|Germany)[^,\n]*/i);
-        if (locMatch) location = locMatch[0];
+        // Use the whole short line that names a place ("Bengaluru, India"), not just the keyword
+        const placeRe = /\b(remote|hybrid|on-?site|bengaluru|bangalore|mumbai|delhi|gurugram|gurgaon|noida|hyderabad|pune|chennai|kolkata|ahmedabad|india|new york|san francisco|seattle|london|berlin|singapore|dubai|toronto|usa|uk|canada|germany)\b/i;
+        const locLine = lines.slice(1).find((l) => l.length <= 60 && placeRe.test(l) && !/https?:\/\//i.test(l));
+        if (locLine) location = locLine.replace(/^(location|based in|office)\s*[:\-–]\s*/i, '').trim();
 
         setCustomJob(prev => ({
             ...prev,
@@ -430,242 +432,189 @@ function SavedJobs({ user, resumeData }) {
                     />
                 )}
 
-                {/* Cover Letter Modal */}
+                {/* Cover Letter Sheet */}
                 {coverLetterJob && (
                     <div className="modal-overlay" onClick={() => setCoverLetterJob(null)} data-lenis-prevent>
-                        <div className="modal-content max-w-2xl bg-white rounded-3xl p-8 border border-neutral-200 shadow-2xl" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()} data-lenis-prevent>
-                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-neutral-100">
-                                <div>
-                                    <h3 className="text-xl font-bold text-[#171717]">Saved Cover Letter</h3>
-                                    <p className="text-xs text-neutral-500">{coverLetterJob.title} · {coverLetterJob.company}</p>
-                                </div>
-                                <button 
-                                    onClick={() => setCoverLetterJob(null)} 
-                                    className="w-8 h-8 rounded-full bg-[#FAF8F5] text-[#171717] flex items-center justify-center border-none cursor-pointer hover:bg-neutral-200"
+                        <div
+                            className="modal-content ds-sheet"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="cl-title"
+                            onClick={e => e.stopPropagation()}
+                            data-lenis-prevent
+                        >
+                            <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                                <span className="ds-mono self-center px-6 sm:px-8 truncate">cover letter / {(coverLetterJob.company || 'job').toLowerCase()}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setCoverLetterJob(null)}
+                                    aria-label="Close"
+                                    className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white"
                                 >
-                                    <FiX size={16} />
+                                    <FiX size={18} />
                                 </button>
                             </div>
-                            <div className="p-5 rounded-2xl bg-[#FAF8F5] text-[#171717] text-sm leading-relaxed whitespace-pre-wrap font-mono mb-6 max-h-96 overflow-y-auto border border-neutral-200/80">
-                                {coverLetterJob.coverLetter}
+                            <div className="ds-sheet-body" data-lenis-prevent>
+                                <header className="ds-sheet-section !pt-8">
+                                    <h2 id="cl-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#171717]">Your cover letter</h2>
+                                    <p className="ds-mono ds-mono-muted mt-3 mb-0 truncate">{coverLetterJob.title} · {coverLetterJob.company}</p>
+                                </header>
+                                <section className="ds-sheet-section">
+                                    <div className="ds-output">{coverLetterJob.coverLetter}</div>
+                                </section>
                             </div>
-                            <div className="flex justify-end gap-3">
+                            <div className="shrink-0 border-0 border-t border-[#D8D4CC]">
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         navigator.clipboard.writeText(coverLetterJob.coverLetter);
                                         setClCopied(true);
                                         setTimeout(() => setClCopied(false), 2000);
                                     }}
-                                    className="px-5 py-2.5 rounded-xl bg-[#171717] hover:bg-neutral-800 text-white text-xs font-bold inline-flex items-center gap-2 border-none cursor-pointer"
+                                    className="ds-btn ds-btn-ink w-full !min-h-[64px] !px-6 sm:!px-8"
                                 >
-                                    {clCopied ? <FiCheck size={14} className="text-[#CA3C0A]" /> : <FiCopy size={14} />}
-                                    {clCopied ? 'Copied to Clipboard!' : 'Copy Cover Letter'}
+                                    {clCopied ? 'Copied' : 'Copy cover letter'}
+                                    {clCopied ? <FiCheck size={17} /> : <FiCopy size={17} />}
                                 </button>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* ── Custom Job Entry Modal (Mounted directly to document.body via Portal) ── */}
-                {typeof document !== 'undefined' && createPortal(
-                    <AnimatePresence>
-                        {showAddCustomModal && (
-                            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.96, y: 15 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.96, y: 15 }}
-                                    transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                                    className="bg-white rounded-xl w-full max-w-xl border border-[#D8D4CC] shadow-2xl overflow-hidden flex flex-col max-h-[82vh] h-auto my-auto"
-                                    onClick={(e) => e.stopPropagation()}
+                {/* Add / edit job sheet (portal so it sits above the page frame) */}
+                {showAddCustomModal && typeof document !== 'undefined' && createPortal(
+                    <div className="modal-overlay" onClick={() => setShowAddCustomModal(false)} data-lenis-prevent>
+                        <div
+                            className="modal-content ds-sheet"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="custom-job-title"
+                            onClick={(e) => e.stopPropagation()}
+                            data-lenis-prevent
+                        >
+                            <div className="h-14 shrink-0 flex items-stretch justify-between border-0 border-b border-[#D8D4CC]">
+                                <span className="ds-mono self-center px-6 sm:px-8 truncate">tracker / {editingJobId ? 'edit job' : 'add job'}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddCustomModal(false)}
+                                    aria-label="Close"
+                                    className="w-14 shrink-0 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#171717] hover:bg-white"
                                 >
-                                    {/* Fixed Modal Header */}
-                                    <div className="px-6 py-4 border-b border-[#D8D4CC] flex items-center justify-between bg-[#FAF8F5] shrink-0">
-                                        <div>
-                                            <span className="text-[10.5px] font-mono font-bold uppercase tracking-widest text-[#CA3C0A] leading-normal block mb-0.5">
-                                                {editingJobId ? 'EDIT APPLICATION DETAILS' : 'MANUAL APPLICATION ENTRY'}
-                                            </span>
-                                            <h2 className="text-lg font-black text-[#171717] m-0 leading-tight">
-                                                {editingJobId ? 'Edit Custom Job' : 'Add Custom Job to Tracker'}
-                                            </h2>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowAddCustomModal(false)}
-                                            className="w-8 h-8 rounded-[6px] bg-white border border-[#D8D4CC] text-[#66615C] hover:text-[#171717] hover:bg-neutral-100 flex items-center justify-center cursor-pointer transition-colors shadow-2xs"
-                                        >
-                                            <FiX size={16} />
-                                        </button>
-                                    </div>
+                                    <FiX size={18} />
+                                </button>
+                            </div>
 
-                                    {/* Form wrapping Scrollable Body & Fixed Footer */}
-                                    <form onSubmit={handleSaveCustomJob} className="flex flex-col flex-1 min-h-0 overflow-hidden m-0">
-                                        {/* Scrollable Form Body with thin custom scrollbar */}
-                                        <div className="p-6 space-y-4 overflow-y-auto flex-1 min-h-0 pb-6 custom-modal-scroll">
-                                            {/* Smart Auto-Detect Paste Box */}
-                                            <div className="p-3.5 rounded-[6px] bg-[#FAF8F5] border border-[#D8D4CC] space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <label className="text-[11px] font-bold text-[#171717]">
-                                                        Quick Paste Job Details (Optional)
-                                                    </label>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleAutoDetectFields}
-                                                        className="text-[10.5px] font-bold text-[#CA3C0A] hover:underline bg-transparent border-none cursor-pointer"
-                                                    >
-                                                        Auto-Fill Fields →
-                                                    </button>
-                                                </div>
-                                                <textarea
-                                                    rows={2}
-                                                    value={rawPasteText}
-                                                    onChange={(e) => setRawPasteText(e.target.value)}
-                                                    placeholder="Paste job description or details here, then click Auto-Fill..."
-                                                    className="w-full text-xs p-2.5 rounded-[5px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] resize-none focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20"
-                                                />
-                                            </div>
+                            <form onSubmit={handleSaveCustomJob} className="flex flex-col flex-1 min-h-0 m-0">
+                                <div className="ds-sheet-body" data-lenis-prevent>
+                                    <header className="ds-sheet-section !pt-8">
+                                        <h2 id="custom-job-title" className="m-0 text-[26px] sm:text-[30px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#171717]">
+                                            {editingJobId ? 'Edit this job' : 'Add a job you found elsewhere'}
+                                        </h2>
+                                        <p className="ds-body mt-3 mb-0">Track jobs from referrals, company sites or anywhere else alongside the ones you saved here.</p>
+                                    </header>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                                <div className="space-y-1">
-                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                        Job Title / Role <span className="text-[#CA3C0A]">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        value={customJob.title}
-                                                        onChange={(e) => setCustomJob({ ...customJob, title: e.target.value })}
-                                                        placeholder="e.g. Senior Frontend Architect"
-                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                        Company Name <span className="text-[#CA3C0A]">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        value={customJob.company}
-                                                        onChange={(e) => setCustomJob({ ...customJob, company: e.target.value })}
-                                                        placeholder="e.g. Stripe, Google, Startup"
-                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                                <div className="space-y-1">
-                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                        Location
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={customJob.location}
-                                                        onChange={(e) => setCustomJob({ ...customJob, location: e.target.value })}
-                                                        placeholder="e.g. Remote, San Francisco, CA"
-                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                        Salary / Compensation
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={customJob.salary}
-                                                        onChange={(e) => setCustomJob({ ...customJob, salary: e.target.value })}
-                                                        placeholder="e.g. $140,000 - $180,000 / yr"
-                                                        className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                    Application Link / Job URL
-                                                </label>
-                                                <input
-                                                    type="url"
-                                                    value={customJob.applyLink}
-                                                    onChange={(e) => setCustomJob({ ...customJob, applyLink: e.target.value })}
-                                                    placeholder="https://company.com/careers/job-123"
-                                                    className="w-full h-10 px-3 text-xs rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
-                                                />
-                                            </div>
-
-                                            {/* Pipeline Stage Selection */}
-                                            <div className="space-y-1.5">
-                                                <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                    Initial Pipeline Stage
-                                                </label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {Object.entries(STATUS_CONFIG).map(([key, val]) => {
-                                                        const isSelected = customJob.status === key;
-                                                        return (
-                                                            <button
-                                                                key={key}
-                                                                type="button"
-                                                                onClick={() => setCustomJob({ ...customJob, status: key })}
-                                                                className={`px-3 py-1.5 rounded-[5px] text-xs font-bold border transition-all cursor-pointer select-none ${
-                                                                    isSelected
-                                                                        ? 'bg-[#171717] text-white border-[#171717] shadow-2xs'
-                                                                        : 'bg-[#FAF8F5] text-[#66615C] border-[#D8D4CC] hover:bg-neutral-100 hover:text-[#171717]'
-                                                                }`}
-                                                            >
-                                                                {val.label}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className="text-[11px] font-bold uppercase tracking-wider text-[#66615C]">
-                                                    Job Description / Custom Notes
-                                                </label>
-                                                <textarea
-                                                    rows={3}
-                                                    value={customJob.description}
-                                                    onChange={(e) => setCustomJob({ ...customJob, description: e.target.value })}
-                                                    placeholder="Key requirements, interview notes, recruiter contacts, or referral details..."
-                                                    className="w-full text-xs p-3 rounded-[6px] bg-white border border-[#D8D4CC] text-[#171717] placeholder:text-[#99948E] resize-none focus:outline-none focus:border-[#CA3C0A] focus:ring-1 focus:ring-[#CA3C0A]/20 transition-all shadow-2xs"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Fixed Bottom Action Buttons */}
-                                        <div className="px-6 py-3.5 border-t border-[#D8D4CC] bg-[#FAF8F5] flex items-center justify-end gap-2.5 shrink-0 z-10">
+                                    {!editingJobId && (
+                                        <section className="ds-sheet-section bg-white">
+                                            <label htmlFor="cj-paste" className="ds-label">paste the job post (optional)</label>
+                                            <textarea
+                                                id="cj-paste"
+                                                rows={3}
+                                                value={rawPasteText}
+                                                onChange={(e) => setRawPasteText(e.target.value)}
+                                                placeholder="Paste the job title, company and description. We'll fill in what we can."
+                                                className="resume-input-field resize-y"
+                                            />
                                             <button
                                                 type="button"
-                                                onClick={() => setShowAddCustomModal(false)}
-                                                className="h-9 px-4 rounded-[6px] bg-white hover:bg-neutral-100 text-[#66615C] hover:text-[#171717] text-xs font-bold border border-[#D8D4CC] cursor-pointer transition-colors shadow-2xs"
+                                                onClick={handleAutoDetectFields}
+                                                disabled={!rawPasteText.trim()}
+                                                className="ds-btn ds-btn-line w-full mt-3 !min-h-[44px] !text-[14px]"
                                             >
-                                                Cancel
+                                                Fill in the fields below <FiArrowUpRight size={16} className="rotate-90" />
                                             </button>
-                                            <button
-                                                type="submit"
-                                                disabled={savingCustom || !customJob.title.trim()}
-                                                className="h-9 px-5 rounded-[6px] bg-[#CA3C0A] hover:bg-[#B73609] text-white text-xs font-bold transition-all border border-[#CA3C0A] cursor-pointer disabled:opacity-50 shadow-xs active:scale-[0.98] flex items-center gap-1.5"
-                                            >
-                                                {savingCustom ? (
-                                                    <>
-                                                        <FiZap size={13} className="animate-spin" />
-                                                        <span>Saving...</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <FiCheck size={13} className="stroke-[3]" />
-                                                        <span>{editingJobId ? 'Save Changes' : 'Add to Tracker'}</span>
-                                                    </>
-                                                )}
-                                            </button>
+                                        </section>
+                                    )}
+
+                                    <section className="ds-sheet-section">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5">
+                                            <div>
+                                                <label htmlFor="cj-title" className="ds-label">job title <span className="text-[#CA3C0A]">*</span></label>
+                                                <input id="cj-title" type="text" required value={customJob.title} onChange={(e) => setCustomJob({ ...customJob, title: e.target.value })} placeholder="e.g. Frontend Engineer" className="resume-input-field" />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="cj-company" className="ds-label">company</label>
+                                                <input id="cj-company" type="text" value={customJob.company} onChange={(e) => setCustomJob({ ...customJob, company: e.target.value })} placeholder="e.g. Stripe" className="resume-input-field" />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="cj-location" className="ds-label">location</label>
+                                                <input id="cj-location" type="text" value={customJob.location} onChange={(e) => setCustomJob({ ...customJob, location: e.target.value })} placeholder="e.g. Remote, Bengaluru" className="resume-input-field" />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="cj-salary" className="ds-label">salary</label>
+                                                <input id="cj-salary" type="text" value={customJob.salary} onChange={(e) => setCustomJob({ ...customJob, salary: e.target.value })} placeholder="e.g. ₹12–18 LPA" className="resume-input-field" />
+                                            </div>
+                                            <div className="sm:col-span-2">
+                                                <label htmlFor="cj-link" className="ds-label">link to the job post</label>
+                                                <input id="cj-link" type="url" inputMode="url" value={customJob.applyLink} onChange={(e) => setCustomJob({ ...customJob, applyLink: e.target.value })} placeholder="https://company.com/careers/job-123" className="resume-input-field" />
+                                            </div>
                                         </div>
-                                    </form>
-                                </motion.div>
-                            </div>
-                        )}
-                    </AnimatePresence>,
+                                    </section>
+
+                                    <section className="ds-sheet-section">
+                                        <p className="ds-label" id="cj-stage-label">stage</p>
+                                        <div role="radiogroup" aria-labelledby="cj-stage-label" className="ds-gridlines grid-cols-2 sm:grid-cols-5 border border-[#D8D4CC]">
+                                            {Object.entries(STATUS_CONFIG).map(([key, val]) => {
+                                                const selected = customJob.status === key;
+                                                return (
+                                                    <button
+                                                        key={key}
+                                                        type="button"
+                                                        role="radio"
+                                                        aria-checked={selected}
+                                                        onClick={() => setCustomJob({ ...customJob, status: key })}
+                                                        className={`h-12 px-3 flex items-center justify-center gap-2 text-[14px] font-medium cursor-pointer border-0 ${selected ? '!bg-[#171717] text-white' : '!bg-white text-[#171717] hover:!bg-[#F7F5F2]'}`}
+                                                    >
+                                                        <span className={`w-2 h-2 ${selected ? 'bg-[#CA3C0A]' : val.dot}`} aria-hidden="true" />
+                                                        {val.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </section>
+
+                                    <section className="ds-sheet-section border-b-0">
+                                        <label htmlFor="cj-notes" className="ds-label">notes</label>
+                                        <textarea
+                                            id="cj-notes"
+                                            rows={5}
+                                            value={customJob.description}
+                                            onChange={(e) => setCustomJob({ ...customJob, description: e.target.value })}
+                                            placeholder="Key requirements, interview dates, recruiter contact, referral details…"
+                                            className="resume-input-field resize-y"
+                                        />
+                                    </section>
+                                </div>
+
+                                <div className="shrink-0 grid grid-cols-2 border-0 border-t border-[#D8D4CC]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddCustomModal(false)}
+                                        className="ds-btn !min-h-[64px] !px-6 sm:!px-8 bg-[#F7F5F2] text-[#171717] hover:bg-white"
+                                    >
+                                        Cancel <FiX size={17} />
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={savingCustom || !customJob.title.trim()}
+                                        className="ds-btn ds-btn-accent !min-h-[64px] !px-6 sm:!px-8"
+                                    >
+                                        {savingCustom ? 'Saving…' : editingJobId ? 'Save changes' : 'Add to tracker'}
+                                        <FiCheck size={17} />
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>,
                     document.body
                 )}
         </div>
