@@ -206,4 +206,6 @@ Appliqa/
 
 ## License
 
-[Proprietary / All Rights Reserved](LICENSE)
+**Proprietary. All rights reserved.** © 2026 Sayan Paul.
+
+The code is public so it can be viewed and evaluated, for example by recruiters. It is not open source: copying, reusing, modifying, redistributing or deploying any part of Appliqa is not allowed without written permission. See [LICENSE](LICENSE) for the full terms.

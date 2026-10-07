@@ -1,9 +1,79 @@
+Appliqa — Proprietary License
+
 Copyright (c) 2026 Sayan Paul. All rights reserved.
 
-This software and associated documentation files (the "Software") are proprietary to Sayan Paul.
+1. Ownership
 
-Permission is hereby granted to view, clone, and run the Software locally for personal evaluation and educational purposes only.
+This repository and everything in it, including all source code, object code,
+designs, user interface, graphics, screenshots, text, documentation, database
+schemas, prompts and other materials (together, the "Software"), as well as the
+name "Appliqa" and its logos, are the exclusive property of Sayan Paul (the
+"Owner") and are protected by copyright and other intellectual property laws.
+No ownership rights are transferred to you.
 
-Any other use, including but not limited to distribution, modification, copying, replication, hosting a public demo, or deployment of the Software in a commercial or production environment without the express prior written consent of the copyright owner, is strictly prohibited.
+2. What you may do
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The Software is published publicly only so that it can be viewed. You may:
+
+  a) view the source code on GitHub; and
+  b) download and run the Software on your own computer solely to evaluate the
+     Owner's work, for example as part of a hiring or review process, provided
+     that you delete all copies when that evaluation ends.
+
+Where GitHub's Terms of Service give other GitHub users the right to view and
+fork this public repository on GitHub, that right is limited to what those
+Terms require. Any fork remains subject to every restriction in this License.
+
+3. What you may not do
+
+Except as allowed in Section 2, you may not, in whole or in part, and whether
+for free or for payment:
+
+  a) copy, reproduce, republish or mirror the Software;
+  b) modify, adapt, translate or create derivative works based on it;
+  c) distribute, sell, sublicense, rent, lend or otherwise make it available to
+     anyone else;
+  d) deploy, host or operate it, or any product or service based on it, for
+     anyone other than yourself during an evaluation under Section 2(b);
+  e) use it, or any part of its code, design or content, in another project,
+     product or service, whether commercial or non-commercial;
+  f) copy its look and feel, user interface, or the name "Appliqa";
+  g) use it to train, fine-tune or evaluate any machine learning or artificial
+     intelligence model, or include it in any dataset;
+  h) remove, hide or change any copyright, ownership or license notice; or
+  i) reverse engineer, decompile or disassemble any part of it, except where
+     the law expressly allows this despite this restriction.
+
+4. Third-party components
+
+The Software uses open-source libraries and third-party services that are
+licensed separately by their own authors. This License covers only the
+Owner's own work and does not change the terms of those components.
+
+5. Permission requests
+
+Any use not expressly allowed above requires the Owner's prior written
+permission. To ask, contact Sayan Paul through https://github.com/imsayanpaul.
+
+6. Termination
+
+Your permissions under this License end automatically if you break any of its
+terms. On termination you must stop using the Software and delete every copy
+in your possession or control.
+
+7. No warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+
+8. Limitation of liability
+
+IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OF OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+9. Reservation of rights
+
+All rights not expressly granted in this License are reserved by the Owner.

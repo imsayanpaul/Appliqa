@@ -10,5 +10,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
-  }
+  },
+  "license": "UNLICENSED",
+  "private": true
 }
