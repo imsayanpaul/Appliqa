@@ -95,16 +95,19 @@ Live listings from LinkedIn, Indeed, Glassdoor and more, through the JSearch API
   <img src="docs/screenshots/mobile-search.webp" alt="Appliqa search on mobile" width="260" />
 </p>
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/signin.webp" alt="Sign in page" /></td>
-    <td width="50%"><img src="docs/screenshots/pricing.webp" alt="Pricing page" /></td>
-  </tr>
-  <tr>
-    <td align="center"><sub>Sign in with email, Google or GitHub (Supabase Auth)</sub></td>
-    <td align="center"><sub>Pricing</sub></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="docs/screenshots/signin.webp" alt="Sign in page" width="900" />
+  <br />
+  <sub>Sign in with email, Google or GitHub (Supabase Auth)</sub>
+</p>
+
+<!-- Pricing is not live yet; restore this when paid plans launch.
+<p align="center">
+  <img src="docs/screenshots/pricing.webp" alt="Pricing page" width="900" />
+  <br />
+  <sub>Pricing</sub>
+</p>
+-->
 
 ## Engineering highlights
 
@@ -190,7 +193,7 @@ Open http://localhost:5173.
 Appliqa/
 ├── client/                    # React app (Vite)
 │   └── src/
-│       ├── pages/             # Home, Search, Tracker, Resume builder, Advisor, Career path, Profile, Pricing
+│       ├── pages/             # Home, Search, Tracker, Resume builder, Advisor, Career path, Profile
 │       ├── components/        # Job cards & detail, ATS scorer, interview prep, onboarding, resume/*
 │       ├── lib/               # Resume parsing, LaTeX import/export, resume design, profiles
 │       └── services/          # API client
