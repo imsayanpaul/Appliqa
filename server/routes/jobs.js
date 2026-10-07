@@ -84,10 +84,54 @@ const INTERN_TITLE = /\b(intern|internship|trainee|apprentice)/i;
 
 // JSearch treats these filters loosely, so tighten the page of results
 const isInternship = (job) => /intern/i.test(job.employmentType || '') || INTERN_TITLE.test(job.title || '');
+
+const ENTRY_LEVEL = /\b(fresher|freshers|entry[\s-]?level|graduate|trainee|no experience|0\s*(?:-|–|to)\s*[12]\s*(?:years?|yrs?))\b/i;
+const YEARS = '(?:years?|yrs?)';
+const EXPERIENCE_PATTERNS = [
+  new RegExp(`(\\d{1,2})\\s*\\+\\s*${YEARS}`, 'gi'),                                   // 3+ years
+  new RegExp(`(\\d{1,2})\\s*(?:-|–|to)\\s*\\d{1,2}\\s*${YEARS}`, 'gi'),               // 3-5 years
+  new RegExp(`(?:minimum|min\\.?|at\\s*least|atleast)\\s*(?:of\\s*)?(\\d{1,2})\\s*${YEARS}`, 'gi'), // minimum 3 years
+  new RegExp(`(\\d{1,2})\\s*${YEARS}\\s*(?:of\\s*)?(?:relevant\\s*|professional\\s*|hands[\\s-]on\\s*)?(?:experience|exp)\\b`, 'gi'), // 3 years of experience
+];
+
+// The smallest number of years a posting asks for, or null when it doesn't say.
+// Smallest, so "0-2 years" wins over an unrelated "20 years in business".
+function requiredYears(text) {
+  let min = null;
+  for (const re of EXPERIENCE_PATTERNS) {
+    re.lastIndex = 0;
+    for (const m of text.matchAll(re)) {
+      const n = Number(m[1]);
+      if (!Number.isNaN(n) && (min === null || n < min)) min = n;
+    }
+  }
+  return min;
+}
+
+const isEntryLevel = (job) => {
+  const title = job.title || '';
+  if (SENIOR_TITLE.test(title)) return false;
+  if (ENTRY_LEVEL.test(title)) return true;
+  const years = requiredYears(`${title} ${job.description || ''}`);
+  return years === null || years < 2;
+};
+
+const typeMentions = {
+  CONTRACTOR: /\b(contract|contractor|freelance|freelancer|fixed[\s-]?term|consultant basis)\b/i,
+  PARTTIME: /\bpart[\s-]?time\b/i,
+};
+const matchesType = (job, wanted) => {
+  const pattern = typeMentions[wanted];
+  if (!pattern) return true; // full time and "all types" stay as JSearch returns them
+  const tagged = (job.employmentTypes || []).includes(wanted) || pattern.test(job.employmentType || '');
+  return tagged || pattern.test(job.title || '') || pattern.test(job.description || '');
+};
+
 const matchesFilters = (job, { remote, employmentType, experience }) => {
   if (remote === 'true' && !job.remote) return false;
   if (employmentType === 'INTERN' && (!isInternship(job) || SENIOR_TITLE.test(job.title || ''))) return false;
-  if (experience === 'fresher' && SENIOR_TITLE.test(job.title || '')) return false;
+  if (employmentType && !matchesType(job, employmentType)) return false;
+  if (experience === 'fresher' && !isEntryLevel(job)) return false;
   return true;
 };
 
@@ -220,7 +264,9 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
                 requiredExperience: found.required_experience || {}
               };
             })
-            .filter(Boolean);
+            .filter(Boolean)
+            // Re-apply the filters: older cache entries were saved under looser rules
+            .filter((job) => matchesFilters(job, { remote, employmentType, experience }));
 
           const result = { jobs: mappedJobs, totalResults: mappedJobs.length, page: parseInt(page) };
           setCache(cacheKey, result);
@@ -260,6 +306,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       location: job.job_city ? `${job.job_city}, ${job.job_state || ''} ${job.job_country}` : job.job_country,
       description: job.job_description,
       employmentType: job.job_employment_type,
+      employmentTypes: job.job_employment_types || [],
       salary: job.job_min_salary && job.job_max_salary
         ? `$${job.job_min_salary.toLocaleString('en-US')} - $${job.job_max_salary.toLocaleString('en-US')}`
         : job.job_salary_period ? `${job.job_salary_period}` : 'Not specified',
