@@ -147,7 +147,8 @@ flowchart LR
 | Auth & database | Supabase (Postgres, Auth, Row Level Security) |
 | AI | Google Gemini (Flash-Lite models with fallback) |
 | Jobs data | JSearch via RapidAPI |
-| Hosting | Vercel (web) |
+| Hosting | Vercel (web), Render (API) |
+| CI/CD | GitHub Actions builds the app and starts the API on every push; auto-deploy to Vercel and Render |
 
 ## Running locally
 

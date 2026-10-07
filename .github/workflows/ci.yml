@@ -1,0 +1,70 @@
+name: CI
+
+# Checks every push to main and every pull request before Vercel and Render deploy it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web app builds
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - name: Build
+        run: npm run build
+        env:
+          # Placeholders: the build only needs the variables to exist
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: ci-placeholder
+
+  api:
+    name: API starts
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - name: Syntax check
+        run: find . -name '*.js' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
+      - name: Start the server and call /api/health
+        env:
+          # Placeholders: startup must not need real keys or call outside services
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_SERVICE_KEY: ci-placeholder
+          GEMINI_API_KEY: ci-placeholder
+          RAPIDAPI_KEY: ci-placeholder
+          PORT: 3001
+        run: |
+          node index.js > server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3001/api/health > /dev/null; then
+              echo "API is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API did not start in 30 seconds:"
+          cat server.log
+          exit 1
