@@ -47,7 +47,8 @@ function SearchResults({ user, resumeData }) {
         location: searchParams.get('location') || searchCity(user?.preferences?.location, searchParams.get('country') || user?.preferences?.country),
         country: searchParams.get('country') || user?.preferences?.country || '',
         employmentType: searchParams.get('employmentType') || '',
-        datePosted: searchParams.get('datePosted') || '',
+        // "today" was renamed "24h"; keep old links and saved searches working
+        datePosted: searchParams.get('datePosted') === 'today' ? '24h' : (searchParams.get('datePosted') || ''),
         remote: searchParams.get('remote') || '',
         experience: searchParams.get('experience') || ''
     });
@@ -176,7 +177,7 @@ function SearchResults({ user, resumeData }) {
                     <Dropdown
                         options={[
                             { value: "", label: "Any Time" },
-                            { value: "today", label: "Today" },
+                            { value: "24h", label: "Past 24 Hours" },
                             { value: "3days", label: "Last 3 Days" },
                             { value: "week", label: "This Week" },
                             { value: "month", label: "This Month" }

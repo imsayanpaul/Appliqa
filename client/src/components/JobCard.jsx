@@ -6,9 +6,13 @@ import { formatSalary } from '../lib/format';
 
 const timeAgo = (dateStr) => {
     if (!dateStr) return '';
-    const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-    if (Number.isNaN(days)) return '';
-    if (days <= 0) return 'today';
+    const ms = Date.now() - new Date(dateStr).getTime();
+    if (Number.isNaN(ms)) return '';
+    const minutes = Math.floor(ms / 60000);
+    if (minutes < 1) return 'just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 24 * 60) return `${Math.floor(minutes / 60)}h ago`;
+    const days = Math.floor(ms / 86400000);
     if (days === 1) return 'yesterday';
     if (days < 7) return `${days}d ago`;
     if (days < 30) return `${Math.floor(days / 7)}w ago`;

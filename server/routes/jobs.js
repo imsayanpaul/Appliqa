@@ -8,14 +8,23 @@ const { sendServerError } = require('../lib/errors');
 
 const JSEARCH_BASE = 'https://jsearch.p.rapidapi.com';
 
-// --- In-memory search cache (15-minute TTL) ---
-const searchCache = new Map();
-const CACHE_TTL = 15 * 60 * 1000;
+// --- Search caches ---
+// Fresh-job searches ("Past 24 hours") expire quickly so new postings show up during
+// the day; everything else keeps the long cache to save JSearch quota.
+const HOUR = 60 * 60 * 1000;
+const FRESH_FILTERS = new Set(['24h', 'today']);
+const cacheTtl = (datePosted) => {
+  if (FRESH_FILTERS.has(datePosted)) return { memory: 10 * 60 * 1000, db: HOUR };
+  if (datePosted === '3days') return { memory: 15 * 60 * 1000, db: 6 * HOUR };
+  return { memory: 15 * 60 * 1000, db: 24 * HOUR };
+};
 
-function getCached(key) {
+const searchCache = new Map();
+
+function getCached(key, ttl) {
   const entry = searchCache.get(key);
   if (!entry) return null;
-  if (Date.now() - entry.timestamp > CACHE_TTL) {
+  if (Date.now() - entry.timestamp > ttl) {
     searchCache.delete(key);
     return null;
   }
@@ -117,11 +126,14 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       searchQuery += ` in ${location}`;
     }
 
+    // "24h" is our label for JSearch's freshest window, which it calls "today"
+    const fresh = FRESH_FILTERS.has(datePosted);
+    const ttl = cacheTtl(datePosted);
     const params = new URLSearchParams({
       query: searchQuery,
       page: String(page),
       num_pages: '1',
-      date_posted: datePosted || 'all'
+      date_posted: fresh ? 'today' : (datePosted || 'all')
     });
 
     if (countryCode) params.append('country', countryCode);
@@ -163,21 +175,21 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
     };
 
     // 1. Check in-memory cache first
-    const cachedInMemory = getCached(cacheKey);
+    const cachedInMemory = getCached(cacheKey, ttl.memory);
     if (cachedInMemory) {
       saveHistory(cachedInMemory.jobs?.length || 0);
       return res.json({ success: true, ...cachedInMemory, fromCache: true, fromMemory: true });
     }
 
-    // 2. Check Supabase DB cache (valid for 24 hours)
+    // 2. Check Supabase DB cache (1 hour for fresh-job searches, up to 24 hours otherwise)
     try {
-      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      
+      const freshSince = new Date(Date.now() - ttl.db).toISOString();
+
       const { data: dbCacheEntry, error: dbCacheError } = await supabase
         .from('search_cache')
         .select('job_ids, created_at')
         .eq('cache_key', cacheKey)
-        .gt('created_at', oneDayAgo)
+        .gt('created_at', freshSince)
         .maybeSingle();
 
       if (dbCacheEntry && dbCacheEntry.job_ids && dbCacheEntry.job_ids.length > 0) {
@@ -259,7 +271,14 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       requiredExperience: job.job_required_experience || {}
     }));
 
-    const filtered = jobs.filter((job) => matchesFilters(job, { remote, employmentType, experience }));
+    let filtered = jobs.filter((job) => matchesFilters(job, { remote, employmentType, experience }));
+    if (fresh) {
+      // Keep only the last 24 hours (JSearch's "today" is loose) and show the newest first
+      const cutoff = Date.now() - 24 * HOUR;
+      filtered = filtered
+        .filter((job) => !job.datePosted || new Date(job.datePosted).getTime() >= cutoff)
+        .sort((a, b) => (new Date(b.datePosted).getTime() || 0) - (new Date(a.datePosted).getTime() || 0));
+    }
     const result = { jobs: filtered, totalResults: filtered.length, page: parseInt(page) };
     setCache(cacheKey, result);
     // Return the response immediately to the user to minimize latency
