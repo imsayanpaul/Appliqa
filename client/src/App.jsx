@@ -227,25 +227,6 @@ function AppContent() {
         document.body.classList.toggle('feedback-raised', location.pathname === '/advisor');
     }, [location.pathname]);
 
-    // Dynamic tab titles based on current route
-    useEffect(() => {
-        const routeTitles = {
-            '/': 'Appliqa - Job Search',
-            '/search': 'Appliqa - Discover Jobs',
-            '/saved': 'Appliqa - Application Tracker',
-            '/career': 'Appliqa - Career Path',
-            '/advisor': 'Appliqa - Career Advisor',
-            '/resume-creator': 'Appliqa - AI Resume Builder',
-            '/vault': 'Appliqa - My Vault',
-            '/profile': 'Appliqa - Profile Settings',
-            '/pricing': 'Appliqa - Pricing',
-            '/privacy': 'Appliqa - Privacy Policy',
-            '/terms': 'Appliqa - Terms of Service',
-            '/security': 'Appliqa - Security'
-        };
-        const baseTitle = routeTitles[location.pathname] || 'Appliqa - Job Search';
-        document.title = baseTitle;
-    }, [location.pathname]);
 
     // Resume State
     const [resumeData, setResumeData] = useState(() => {
