@@ -13,6 +13,7 @@ import { searchCity } from '../data/cities';
 import DesignPanel from '../components/resume/DesignPanel';
 import SectionsPanel from '../components/resume/SectionsPanel';
 import LatexSheet from '../components/resume/LatexSheet';
+import PdfTipDialog, { shouldShowPdfTip } from '../components/resume/PdfTipDialog';
 import { latexToResume } from '../lib/latexImport';
 import { ProjectsEditor, AchievementsEditor } from '../components/resume/ProjectsEditor';
 import { 
@@ -303,6 +304,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     // 2. Tailor Mode
     const [showTailorModal, setShowTailorModal] = useState(false);
     const [showLatex, setShowLatex] = useState(false);
+    const [showPdfTip, setShowPdfTip] = useState(false);
     const [tailorJD, setTailorJD] = useState('');
     const [tailoring, setTailoring] = useState(false);
 
@@ -934,13 +936,24 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         }
     };
 
-    // Download PDF (Browser Print Trigger)
-    const handleDownloadPDF = async () => {
+    // Download PDF (Browser Print Trigger). The first time, explain which print
+    // destination keeps the text readable by ATS software.
+    const printResume = async () => {
         try {
             // Track in stats
             await incrementStat('resumes_optimized_count');
         } catch (_) {}
         window.print();
+    };
+
+    const handleDownloadPDF = () => {
+        if (shouldShowPdfTip()) setShowPdfTip(true);
+        else printResume();
+    };
+
+    const continueToPrint = () => {
+        flushSync(() => setShowPdfTip(false)); // close the tip before the print snapshot
+        printResume();
     };
 
     // OCR PDF Scan Ingestion Logic
@@ -2407,6 +2420,11 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     }}
                     onClose={() => setShowLatex(false)}
                 />
+            )}
+
+            {showPdfTip && createPortal(
+                <PdfTipDialog onContinue={continueToPrint} onClose={() => setShowPdfTip(false)} />,
+                document.body
             )}
 
             {showTailorModal && createPortal(
