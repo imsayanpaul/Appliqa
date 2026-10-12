@@ -44,6 +44,8 @@ const Vault = lazyWithRetry(pageImports.Vault);
 const SearchResults = lazyWithRetry(pageImports.SearchResults);
 const SavedJobs = lazyWithRetry(pageImports.SavedJobs);
 const Legal = lazyWithRetry(pageImports.Legal);
+// Not preloaded with the other pages: only admins ever open it
+const Admin = lazyWithRetry(() => import('./pages/Admin'));
 
 // Router navigations run as transitions, so an unloaded page chunk keeps the
 // old page on screen until it arrives. Fetch them all once the app is idle.
@@ -704,6 +706,9 @@ function AppContent() {
                             } />
                             <Route path="/vault" element={
                                 <ProtectedRoute session={session} authResolved={authResolved}><Vault user={user} /></ProtectedRoute>
+                            } />
+                            <Route path="/admin" element={
+                                <ProtectedRoute session={session} authResolved={authResolved}><Admin /></ProtectedRoute>
                             } />
                             <Route path="/profile" element={
                                 <Profile user={user} session={session} authResolved={authResolved} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
