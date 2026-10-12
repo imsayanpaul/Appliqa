@@ -2,6 +2,7 @@
 // (429) or server error (500/504) is retried once, then the next model is tried.
 // GEMINI_MODELS can override the list, e.g. "gemini-3.1-flash-lite,gemini-3.5-flash-lite".
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { recordUsage } = require('./usage');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const MODELS = (process.env.GEMINI_MODELS || 'gemini-3.1-flash-lite,gemini-3.5-flash-lite')
@@ -23,7 +24,9 @@ async function withFallback(options, call) {
     const model = genAI.getGenerativeModel({ ...options, model: name }, { timeout: TIMEOUT_MS });
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        return await call(model);
+        const result = await call(model);
+        recordUsage(name, result?.response?.usageMetadata);
+        return result;
       } catch (err) {
         lastError = err;
         if (isMissingModel(err)) break; // retired model: go to the next one

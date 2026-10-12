@@ -10,6 +10,9 @@ const { sendServerError } = require('../lib/errors');
 // Signed-in users get a higher ceiling than anonymous visitors.
 router.use(optionalAuth, rateLimit({ name: 'ai', windowMs: 60 * 1000, maxAuthed: 30, maxAnon: 8 }));
 
+// Attribute Gemini token usage to the signed-in user and this feature (see lib/usage.js)
+router.use(require('../lib/usage').trackUsage);
+
 // Retries busy errors and falls back to a second model (see lib/gemini.js)
 const { getModel } = require('../lib/gemini');
 

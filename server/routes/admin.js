@@ -53,12 +53,35 @@ const latest = (...dates) => dates.filter(Boolean).sort().pop() || null;
 
 router.get('/users', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    const [authUsers, profiles, searches, savedJobs] = await Promise.all([
+    const [authUsers, profiles, searches, savedJobs, aiUsage] = await Promise.all([
       readAuthUsers(),
       readAll('profiles', 'id, name, country, location, desired_role, experience_level, resume_uploaded_at, resumes_optimized_count, cover_letters_generated_count, recruiter_dms_sent_count'),
       readAll('search_history', 'user_id, created_at'),
       readAll('saved_jobs', 'user_id, status, created_at'),
+      readAll('ai_usage', 'user_id, feature, input_tokens, output_tokens, created_at'),
     ]);
+
+    const since30d = Date.now() - 30 * 86400000;
+    const tokensByUser = new Map();
+    const byFeature = new Map();
+    let totalTokens = 0;
+    let tokensLast30Days = 0;
+    for (const row of aiUsage) {
+      const tokens = (row.input_tokens || 0) + (row.output_tokens || 0);
+      const recent = new Date(row.created_at).getTime() >= since30d;
+      totalTokens += tokens;
+      if (recent) tokensLast30Days += tokens;
+      const u = tokensByUser.get(row.user_id) || { input: 0, output: 0, last30: 0, calls: 0 };
+      u.input += row.input_tokens || 0;
+      u.output += row.output_tokens || 0;
+      u.calls += 1;
+      if (recent) u.last30 += tokens;
+      tokensByUser.set(row.user_id, u);
+      const f = byFeature.get(row.feature) || { feature: row.feature, calls: 0, tokens: 0 };
+      f.calls += 1;
+      f.tokens += tokens;
+      byFeature.set(row.feature, f);
+    }
 
     const profileById = new Map(profiles.map((p) => [p.id, p]));
     const activity = new Map();
@@ -104,6 +127,11 @@ router.get('/users', requireAuth, requireAdmin, adminLimiter, async (req, res) =
         interviews: a.interview || 0,
         offers: a.offer || 0,
         aiUses,
+        inputTokens: tokensByUser.get(u.id)?.input || 0,
+        outputTokens: tokensByUser.get(u.id)?.output || 0,
+        tokens: (tokensByUser.get(u.id)?.input || 0) + (tokensByUser.get(u.id)?.output || 0),
+        tokens30d: tokensByUser.get(u.id)?.last30 || 0,
+        aiCalls: tokensByUser.get(u.id)?.calls || 0,
       };
     });
 
@@ -120,7 +148,11 @@ router.get('/users', requireAuth, requireAdmin, adminLimiter, async (req, res) =
         totalSearches: searches.length,
         totalSavedJobs: savedJobs.length,
         totalApplied: users.reduce((n, u) => n + u.applied, 0),
+        totalTokens,
+        tokensLast30Days,
+        signedOutTokens: (tokensByUser.get(null)?.input || 0) + (tokensByUser.get(null)?.output || 0),
       },
+      byFeature: [...byFeature.values()].sort((a, b) => b.tokens - a.tokens),
       users,
     });
   } catch (error) {
