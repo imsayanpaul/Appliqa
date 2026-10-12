@@ -64,7 +64,7 @@ import FeedbackWidget from './components/FeedbackWidget';
 import LocationPrompt from './components/LocationPrompt';
 import OnboardingSheet from './components/OnboardingSheet';
 import { supabase } from './services/supabase';
-import { getUserProfile, createOrUpdateUser } from './services/api';
+import api, { getUserProfile, createOrUpdateUser } from './services/api';
 import { Dropdown } from './components/ui/Dropdown';
 import PremiumDatePicker from './components/ui/PremiumDatePicker';
 import { PageSkeleton } from './components/ui/PageSkeleton';
@@ -223,6 +223,15 @@ function AppContent() {
     useEffect(() => {
         if (mainRef.current) mainRef.current.scrollTop = 0;
     }, [location.pathname]);
+
+    // Time spent: one heartbeat a minute while signed in and the page is visible
+    useEffect(() => {
+        if (!session) return undefined;
+        const timer = setInterval(() => {
+            if (document.visibilityState === 'visible') api.post('/user/heartbeat').catch(() => {});
+        }, 60000);
+        return () => clearInterval(timer);
+    }, [session]);
 
     // Pages with a composer pinned to the bottom lift the feedback button above it
     useEffect(() => {

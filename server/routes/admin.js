@@ -53,13 +53,23 @@ const latest = (...dates) => dates.filter(Boolean).sort().pop() || null;
 
 router.get('/users', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
   try {
-    const [authUsers, profiles, searches, savedJobs, aiUsage] = await Promise.all([
+    const [authUsers, profiles, searches, savedJobs, aiUsage, activityDays] = await Promise.all([
       readAuthUsers(),
       readAll('profiles', 'id, name, country, location, desired_role, experience_level, resume_uploaded_at, resumes_optimized_count, cover_letters_generated_count, recruiter_dms_sent_count'),
       readAll('search_history', 'user_id, created_at'),
       readAll('saved_jobs', 'user_id, status, created_at'),
       readAll('ai_usage', 'user_id, feature, input_tokens, output_tokens, created_at'),
+      readAll('user_activity_days', 'user_id, day, seconds'),
     ]);
+
+    const weekAgo = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    const timeByUser = new Map();
+    for (const row of activityDays) {
+      const t = timeByUser.get(row.user_id) || { total: 0, week: 0 };
+      t.total += row.seconds || 0;
+      if (String(row.day) >= weekAgo) t.week += row.seconds || 0;
+      timeByUser.set(row.user_id, t);
+    }
 
     const since30d = Date.now() - 30 * 86400000;
     const tokensByUser = new Map();
@@ -132,6 +142,8 @@ router.get('/users', requireAuth, requireAdmin, adminLimiter, async (req, res) =
         tokens: (tokensByUser.get(u.id)?.input || 0) + (tokensByUser.get(u.id)?.output || 0),
         tokens30d: tokensByUser.get(u.id)?.last30 || 0,
         aiCalls: tokensByUser.get(u.id)?.calls || 0,
+        activeSeconds: timeByUser.get(u.id)?.total || 0,
+        activeSeconds7d: timeByUser.get(u.id)?.week || 0,
       };
     });
 
@@ -150,6 +162,9 @@ router.get('/users', requireAuth, requireAdmin, adminLimiter, async (req, res) =
         totalApplied: users.reduce((n, u) => n + u.applied, 0),
         totalTokens,
         tokensLast30Days,
+        activeSeconds: users.reduce((n, u) => n + u.activeSeconds, 0),
+        activeSeconds7d: users.reduce((n, u) => n + u.activeSeconds7d, 0),
+        usersWithTime: users.filter((u) => u.activeSeconds).length,
         signedOutTokens: (tokensByUser.get(null)?.input || 0) + (tokensByUser.get(null)?.output || 0),
       },
       byFeature: [...byFeature.values()].sort((a, b) => b.tokens - a.tokens),

@@ -6,6 +6,11 @@ import AdminFeedback from './AdminFeedback';
 const DAY = 86400000;
 
 // 1234 -> "1.2k", 2500000 -> "2.5M"
+const duration = (sec) => {
+    if (!sec) return '—';
+    const m = Math.round(sec / 60);
+    return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${m % 60}m`;
+};
 const compact = (n) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}k` : String(n || 0));
 
 const ago = (iso) => {
@@ -42,15 +47,16 @@ const COLUMNS = [
     { key: 'searches', label: 'Searches', sort: (u) => u.searches, num: true },
     { key: 'savedJobs', label: 'Saved', sort: (u) => u.savedJobs, num: true },
     { key: 'applied', label: 'Applied · Int · Offer', sort: (u) => u.applied * 100 + u.interviews * 10 + u.offers, num: true },
+    { key: 'activeSeconds', label: 'Time spent', sort: (u) => u.activeSeconds, num: true },
     { key: 'tokens', label: 'AI tokens', sort: (u) => u.tokens, num: true },
     { key: 'hasResume', label: 'Resume', sort: (u) => u.resumeUploadedAt || '' },
     { key: 'location', label: 'Location · role', sort: (u) => (u.location || '~').toLowerCase() },
 ];
 
 function toCsv(users) {
-    const head = ['name', 'email', 'provider', 'joined', 'last_active', 'last_sign_in', 'searches', 'saved_jobs', 'applied', 'interviews', 'offers', 'ai_uses', 'input_tokens', 'output_tokens', 'tokens_30d', 'ai_calls', 'resume_uploaded', 'location', 'desired_role', 'experience_level'];
+    const head = ['name', 'email', 'provider', 'joined', 'last_active', 'last_sign_in', 'searches', 'saved_jobs', 'applied', 'interviews', 'offers', 'ai_uses', 'input_tokens', 'output_tokens', 'tokens_30d', 'ai_calls', 'active_seconds', 'active_seconds_7d', 'resume_uploaded', 'location', 'desired_role', 'experience_level'];
     const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const rows = users.map((u) => [u.name, u.email, u.provider, u.joinedAt, u.lastActiveAt, u.lastSignInAt, u.searches, u.savedJobs, u.applied, u.interviews, u.offers, u.aiUses, u.inputTokens, u.outputTokens, u.tokens30d, u.aiCalls, u.resumeUploadedAt, u.location, u.desiredRole, u.experienceLevel].map(esc).join(','));
+    const rows = users.map((u) => [u.name, u.email, u.provider, u.joinedAt, u.lastActiveAt, u.lastSignInAt, u.searches, u.savedJobs, u.applied, u.interviews, u.offers, u.aiUses, u.inputTokens, u.outputTokens, u.tokens30d, u.aiCalls, u.activeSeconds, u.activeSeconds7d, u.resumeUploadedAt, u.location, u.desiredRole, u.experienceLevel].map(esc).join(','));
     return [head.join(','), ...rows].join('\n');
 }
 
@@ -156,11 +162,12 @@ export default function Admin() {
             )}
 
             {/* Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-[#D8D4CC] border-0 border-b border-[#D8D4CC]">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-[#D8D4CC] border-0 border-b border-[#D8D4CC]">
                 <Stat label="users" value={s ? s.totalUsers : '…'} hint={s ? `+${s.newLast7Days} in the last 7 days` : ''} />
                 <Stat label="active 7 days" value={s ? s.activeLast7Days : '…'} hint={s ? `${s.activeLast30Days} in the last 30 days` : ''} />
                 <Stat label="with a resume" value={s ? s.withResume : '…'} hint={s && s.totalUsers ? `${Math.round((s.withResume / s.totalUsers) * 100)}% of users` : ''} />
                 <Stat label="searches · saved · applied" value={s ? `${s.totalSearches} · ${s.totalSavedJobs} · ${s.totalApplied}` : '…'} />
+                <Stat label="time spent" value={s ? duration(s.activeSeconds) : '…'} hint={s ? `${duration(s.activeSeconds7d)} this week · ${s.usersWithTime ? duration(s.activeSeconds / s.usersWithTime) : '—'} per user` : ''} />
                 <Stat label="ai tokens" value={s ? compact(s.totalTokens) : '…'} hint={s ? `${compact(s.tokensLast30Days)} in 30 days · ${compact(s.signedOutTokens)} signed out` : ''} />
             </div>
             {data?.byFeature?.length > 0 && (
@@ -214,7 +221,7 @@ export default function Admin() {
             {/* Table */}
             <div className="px-5 md:px-8 pb-12">
                 <div className="bg-white border border-[#D8D4CC] overflow-x-auto">
-                    <table className="w-full min-w-[1080px] border-collapse text-left">
+                    <table className="w-full min-w-[1180px] border-collapse text-left">
                         <thead>
                             <tr className="border-0 border-b-2 border-[#171717]">
                                 {COLUMNS.map((c) => (
@@ -251,6 +258,9 @@ export default function Admin() {
                                     <td className="px-4 py-3 text-right tabular-nums text-[14px]">{u.searches}</td>
                                     <td className="px-4 py-3 text-right tabular-nums text-[14px]">{u.savedJobs}</td>
                                     <td className="px-4 py-3 text-right tabular-nums text-[14px] whitespace-nowrap">{u.applied} · {u.interviews} · <span className={u.offers ? 'text-[#047857] font-semibold' : ''}>{u.offers}</span></td>
+                                    <td className="px-4 py-3 text-right tabular-nums text-[14px] whitespace-nowrap" title={`${duration(u.activeSeconds7d)} in the last 7 days`}>
+                                        {u.activeSeconds ? duration(u.activeSeconds) : <span className="text-[#8A8580]">—</span>}
+                                    </td>
                                     <td className="px-4 py-3 text-right tabular-nums text-[14px]" title={`${u.inputTokens.toLocaleString()} in · ${u.outputTokens.toLocaleString()} out · ${compact(u.tokens30d)} in the last 30 days · ${u.aiCalls} calls`}>
                                         {u.tokens ? compact(u.tokens) : <span className="text-[#8A8580]">0</span>}
                                     </td>
@@ -269,7 +279,7 @@ export default function Admin() {
                         </tbody>
                     </table>
                 </div>
-                {data && <p className="ds-mono ds-mono-muted m-0 mt-3">{rows.length} of {data.users.length} users · “last active” is the latest of sign-in, search, saved job or resume upload</p>}
+                {data && <p className="ds-mono ds-mono-muted m-0 mt-3">{rows.length} of {data.users.length} users · “last active” is the latest of sign-in, search, saved job or resume upload · time spent counts minutes signed in with Appliqa open and visible</p>}
             </div>
             </>)}
         </div>

@@ -3,6 +3,7 @@ const router = express.Router();
 const { supabase } = require('../lib/supabase');
 const requireAuth = require('../middleware/auth');
 const { sendServerError } = require('../lib/errors');
+const rateLimit = require('../middleware/rateLimit');
 
 // Transform database row (snake_case) to the nested camelCase shape the frontend expects
 const formatProfile = (user) => ({
@@ -215,6 +216,40 @@ router.post('/increment-stat', requireAuth, async (req, res) => {
     res.json({ success: true, stat, newValue: updated[stat] });
   } catch (error) {
     sendServerError(res, error, 'Failed to update stat');
+  }
+});
+
+// Time spent: the app sends this once a minute while it's open and visible.
+// Beats closer than 50 seconds apart (a second tab, a retry) don't add time.
+const HEARTBEAT_SECONDS = 60;
+const heartbeatLimiter = rateLimit({ name: 'heartbeat', windowMs: 60 * 1000, maxAuthed: 6, maxAnon: 0 });
+
+router.post('/heartbeat', requireAuth, heartbeatLimiter, async (req, res) => {
+  try {
+    const now = new Date();
+    const day = now.toISOString().slice(0, 10);
+    const { data: row, error: readError } = await supabase
+      .from('user_activity_days')
+      .select('seconds, last_beat_at')
+      .eq('user_id', req.user.id)
+      .eq('day', day)
+      .maybeSingle();
+    if (readError) throw readError;
+    if (row?.last_beat_at && now - new Date(row.last_beat_at) < (HEARTBEAT_SECONDS - 10) * 1000) {
+      return res.json({ counted: false });
+    }
+    const { error: writeError } = await supabase.from('user_activity_days').upsert({
+      user_id: req.user.id,
+      day,
+      seconds: (row?.seconds || 0) + HEARTBEAT_SECONDS,
+      last_beat_at: now.toISOString(),
+    }, { onConflict: 'user_id,day' });
+    if (writeError) throw writeError;
+    res.json({ counted: true });
+  } catch (error) {
+    // Never bother the user about this; just note it on the server
+    console.warn('[Heartbeat]', error.message);
+    res.json({ counted: false });
   }
 });
 
