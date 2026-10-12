@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FiRefreshCw, FiSearch, FiDownload, FiArrowUp, FiArrowDown, FiCheck } from 'react-icons/fi';
 import api from '../services/api';
+import AdminFeedback from './AdminFeedback';
 
 const DAY = 86400000;
 
@@ -69,6 +70,8 @@ export default function Admin() {
     const [query, setQuery] = useState('');
     const [filter, setFilter] = useState('all');
     const [sort, setSort] = useState({ key: 'lastActiveAt', dir: 'desc' });
+    const [tab, setTab] = useState(() => (window.location.hash === '#feedback' ? 'feedback' : 'users'));
+    const switchTab = (t) => { setTab(t); window.history.replaceState(null, '', t === 'feedback' ? '#feedback' : window.location.pathname); };
 
     const load = async () => {
         setState((s) => (s === 'ready' ? 'ready' : 'loading'));
@@ -122,12 +125,28 @@ export default function Admin() {
 
     return (
         <div className="min-h-[calc(100vh-64px)] bg-[#F7F5F2]">
-            <div className="flex items-center justify-between gap-3 px-5 md:px-8 py-3.5 border-0 border-b border-[#D8D4CC]">
-                <span className="ds-mono truncate">admin / users</span>
-                <span className="ds-mono ds-mono-muted shrink-0">
+            <div className="flex items-stretch justify-between gap-3 px-5 md:px-8 border-0 border-b border-[#D8D4CC]">
+                <div className="flex items-stretch gap-1" role="tablist" aria-label="Admin sections">
+                    <span className="ds-mono self-center pr-3">admin /</span>
+                    {[['users', 'users'], ['feedback', 'feedback']].map(([id, label]) => (
+                        <button
+                            key={id}
+                            type="button"
+                            role="tab"
+                            aria-selected={tab === id}
+                            onClick={() => switchTab(id)}
+                            className={`ds-mono px-3 py-3.5 bg-transparent border-0 border-b-2 cursor-pointer ${tab === id ? 'text-[#171717] border-[#CA3C0A]' : 'text-[#8A8580] border-transparent hover:text-[#171717]'}`}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+                <span className="ds-mono ds-mono-muted shrink-0 self-center max-sm:hidden">
                     {data ? `updated ${ago(data.generatedAt)}` : 'loading'} <span className="inline-block w-1.5 h-1.5 bg-[#CA3C0A] ml-1 align-middle" aria-hidden="true" />
                 </span>
             </div>
+
+            {tab === 'feedback' ? <AdminFeedback onDenied={() => setState('denied')} /> : (<>
 
             {state === 'error' && (
                 <div className="px-5 md:px-8 py-6">
@@ -252,6 +271,7 @@ export default function Admin() {
                 </div>
                 {data && <p className="ds-mono ds-mono-muted m-0 mt-3">{rows.length} of {data.users.length} users · “last active” is the latest of sign-in, search, saved job or resume upload</p>}
             </div>
+            </>)}
         </div>
     );
 }

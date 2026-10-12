@@ -160,6 +160,42 @@ router.get('/users', requireAuth, requireAdmin, adminLimiter, async (req, res) =
   }
 });
 
+// Feedback from the in-app widget, newest first, with the sender's name when signed in
+router.get('/feedback', requireAuth, requireAdmin, adminLimiter, async (req, res) => {
+  try {
+    const [rows, profiles] = await Promise.all([
+      readAll('feedback', 'id, user_id, email, category, rating, message, created_at'),
+      readAll('profiles', 'id, name'),
+    ]);
+    const names = new Map(profiles.map((p) => [p.id, p.name]));
+    const feedback = rows
+      .map((f) => ({
+        id: f.id,
+        userId: f.user_id || null,
+        name: (f.user_id && names.get(f.user_id)) || '',
+        email: f.email || '',
+        category: f.category || 'General',
+        rating: f.rating || null,
+        message: f.message || '',
+        createdAt: f.created_at,
+      }))
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    const rated = feedback.filter((f) => f.rating);
+    res.json({
+      generatedAt: new Date().toISOString(),
+      summary: {
+        total: feedback.length,
+        last7Days: feedback.filter((f) => f.createdAt && Date.now() - new Date(f.createdAt).getTime() <= 7 * 86400000).length,
+        averageRating: rated.length ? Math.round((rated.reduce((n, f) => n + f.rating, 0) / rated.length) * 10) / 10 : null,
+        signedIn: feedback.filter((f) => f.userId).length,
+      },
+      feedback,
+    });
+  } catch (error) {
+    sendServerError(res, error, 'Failed to load feedback');
+  }
+});
+
 // Lets the client decide whether to show the admin link, without exposing the list
 router.get('/me', requireAuth, requireAdmin, (req, res) => res.json({ admin: true }));
 
