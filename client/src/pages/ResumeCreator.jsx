@@ -14,6 +14,7 @@ import DesignPanel from '../components/resume/DesignPanel';
 import SectionsPanel from '../components/resume/SectionsPanel';
 import LatexSheet from '../components/resume/LatexSheet';
 import PdfTipDialog, { shouldShowPdfTip } from '../components/resume/PdfTipDialog';
+import MobileBuilderNotice from '../components/resume/MobileBuilderNotice';
 import { latexToResume } from '../lib/latexImport';
 import { ProjectsEditor, AchievementsEditor } from '../components/resume/ProjectsEditor';
 import { 
@@ -21,7 +22,7 @@ import {
     Sparkles, Sparkle, Download, Save, Upload, X, 
     Plus, Trash2, Check, ArrowRight, RefreshCw,
     MessageSquare, Send, Wand2, Gauge, Activity, AlertCircle, CheckCircle2,
-    Sliders, Monitor, FileText, FileCheck, ChevronDown, ChevronLeft, ChevronRight
+    Sliders, FileText, FileCheck, ChevronDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
     enhanceResumeBullet, suggestResumeSkills, createOrUpdateUser, incrementStat,
@@ -1096,153 +1097,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
     };
 
     if (isMobile) {
-        return (
-            <div className="resume-creator-mobile-notice-container" style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 'calc(100vh - 64px)',
-                padding: '32px 20px',
-                textAlign: 'center',
-                background: '#FAF8F5',
-                color: '#171717',
-                boxSizing: 'border-box'
-            }}>
-                <div className="resume-creator-mobile-notice-card" style={{
-                    position: 'relative',
-                    width: '100%',
-                    maxWidth: '420px',
-                    background: '#FFFFFF',
-                    border: '1px solid #D8D4CC',
-                    borderRadius: '8px',
-                    padding: '36px 24px',
-                    boxShadow: '0 16px 40px -8px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)'
-                }}>
-                    {/* Accent Badge */}
-                    <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        background: '#FFF0E8',
-                        border: '1px solid rgba(202, 60, 10, 0.3)',
-                        borderRadius: '4px',
-                        padding: '4px 10px',
-                        fontSize: '11px',
-                        fontWeight: '700',
-                        color: '#CA3C0A',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        marginBottom: '20px'
-                    }}>
-                        <span style={{
-                            width: '6px',
-                            height: '6px',
-                            borderRadius: '50%',
-                            backgroundColor: '#CA3C0A'
-                        }} />
-                        Desktop Recommended
-                    </div>
-
-                    {/* Monitor Icon Container */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '8px',
-                        background: '#FFF0E8',
-                        border: '1px solid rgba(202, 60, 10, 0.25)',
-                        margin: '0 auto 20px auto'
-                    }}>
-                        <Monitor size={28} className="text-[#CA3C0A]" />
-                    </div>
-
-                    <h2 style={{
-                        fontSize: '20px',
-                        fontWeight: '800',
-                        lineHeight: '1.3',
-                        letterSpacing: '-0.02em',
-                        color: '#171717',
-                        margin: '0 0 10px 0'
-                    }}>
-                        Optimize Your Builder Experience
-                    </h2>
-
-                    <p style={{
-                        fontSize: '13px',
-                        lineHeight: '1.6',
-                        color: '#66615C',
-                        margin: '0 0 24px 0',
-                        fontWeight: '400'
-                    }}>
-                        Appliqa's real-time visual resume generator, live ATS scanner, and split-screen design editor require a larger screen. Please open Appliqa on your computer or tablet to build and export your resume.
-                    </p>
-
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                    }}>
-                        <button
-                            onClick={() => navigate('/advisor')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '100%',
-                                padding: '11px 20px',
-                                borderRadius: '6px',
-                                background: '#171717',
-                                color: '#FFFFFF',
-                                fontWeight: '700',
-                                fontSize: '13px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#CA3C0A';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.background = '#171717';
-                            }}
-                        >
-                            Ask Career Advisor
-                        </button>
-                        <button
-                            onClick={() => navigate('/')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '100%',
-                                padding: '10px 20px',
-                                borderRadius: '6px',
-                                background: '#FAF8F5',
-                                border: '1px solid #D8D4CC',
-                                color: '#171717',
-                                fontWeight: '700',
-                                fontSize: '13px',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease'
-                            }}
-                            onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#FFFFFF';
-                                e.currentTarget.style.borderColor = '#171717';
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.background = '#FAF8F5';
-                                e.currentTarget.style.borderColor = '#D8D4CC';
-                            }}
-                        >
-                            Back to Home
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
+        return <MobileBuilderNotice onAdvisor={() => navigate('/advisor')} onHome={() => navigate('/')} />;
     }
     return (
         <div className="resume-creator-outer-wrapper">
