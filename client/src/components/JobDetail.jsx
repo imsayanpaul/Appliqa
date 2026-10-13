@@ -7,7 +7,7 @@ import { getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLette
 import ATSScorer from './ATSScorer';
 import { CompanyMark } from './JobCard';
 import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
-import { formatSalary } from '../lib/format';
+import { formatSalary, applySource } from '../lib/format';
 import { useSaveJob } from '../lib/useSaveJob';
 
 function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedId, onToggleSave }) {
@@ -393,7 +393,7 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
                             rel="noopener noreferrer"
                             className="ds-btn ds-btn-accent !min-h-[64px] !px-6 sm:!px-8 no-underline"
                         >
-                            Apply now <FiArrowUpRight size={18} className="ds-btn-arrow" />
+                            {applySource(job) ? `Apply on ${applySource(job)}` : 'Apply now'} <FiArrowUpRight size={18} className="ds-btn-arrow" />
                         </a>
                     ) : (
                         <span className="ds-btn !min-h-[64px] !px-6 sm:!px-8 bg-[#EFECE6] text-[#6F6A65] cursor-default">

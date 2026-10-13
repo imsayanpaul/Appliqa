@@ -32,3 +32,26 @@ export function monthlyFromCTC(range) {
     ? `${fmt(monthly[0])} – ${fmt(monthly[1])}`
     : fmt(monthly[0]);
 }
+
+// Where the apply link leads, e.g. "LinkedIn". Uses JSearch's publisher when present,
+// otherwise the link's website (cached jobs don't store the publisher).
+const KNOWN_SITES = [
+    ['linkedin.', 'LinkedIn'], ['indeed.', 'Indeed'], ['glassdoor.', 'Glassdoor'], ['naukri.', 'Naukri'],
+    ['foundit.', 'Foundit'], ['monsterindia.', 'Foundit'], ['instahyre.', 'Instahyre'], ['wellfound.', 'Wellfound'],
+    ['internshala.', 'Internshala'], ['shine.', 'Shine'], ['timesjobs.', 'TimesJobs'], ['cutshort.', 'Cutshort'],
+    ['hirist.', 'Hirist'], ['ziprecruiter.', 'ZipRecruiter'], ['monster.', 'Monster'], ['simplyhired.', 'SimplyHired'],
+    ['myworkdayjobs.', 'Workday'], ['greenhouse.', 'Greenhouse'], ['lever.co', 'Lever'], ['smartrecruiters.', 'SmartRecruiters'],
+    ['bebee.', 'BeBee'], ['jooble.', 'Jooble'], ['talent.com', 'Talent.com'], ['apna.', 'Apna'], ['workindia.', 'WorkIndia'],
+];
+
+export function applySource(job) {
+    const publisher = (job?.publisher || '').trim();
+    if (publisher) return publisher.replace(/\.com$/i, '').replace(/^www\./i, '');
+    try {
+        const host = new URL(job?.applyLink).hostname.replace(/^www\./, '');
+        const known = KNOWN_SITES.find(([needle]) => host.includes(needle));
+        return known ? known[1] : host;
+    } catch {
+        return '';
+    }
+}

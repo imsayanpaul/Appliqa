@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiBookmark, FiArrowUpRight } from 'react-icons/fi';
 import { useSaveJob } from '../lib/useSaveJob';
-import { formatSalary } from '../lib/format';
+import { formatSalary, applySource } from '../lib/format';
 
 const timeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -57,6 +57,7 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
     };
 
     const salary = formatSalary(job.salary);
+    const source = applySource(job);
     const meta = [job.location, job.remote ? 'Remote' : null, job.employmentType?.toLowerCase().replace(/_/g, '-')].filter(Boolean);
     const posted = timeAgo(job.datePosted);
 
@@ -99,7 +100,9 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
 
             <div className="mt-auto pt-6 flex items-center justify-between gap-3">
                 <span className="text-[14px] font-semibold text-[#171717] truncate">
-                    {salary || <span className="ds-mono ds-mono-muted font-normal">salary not listed</span>}
+                    {salary || (source
+                        ? <span className="font-normal text-[#4A4540]">via <span className="font-semibold text-[#171717]">{source}</span></span>
+                        : <span className="ds-mono ds-mono-muted font-normal">salary not listed</span>)}
                 </span>
                 <span className="ds-mono ds-mono-muted shrink-0 flex items-center gap-2">
                     {posted}

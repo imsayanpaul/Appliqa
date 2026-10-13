@@ -312,6 +312,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
         : job.job_salary_period ? `${job.job_salary_period}` : 'Not specified',
       datePosted: job.job_posted_at_datetime_utc,
       applyLink: job.job_apply_link,
+      publisher: job.job_publisher || '',
       remote: job.job_is_remote,
       highlights: job.job_highlights || {},
       requiredSkills: job.job_required_skills || [],
