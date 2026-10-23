@@ -130,8 +130,10 @@ export function toLatex(data, design) {
             if (typeof c !== 'object' || !c?.name) return `    \\item ${tex(certificationLabel(c))}`;
             const link = safeUrl(c.credentialUrl);
             const name = link ? `\\href{${url(link)}}{${tex(c.name)}}` : tex(c.name);
-            const details = [c.provider, formatMonth(c.issueDate), c.credentialId && `ID ${c.credentialId}`].filter(Boolean).map(tex).join(' \\textbullet\\ ');
-            return `    \\item \\textbf{${name}}${details ? ` -- ${details}` : ''}`;
+            const details = [c.provider, c.credentialId && `ID ${c.credentialId}`].filter(Boolean).map(tex).join(' \\textbullet\\ ');
+            const date = formatMonth(c.issueDate);
+            const dateTex = !date ? '' : inline ? ` \\textperiodcentered\\ \\textit{${tex(date)}}` : ` \\hfill \\textit{${tex(date)}}`;
+            return `    \\item \\textbf{${name}}${details ? ` -- ${details}` : ''}${dateTex}`;
         }).join('\n')}\n\\end{itemize}`;
     }
     if (achievements.length) blocks.achievements = bullets(achievements);
