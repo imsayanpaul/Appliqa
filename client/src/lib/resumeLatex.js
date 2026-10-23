@@ -131,9 +131,8 @@ export function toLatex(data, design) {
             const link = safeUrl(c.credentialUrl);
             const details = [c.provider, c.credentialId && `ID ${c.credentialId}`].filter(Boolean).map(tex).join(' \\textbullet\\ ');
             const date = formatMonth(c.issueDate);
-            const head = `\\textbf{${tex(c.name)}}${details ? ` -- ${details}` : ''}`;
-            // Like projects: the link label takes the right edge and the date moves next to the title
-            if (link) return `    \\item ${head}${date ? ` \\textperiodcentered\\ \\textit{${tex(date)}}` : ''} \\hfill \\href{${url(link)}}{[Credential]}`;
+            // The credential link follows the title so the date keeps the right edge
+            const head = `\\textbf{${tex(c.name)}}${details ? ` -- ${details}` : ''}${link ? ` \\textbar\\ \\href{${url(link)}}{[Credential]}` : ''}`;
             const dateTex = !date ? '' : inline ? ` \\textperiodcentered\\ \\textit{${tex(date)}}` : ` \\hfill \\textit{${tex(date)}}`;
             return `    \\item ${head}${dateTex}`;
         }).join('\n')}\n\\end{itemize}`;

@@ -120,21 +120,17 @@ export default function ResumeDocument({ data, design, print = false }) {
                 const link = safeUrl(c.credentialUrl);
                 const details = [c.provider, c.credentialId && `ID ${c.credentialId}`].filter(Boolean).join(' · ');
                 const date = formatMonth(c.issueDate);
+                // The credential link follows the title so the date keeps the right edge
                 const title = (
                     <span>
                         <strong>{c.name}</strong>
                         {details && ` — ${details}`}
+                        {link && <><span className="rd-sep"> | </span><a href={link} target="_blank" rel="noopener noreferrer">Credential</a></>}
                     </span>
                 );
                 return (
                     <li key={c.id || i}>
-                        {link ? (
-                            // Like projects: the link label takes the right edge and the date moves next to the title
-                            <div className="rd-row">
-                                <span>{title}{date && <span className="rd-date-inline"> · {date}</span>}</span>
-                                <span className="rd-links"><a href={link} target="_blank" rel="noopener noreferrer">Credential</a></span>
-                            </div>
-                        ) : date && !inline
+                        {date && !inline
                             ? <div className="rd-row"><span>{title}</span><span className="rd-date">{date}</span></div>
                             : <>{title}{date && <span className="rd-date-inline"> · {date}</span>}</>}
                     </li>
