@@ -1,6 +1,6 @@
 // Resume -> LaTeX source (pdfLaTeX, standard packages only), following the
 // builder's section order, titles and design settings.
-import { certificationLabel, formatScore, formatRange, safeUrl } from './resumeProfile';
+import { certificationLabel, formatMonth, formatScore, formatRange, safeUrl } from './resumeProfile';
 import { sectionTitle, placeLine } from './resumeDesign';
 
 const SPECIAL = {
@@ -127,10 +127,11 @@ export function toLatex(data, design) {
 
     if (certifications.length) {
         blocks.certifications = `\\begin{itemize}\n${certifications.map((c) => {
-            const link = typeof c === 'object' ? safeUrl(c.credentialUrl) : '';
-            const name = typeof c === 'object' ? c.name : '';
-            if (link && name) return `    \\item \\textbf{\\href{${url(link)}}{${tex(name)}}}${c.provider ? ` -- ${tex(c.provider)}` : ''}`;
-            return `    \\item ${tex(certificationLabel(c))}`;
+            if (typeof c !== 'object' || !c?.name) return `    \\item ${tex(certificationLabel(c))}`;
+            const link = safeUrl(c.credentialUrl);
+            const name = link ? `\\href{${url(link)}}{${tex(c.name)}}` : tex(c.name);
+            const details = [c.provider, formatMonth(c.issueDate), c.credentialId && `ID ${c.credentialId}`].filter(Boolean).map(tex).join(' \\textbullet\\ ');
+            return `    \\item \\textbf{${name}}${details ? ` -- ${details}` : ''}`;
         }).join('\n')}\n\\end{itemize}`;
     }
     if (achievements.length) blocks.achievements = bullets(achievements);

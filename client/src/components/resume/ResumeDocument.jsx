@@ -1,4 +1,4 @@
-import { certificationLabel, formatScore, formatRange, safeUrl } from '../../lib/resumeProfile';
+import { certificationLabel, formatMonth, formatScore, formatRange, safeUrl } from '../../lib/resumeProfile';
 import { fontStack, sectionTitle, placeLine } from '../../lib/resumeDesign';
 import './resumeDocument.css';
 
@@ -115,7 +115,17 @@ export default function ResumeDocument({ data, design, print = false }) {
         expertise: expertise.length ? <p className="rd-p">{expertise.join(' • ')}</p> : null,
 
         certifications: certifications.length
-            ? <ul className="rd-bullets">{certifications.map((c, i) => <li key={i}>{certificationLabel(c)}</li>)}</ul>
+            ? <ul className="rd-bullets">{certifications.map((c, i) => {
+                if (typeof c === 'string') return <li key={i}>{c}</li>;
+                const link = safeUrl(c.credentialUrl);
+                const details = [c.provider, formatMonth(c.issueDate), c.credentialId && `ID ${c.credentialId}`].filter(Boolean).join(' · ');
+                return (
+                    <li key={c.id || i}>
+                        <strong>{link ? <a href={link} target="_blank" rel="noopener noreferrer">{c.name}</a> : c.name}</strong>
+                        {details && ` — ${details}`}
+                    </li>
+                );
+            })}</ul>
             : null,
 
         achievements: achievements.length

@@ -115,6 +115,80 @@ export function ProjectsEditor({ projects, onChange }) {
     );
 }
 
+const blankCertification = () => ({ id: newId(), name: '', provider: '', issueDate: '', credentialId: '', credentialUrl: '' });
+
+export function CertificationsEditor({ certifications, onChange }) {
+    const update = (id, patch) => onChange(certifications.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+    const move = (i, to) => {
+        if (to < 0 || to >= certifications.length) return;
+        const next = [...certifications];
+        const [item] = next.splice(i, 1);
+        next.splice(to, 0, item);
+        onChange(next);
+    };
+
+    return (
+        <div className="space-y-4">
+            {certifications.length === 0 && (
+                <p className="m-0 text-[14px] text-[#4A4540]">No certifications yet. Add the link to the credential so recruiters can check it in one click.</p>
+            )}
+
+            {certifications.map((c, i) => {
+                const key = c.id || i;
+                return (
+                    <div key={key} className="bg-white border border-[#D8D4CC]">
+                        <div className="flex items-stretch border-0 border-b border-[#D8D4CC]">
+                            <span className="ds-mono self-center px-4 text-[#CA3C0A]">{String(i + 1).padStart(2, '0')}</span>
+                            <span className="flex-1 min-w-0 self-center text-[15px] font-semibold text-[#171717] truncate">{c.name || 'Untitled certification'}</span>
+                            <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} aria-label="Move certification up" className="w-10 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer hover:bg-[#F7F5F2] disabled:opacity-30 disabled:cursor-default">
+                                <ChevronUp size={15} />
+                            </button>
+                            <button type="button" onClick={() => move(i, i + 1)} disabled={i === certifications.length - 1} aria-label="Move certification down" className="w-10 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer hover:bg-[#F7F5F2] disabled:opacity-30 disabled:cursor-default">
+                                <ChevronDown size={15} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { if (!c.name || window.confirm(`Remove the certification “${c.name}”?`)) onChange(certifications.filter((x) => x.id !== c.id)); }}
+                                aria-label={`Remove ${c.name || 'certification'}`}
+                                className="w-11 inline-flex items-center justify-center bg-transparent border-0 border-l border-[#D8D4CC] cursor-pointer text-[#6F6A65] hover:text-[#B91C1C] hover:bg-[#FEF2F2]"
+                            >
+                                <X size={15} />
+                            </button>
+                        </div>
+
+                        <div className="p-4 grid grid-cols-2 gap-3">
+                            <div className="col-span-2">
+                                <label className="resume-input-label" htmlFor={`ct-name-${key}`}>Certification name</label>
+                                <input id={`ct-name-${key}`} type="text" value={c.name} onChange={(e) => update(c.id, { name: e.target.value })} className="resume-input-field" placeholder="e.g. AWS Certified Cloud Practitioner" />
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="resume-input-label" htmlFor={`ct-provider-${key}`}>Issued by</label>
+                                <input id={`ct-provider-${key}`} type="text" value={c.provider} onChange={(e) => update(c.id, { provider: e.target.value })} className="resume-input-field" placeholder="e.g. Amazon Web Services, Coursera" />
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="resume-input-label" htmlFor={`ct-date-${key}`}>Issue date</label>
+                                <input id={`ct-date-${key}`} type="month" value={c.issueDate || ''} onChange={(e) => update(c.id, { issueDate: e.target.value })} className="resume-input-field" />
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="resume-input-label" htmlFor={`ct-id-${key}`}>Credential ID (optional)</label>
+                                <input id={`ct-id-${key}`} type="text" value={c.credentialId} onChange={(e) => update(c.id, { credentialId: e.target.value })} className="resume-input-field" placeholder="e.g. UC-1a2b3c" />
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                                <label className="resume-input-label" htmlFor={`ct-url-${key}`}>Credential link (optional)</label>
+                                <input id={`ct-url-${key}`} type="url" inputMode="url" value={c.credentialUrl} onChange={(e) => update(c.id, { credentialUrl: e.target.value })} className="resume-input-field" placeholder="https://…" />
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
+
+            <button type="button" onClick={() => onChange([...certifications, blankCertification()])} className="ds-btn ds-btn-line w-full !min-h-12 !text-[14px]">
+                Add certification <Plus size={15} />
+            </button>
+        </div>
+    );
+}
+
 export function AchievementsEditor({ achievements, onChange }) {
     const [draft, setDraft] = useState('');
     const add = (e) => {

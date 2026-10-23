@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal, flushSync } from 'react-dom';
-import { certificationLabel, newId } from '../lib/resumeProfile';
+import { certificationLabel, newId, normalizeCertification } from '../lib/resumeProfile';
 import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, dataFromAnalysis, formatUpdated, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
 import { normalizeDesign, readPhoto, fontStack } from '../lib/resumeDesign';
 import ResumeDocument from '../components/resume/ResumeDocument';
@@ -16,7 +16,7 @@ import LatexSheet from '../components/resume/LatexSheet';
 import PdfTipDialog, { shouldShowPdfTip } from '../components/resume/PdfTipDialog';
 import MobileBuilderNotice from '../components/resume/MobileBuilderNotice';
 import { latexToResume } from '../lib/latexImport';
-import { ProjectsEditor, AchievementsEditor } from '../components/resume/ProjectsEditor';
+import { ProjectsEditor, AchievementsEditor, CertificationsEditor } from '../components/resume/ProjectsEditor';
 import { 
     User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
     Sparkles, Sparkle, Download, Save, Upload, X, 
@@ -421,7 +421,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         const newSummary = data.summary || '';
         const newSkills = data.skills || [];
         const newExpertise = data.expertise || [];
-        const newCerts = data.certifications || [];
+        const newCerts = (Array.isArray(data.certifications) ? data.certifications : []).map(normalizeCertification);
         const newLangs = data.languages || [];
 
         setSummary(newSummary);
@@ -1806,48 +1806,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         )}
 
                         {activeTab === 'certifications' && (
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="resume-input-label">Certifications</label>
-                                    <form onSubmit={(e) => {
-                                        e.preventDefault();
-                                        const val = e.target.elements.certInput.value.trim();
-                                        if (val && !certifications.includes(val)) {
-                                            setCertifications([...certifications, val]);
-                                        }
-                                        e.target.elements.certInput.value = '';
-                                    }} className="flex gap-2">
-                                        <input 
-                                            name="certInput"
-                                            type="text"
-                                            className="flex-1 resume-input-field"
-                                            placeholder="e.g. AWS Certified Solutions Architect"
-                                        />
-                                        <button
-                                            type="submit"
-                                            className="resume-skill-add-btn"
-                                        >
-                                            <Plus size={15} />
-                                        </button>
-                                    </form>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {certifications.map(item => (
-                                        <div key={certificationLabel(item)} className="resume-skill-tag">
-                                            <span>{certificationLabel(item)}</span>
-                                            <button 
-                                                onClick={() => setCertifications(certifications.filter(x => x !== item))}
-                                                className="text-zinc-550 hover:text-red-400 transition-colors border-none bg-transparent cursor-pointer"
-                                            >
-                                                <X size={11} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {certifications.length === 0 && (
-                                        <p className="text-xs text-zinc-550 italic">No certifications added yet.</p>
-                                    )}
-                                </div>
-                            </div>
+                            <CertificationsEditor certifications={certifications} onChange={setCertifications} />
                         )}
 
                         {activeTab === 'languages' && (

@@ -178,16 +178,42 @@ function normalizeProject(item) {
     };
 }
 
-function normalizeCertification(item) {
+// A date or date range at the end of a line: "Jul 2026", "Jul 2026 – Aug 2026", "(2024)"
+const MONTH_WORD = '(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?';
+const ONE_DATE = `(?:${MONTH_WORD}\\s+)?(?:19|20)\\d{2}`;
+const DATE_TAIL = new RegExp(`\\s*[(,|·–—-]?\\s*(${ONE_DATE}(?:\\s*(?:–|—|-|to)\\s*(?:${ONE_DATE}|present))?)\\)?\\s*$`, 'i');
+const DATE_ONLY = new RegExp(`^\\s*\\(?${ONE_DATE}\\)?\\s*$`, 'i');
+
+function parseCertificationText(text) {
+    let rest = text.trim();
+    let issueDate = '';
+    const tail = rest.match(DATE_TAIL);
+    if (tail && tail.index > 0) {
+        // A range ends when the certificate was earned
+        const { startDate, endDate } = parseDateRange(tail[1]);
+        issueDate = endDate || startDate;
+        rest = rest.slice(0, tail.index).trim();
+    }
+    // "Name - Provider" / "Name (Provider)" from AI extraction
+    const paren = rest.match(/^(.*?)\s*\((.*?)\)\s*$/);
+    // Split on the last spaced dash; issuers can contain hyphens ("NASSCOM IT-ITES SSC")
+    const dash = rest.match(/^(.*)\s+[–—-]\s+(.+)$/);
+    const [name, provider] = paren ? [paren[1], paren[2]] : dash ? [dash[1], dash[2]] : [rest, ''];
+    return { name: name.trim(), provider: provider.trim(), issueDate };
+}
+
+export function normalizeCertification(item) {
     if (typeof item === 'string') {
-        // "Name - Provider" / "Name (Provider)" from AI extraction
-        const paren = item.match(/^(.*?)\s*\((.*?)\)\s*$/);
-        // Split on the last spaced dash; issuers can contain hyphens ("NASSCOM IT-ITES SSC")
-        const dash = item.match(/^(.*)\s+[–—-]\s+(.+)$/);
-        const [name, provider] = paren ? [paren[1], paren[2]] : dash ? [dash[1], dash[2]] : [item, ''];
-        return { id: newId(), name: name.trim(), provider: provider.trim(), issueDate: '', credentialId: '', credentialUrl: '' };
+        return { id: newId(), ...parseCertificationText(item), credentialId: '', credentialUrl: '' };
     }
     const base = item || {};
+    // Older imports put the date in the issuer ("Aug 2026") or on the end of the name
+    if (!base.issueDate && (DATE_ONLY.test(str(base.provider)) || DATE_TAIL.test(str(base.name)))) {
+        const parsed = parseCertificationText([base.name, base.provider].filter(Boolean).join(' – '));
+        if (parsed.name && parsed.issueDate) {
+            return { id: base.id || newId(), ...parsed, credentialId: str(base.credentialId), credentialUrl: str(base.credentialUrl) };
+        }
+    }
     return {
         id: base.id || newId(),
         name: str(base.name),
