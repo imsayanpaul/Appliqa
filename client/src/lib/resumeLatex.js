@@ -129,11 +129,13 @@ export function toLatex(data, design) {
         blocks.certifications = `\\begin{itemize}\n${certifications.map((c) => {
             if (typeof c !== 'object' || !c?.name) return `    \\item ${tex(certificationLabel(c))}`;
             const link = safeUrl(c.credentialUrl);
-            const name = link ? `\\href{${url(link)}}{${tex(c.name)}}` : tex(c.name);
             const details = [c.provider, c.credentialId && `ID ${c.credentialId}`].filter(Boolean).map(tex).join(' \\textbullet\\ ');
             const date = formatMonth(c.issueDate);
+            const head = `\\textbf{${tex(c.name)}}${details ? ` -- ${details}` : ''}`;
+            // Like projects: the link label takes the right edge and the date moves next to the title
+            if (link) return `    \\item ${head}${date ? ` \\textperiodcentered\\ \\textit{${tex(date)}}` : ''} \\hfill \\href{${url(link)}}{[Credential]}`;
             const dateTex = !date ? '' : inline ? ` \\textperiodcentered\\ \\textit{${tex(date)}}` : ` \\hfill \\textit{${tex(date)}}`;
-            return `    \\item \\textbf{${name}}${details ? ` -- ${details}` : ''}${dateTex}`;
+            return `    \\item ${head}${dateTex}`;
         }).join('\n')}\n\\end{itemize}`;
     }
     if (achievements.length) blocks.achievements = bullets(achievements);

@@ -122,13 +122,19 @@ export default function ResumeDocument({ data, design, print = false }) {
                 const date = formatMonth(c.issueDate);
                 const title = (
                     <span>
-                        <strong>{link ? <a href={link} target="_blank" rel="noopener noreferrer">{c.name}</a> : c.name}</strong>
+                        <strong>{c.name}</strong>
                         {details && ` — ${details}`}
                     </span>
                 );
                 return (
                     <li key={c.id || i}>
-                        {date && !inline
+                        {link ? (
+                            // Like projects: the link label takes the right edge and the date moves next to the title
+                            <div className="rd-row">
+                                <span>{title}{date && <span className="rd-date-inline"> · {date}</span>}</span>
+                                <span className="rd-links"><a href={link} target="_blank" rel="noopener noreferrer">Credential</a></span>
+                            </div>
+                        ) : date && !inline
                             ? <div className="rd-row"><span>{title}</span><span className="rd-date">{date}</span></div>
                             : <>{title}{date && <span className="rd-date-inline"> · {date}</span>}</>}
                     </li>
