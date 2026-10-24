@@ -41,11 +41,14 @@ Appliqa is in early access. Numbers from the live database on 24 October 2026:
 
 <table>
   <tr>
-    <td align="center" width="33%"><h2>67</h2><sub>people signed up</sub></td>
-    <td align="center" width="33%"><h2>3.8 / 5</h2><sub>average rating across 8 pieces of in-app feedback</sub></td>
-    <td align="center" width="33%"><h2>0</h2><sub>made-up skills or numbers allowed into a draft: every one is checked against your profile</sub></td>
+    <td align="center" width="25%"><h2>67</h2><sub>people signed up</sub></td>
+    <td align="center" width="25%"><h2>700+</h2><sub>live job listings fetched and cached</sub></td>
+    <td align="center" width="25%"><h2>230+</h2><sub>AI results generated: match scores, cover letters, resume reviews and more</sub></td>
+    <td align="center" width="25%"><h2>3.8 / 5</h2><sub>average rating in in-app feedback</sub></td>
   </tr>
 </table>
+
+Every figure and every tool in an AI-written draft is checked against your profile before you see it.
 
 The tracker now records when each application went out, which job board it came from, which resume was sent, and whether it led to an interview or an offer. This section will report real applied → interview → offer numbers as they come in.
 
