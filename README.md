@@ -41,10 +41,9 @@ Appliqa is in early access. Numbers from the live database on 24 October 2026:
 
 <table>
   <tr>
-    <td align="center" width="25%"><h2>67</h2><sub>people signed up</sub></td>
-    <td align="center" width="25%"><h2>700+</h2><sub>live job listings fetched and cached</sub></td>
-    <td align="center" width="25%"><h2>230+</h2><sub>AI results generated: match scores, cover letters, resume reviews and more</sub></td>
-    <td align="center" width="25%"><h2>3.8 / 5</h2><sub>average rating in in-app feedback</sub></td>
+    <td align="center" width="33%"><h2>67</h2><sub>people signed up</sub></td>
+    <td align="center" width="33%"><h2>700+</h2><sub>live job listings fetched and cached</sub></td>
+    <td align="center" width="33%"><h2>230+</h2><sub>AI results generated: match scores, cover letters, resume reviews and more</sub></td>
   </tr>
 </table>
 
