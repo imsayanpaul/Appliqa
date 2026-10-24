@@ -3,12 +3,20 @@
 
 const clean = (s) => String(s || '').trim().replace(/\s+/g, ' ');
 
+// A role as typed or pulled from a resume headline ("aspiring developer | freshers")
+// minus the filler that ruins a job search. A lone "Developer" is too vague to search.
+const ROLE_FILLER = /\b(aspiring|passionate|motivated|enthusiastic|dedicated|budding|seeking|looking for|open to|entry[- ]level|fresh(?:er|ers|ie)?|fe?shers?)\b/gi;
+function searchableRole(r) {
+  const role = clean(String(r || '').split(/[|•·,;/]| - | – /)[0].replace(ROLE_FILLER, ' '));
+  return /^(developer|engineer|programmer|coder|professional)$/i.test(role) ? '' : role;
+}
+
 // Up to three distinct roles: the role they asked for first, then what their resume suggests
 function feedRoles(profile) {
   const seen = new Set();
   const roles = [];
   for (const r of [profile.desired_role, ...(profile.resume_suggested_roles || [])]) {
-    const role = clean(r);
+    const role = searchableRole(r);
     if (!role || role.length > 60 || seen.has(role.toLowerCase())) continue;
     seen.add(role.toLowerCase());
     roles.push(role);

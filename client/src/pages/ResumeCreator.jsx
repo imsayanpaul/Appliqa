@@ -847,8 +847,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             photo,
             latexDraft,
             rawText: `${personalInfo.name}\n${personalInfo.title}\n${summary}\n${skills.join(', ')}\nExpertise: ${expertise.join(', ')}\nCertifications: ${certifications.map(certificationLabel).join(', ')}\nLanguages: ${languages.join(', ')}`,
-            suggestedRoles: personalInfo.title ? [personalInfo.title] : [],
-            experienceLevel: user?.resumeData?.experienceLevel || 'mid'
+            // A headline like "Aspiring developer | Freshers" is not a role; keep only a real title
+            suggestedRoles: roleFromHeadline(personalInfo.title) ? [roleFromHeadline(personalInfo.title)] : [],
+            // Unknown stays unknown: guessing "mid" made freshers look experienced
+            experienceLevel: user?.resumeData?.experienceLevel || user?.preferences?.experienceLevel || ''
         };
 
         let list = collection.profiles;
@@ -882,11 +884,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
             // Only the primary resume updates account details (name, links, target role)
             const res = await createOrUpdateUser(savingPrimary ? {
                 builderData: payload,
-                name: personalInfo.name,
-                phone: personalInfo.phone,
-                portfolioLinkedin: personalInfo.linkedin,
-                portfolioGithub: personalInfo.github,
-                portfolioWebsite: personalInfo.website,
+                // A blank field on the resume leaves the profile's value alone
+                name: personalInfo.name?.trim() || undefined,
+                phone: personalInfo.phone?.trim() || undefined,
+                portfolioLinkedin: personalInfo.linkedin?.trim() || undefined,
+                portfolioGithub: personalInfo.github?.trim() || undefined,
+                portfolioWebsite: personalInfo.website?.trim() || undefined,
                 preferences: {
                     ...user?.preferences,
                     // Keep a role the user set; the headline ("Aspiring developer | Freshers")
@@ -895,9 +898,10 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         || roleFromHeadline(personalInfo.title)
                         || user?.resumeData?.suggestedRoles?.[0]
                         || '',
-                    // Job search wants a city, not the full address on the resume
-                    location: searchCity(personalInfo.location, personalInfo.country || user?.preferences?.country)
-                        || searchCity(user?.preferences?.location, user?.preferences?.country)
+                    // The job-search city is a preference: keep the one the user picked, and
+                    // only fill an empty one from the resume (a city, not the full address)
+                    location: searchCity(user?.preferences?.location, user?.preferences?.country)
+                        || searchCity(personalInfo.location, personalInfo.country || user?.preferences?.country)
                 }
             } : { builderData: payload });
             if (res.data?.user) {

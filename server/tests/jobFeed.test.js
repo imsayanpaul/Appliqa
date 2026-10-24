@@ -13,6 +13,11 @@ test('roles: target role first, then resume roles, deduped, at most three', () =
   assert.deepEqual(feedRoles({}), []);
 });
 
+test('roles: headline filler is dropped, a vague role is skipped', () => {
+  assert.deepEqual(feedRoles({ desired_role: 'aspiring developer feshers', resume_suggested_roles: ['Aspiring Web Developer | Fresher', 'Frontend Developer'] }), ['Web Developer', 'Frontend Developer']);
+  assert.deepEqual(feedRoles({ desired_role: 'Data Analyst – Entry-level' }), ['Data Analyst']);
+});
+
 test('filters: entry level becomes fresher, job type maps to JSearch', () => {
   assert.deepEqual(feedFilters({ experience_level: 'entry', job_type: 'intern' }), { experience: 'fresher', employmentType: 'INTERN' });
   assert.deepEqual(feedFilters({ experience_level: 'mid', job_type: 'fulltime' }), { experience: '', employmentType: '' });

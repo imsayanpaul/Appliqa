@@ -86,7 +86,7 @@ export function suggestRoles(data, desiredRole = '') {
     if (front && back) score.set('Full Stack Developer', Math.min(front, back) + 0.5);
     const fromSkills = [...score].filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).map(([role]) => role);
     const seen = new Set();
-    return [roleFromHeadline(desiredRole), roleFromHeadline(data?.personalInfo?.title), ...(data?.suggestedRoles || []), ...fromSkills]
+    return [roleFromHeadline(desiredRole), roleFromHeadline(data?.personalInfo?.title), ...(data?.suggestedRoles || []).map(roleFromHeadline), ...fromSkills]
         .filter((r) => r && !seen.has(r.toLowerCase()) && seen.add(r.toLowerCase()))
         .slice(0, 5);
 }
