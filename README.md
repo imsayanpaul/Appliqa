@@ -34,13 +34,31 @@
 
 Job hunting is spread across too many tabs: one site to find roles, another to check if your resume will survive an ATS, a doc for cover letters, a spreadsheet to track it all. Appliqa puts the whole loop in one place. Search real listings, see how well your resume matches each one, fix the gaps, generate the application, and track it to an offer.
 
+## Results so far
+
+Appliqa is in early access. Numbers from the live database on 24 October 2026:
+
+<table>
+  <tr>
+    <td align="center" width="33%"><h2>67</h2><sub>people signed up</sub></td>
+    <td align="center" width="33%"><h2>3.8 / 5</h2><sub>average rating across 8 pieces of in-app feedback</sub></td>
+    <td align="center" width="33%"><h2>0</h2><sub>made-up skills or numbers allowed into a draft: every one is checked against your profile</sub></td>
+  </tr>
+</table>
+
+The tracker now records when each application went out, which job board it came from, which resume was sent, and whether it led to an interview or an offer. This section will report real applied → interview → offer numbers as they come in.
+
 ## Features
 
 ### Job search across the big boards
 
 Live listings from LinkedIn, Indeed, Glassdoor and more, through the JSearch API.
 
-- **Filters:** job type, date posted, remote only, internships, freshers, country and city.
+- **A "for you" feed:** searches built from your target role, resume, city and level run automatically. Jobs you've saved or hidden never come back, new ones are marked, and each card shows which of your skills it matches. One click has AI rank the whole feed by fit.
+- **Deal-breakers:** tick service bonds, night shifts, unpaid roles, office-only and more, and jobs that mention them are hidden. Jobs that ask for a fee, or need a language you don't speak, are always flagged.
+- **Closed-job check:** opening a job checks whether the apply page still exists or says it's no longer accepting applications.
+- **Daily job alerts:** an optional morning email with only the jobs you haven't seen yet.
+- **Filters:** job type, date posted (down to the past 24 hours), remote only, internships, freshers, contract, country and city.
 - **AI search:** describe the job you want in plain English and let AI turn it into a search.
 - **Personal history and trending searches:** recent searches load instantly when you come back, and junk queries are filtered out of trending.
 - **One-click save:** save or unsave from the card or the detail panel; both stay in sync.
@@ -60,7 +78,7 @@ Live listings from LinkedIn, Indeed, Glassdoor and more, through the JSearch API
 
 - **Reads resumes in the browser, without AI.** PDF.js extracts text and keeps line breaks, with a Tesseract.js OCR fallback for scanned files. Your resume is structured locally before any AI call.
 - **ATS score:** keyword-by-keyword comparison against a job post, showing what's matched and what's missing.
-- **AI match score** for every job, based on your resume.
+- **AI match score** for every job, broken down into skills, experience, level and fit with your goals, with honest gaps listed.
 - **Multiple named resumes** with one marked primary; searches and scores use the primary.
 - **Skill suggestions** from the advisor can be added to your resume in one click.
 
@@ -77,9 +95,11 @@ Live listings from LinkedIn, Indeed, Glassdoor and more, through the JSearch API
 
 ### Application tools
 
-- **Cover letters** and **LinkedIn recruiter messages** written for a specific job.
+- **Cover letters** and **LinkedIn recruiter messages** written for a specific job, using only facts from your profile. A second AI model reviews every draft, and code checks remove any skill, tool or number you haven't listed before you see it.
+- **Follow-ups:** applications with no reply after a week are flagged, with a polite follow-up drafted from what you already sent (two at most).
+- **Thank-you notes** after an interview, and a **practice interview**: five questions for that job with feedback on each answer.
 - **Interview prep:** likely questions, model answers and tips for the role you're applying to.
-- **Application tracker:** move jobs through **Saved → Applied → Interview → Offer / Rejected**, add jobs found elsewhere, and keep a cover letter with each application.
+- **Application tracker:** move jobs through **Saved → Applied → Interview → Offer / Rejected**, add jobs found elsewhere, and keep the cover letter and a copy of the resume sent with each application. It shows your interview rate and which job board and resume get the most replies.
 
 ### Career planning
 
@@ -111,7 +131,10 @@ Live listings from LinkedIn, Indeed, Glassdoor and more, through the JSearch API
 
 ## Engineering highlights
 
-- **Resilient AI layer:** Gemini calls retry on busy or overloaded models and fall back to a second model. The model list is configurable through `GEMINI_MODELS`, and a retired model is skipped automatically.
+- **Resilient AI layer:** Gemini calls retry on busy or overloaded models and fall back to a second model, then to Groq. The model list is configurable through `GEMINI_MODELS`, and a retired model is skipped automatically.
+- **Honest writing pipeline:** draft (Gemini) → review by a different model (Groq) → revise → automatic checks for unlisted tools, invented figures and clichés → one more pass if anything is left. Job posts are cleaned of hidden characters and lines aimed at the AI before any prompt sees them.
+- **Safe link checking:** the closed-job check fetches outside URLs from the server, so every host is resolved and private or local addresses are refused, including after redirects.
+- **Tests in CI:** unit tests cover the feed ranking, deal-breakers, honesty checks and link safety, and run on every push alongside the build and an API boot check.
 - **Rate limiting that works across instances:**
   - fixed-window limits, counted per user when signed in and per IP otherwise
   - counters live in a Postgres table, so every API instance shares them
