@@ -48,3 +48,17 @@ test('link checker refuses private addresses and odd URLs', () => {
   }
   assert.ok(allowedUrl('https://boards.greenhouse.io/acme/jobs/123'));
 });
+
+test('trending counts different people, needs two, and respects the hidden list', () => {
+  process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'https://example.supabase.co';
+  process.env.SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'test';
+  const { trendingSearches } = require('../routes/jobs');
+  const row = (user, query, day) => ({ user_id: user, query, created_at: `2026-10-${day}T10:00:00Z` });
+  const rows = [
+    row('a', 'Fullstack', 10), row('a', 'Fullstack', 11), row('a', 'Fullstack', 12), // one person, many times
+    row('a', 'react developer', 10), row('b', 'React Developer', 11), row('c', 'React Developer', 12),
+    row('b', 'Data Analyst', 9), row('c', 'data analyst', 13),
+    row('a', 'Actor', 12), row('b', 'Actor', 13),
+  ];
+  assert.deepEqual(trendingSearches(rows, { hidden: new Set(['actor']) }), ['React Developer', 'Data Analyst']);
+});

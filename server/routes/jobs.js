@@ -678,6 +678,39 @@ router.patch('/saved/:id/interview-prep', requireAuth, async (req, res) => {
   }
 });
 
+// --- Trending searches ---
+// A term trends when at least two different people searched it in the last 30
+// days, so one person repeating a search can't push it up. Ranked by people,
+// then by how recently it was searched. TRENDING_HIDE (comma-separated) and the
+// list below keep terms out on purpose.
+const TRENDING_DAYS = 30;
+const TRENDING_MIN_PEOPLE = 2;
+const HIDDEN_TRENDING = ['actor', 'acting'];
+const hiddenTrending = () => new Set([
+  ...HIDDEN_TRENDING,
+  ...(process.env.TRENDING_HIDE || '').split(',').map((t) => t.trim().toLowerCase()).filter(Boolean),
+]);
+
+function trendingSearches(rows, { hidden = new Set(), minPeople = TRENDING_MIN_PEOPLE, max = 7 } = {}) {
+  const terms = new Map();
+  for (const row of rows) {
+    const text = String(row.query || '').trim().replace(/\s+/g, ' ');
+    const key = text.toLowerCase();
+    if (!key || !row.user_id || hidden.has(key) || !isValidSearchQuery(text, 1)) continue;
+    const t = terms.get(key) || { people: new Set(), last: '', spellings: new Map() };
+    t.people.add(row.user_id);
+    if (String(row.created_at) > t.last) t.last = String(row.created_at);
+    t.spellings.set(text, (t.spellings.get(text) || 0) + 1);
+    terms.set(key, t);
+  }
+  return [...terms.values()]
+    .filter((t) => t.people.size >= minPeople)
+    .sort((a, b) => b.people.size - a.people.size || b.last.localeCompare(a.last))
+    .slice(0, max)
+    // Show the spelling people used most ("React Developer" over "react developer")
+    .map((t) => [...t.spellings.entries()].sort((a, b) => b[1] - a[1] || (/[A-Z]/.test(b[0]) - /[A-Z]/.test(a[0])))[0][0]);
+}
+
 // Cache for suggested roles (5 minutes TTL)
 let suggestedRolesCache = null;
 let suggestedRolesCacheTime = 0;
@@ -701,28 +734,22 @@ router.get('/suggested-roles', async (req, res) => {
       return res.json({ success: true, roles: suggestedRolesCache });
     }
 
-    // Popular searches from the database view; history now keeps every search,
-    // so screen out long, odd or junk queries here before they trend
-    const { data: topSearches, error } = await supabase
-      .from('top_searches')
-      .select('query')
-      .limit(40);
-
+    // Searches from the last 30 days, counted by how many different people made them
+    const since = new Date(Date.now() - TRENDING_DAYS * 86400000).toISOString();
+    const { data: rows, error } = await supabase
+      .from('search_history')
+      .select('user_id, query, created_at')
+      .gt('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(5000);
     if (error) throw error;
 
-    const resultSet = new Set();
-    for (const row of topSearches || []) {
-      if (resultSet.size >= 7) break;
-      if (row.query && isValidSearchQuery(row.query, 1)) resultSet.add(row.query);
-    }
-
-    // Merge with defaults if we have fewer than 7 dynamic popular searches
+    const result = trendingSearches(rows || [], { hidden: hiddenTrending() });
+    // Fill the rest with defaults, skipping any already trending
     for (const role of defaultRoles) {
-      if (resultSet.size >= 7) break;
-      resultSet.add(role);
+      if (result.length >= 7) break;
+      if (!result.some((r) => r.toLowerCase() === role.toLowerCase())) result.push(role);
     }
-
-    const result = Array.from(resultSet).slice(0, 7);
     
     // Update cache
     suggestedRolesCache = result;
@@ -930,4 +957,5 @@ router.get('/link-status', requireAuth, linkLimiter, async (req, res) => {
 module.exports = router;
 module.exports.buildFeed = buildFeed;
 module.exports.recordSeen = recordSeen;
+module.exports.trendingSearches = trendingSearches;
 

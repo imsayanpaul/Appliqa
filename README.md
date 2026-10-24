@@ -21,6 +21,7 @@
   <img src="https://img.shields.io/badge/Express_5-000000?style=flat-square&logo=express&logoColor=white" alt="Express" />
   <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
   <img src="https://img.shields.io/badge/Google_Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white" alt="Gemini" />
+  <img src="https://img.shields.io/badge/Groq-F55036?style=flat-square&logoColor=white" alt="Groq" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
 
@@ -57,7 +58,8 @@ Live listings from LinkedIn, Indeed, Glassdoor and more, through the JSearch API
 - **A "for you" feed:** searches built from your target role, resume, city and level run automatically. Jobs you've saved or hidden never come back, new ones are marked, and each card shows which of your skills it matches. One click has AI rank the whole feed by fit.
 - **Deal-breakers:** tick service bonds, night shifts, unpaid roles, office-only and more, and jobs that mention them are hidden. Jobs that ask for a fee, or need a language you don't speak, are always flagged.
 - **Closed-job check:** opening a job checks whether the apply page still exists or says it's no longer accepting applications.
-- **Daily job alerts:** an optional morning email with only the jobs you haven't seen yet.
+- **Daily job alerts:** an optional morning email with only the jobs you haven't seen yet, switched on from the home page, the feed or your profile.
+- **Country first:** without a country, JSearch only searches the US, so the feed and alerts ask for one instead of guessing.
 - **Filters:** job type, date posted (down to the past 24 hours), remote only, internships, freshers, contract, country and city.
 - **AI search:** describe the job you want in plain English and let AI turn it into a search.
 - **Personal history and trending searches:** recent searches load instantly when you come back, and junk queries are filtered out of trending.
@@ -80,6 +82,8 @@ Live listings from LinkedIn, Indeed, Glassdoor and more, through the JSearch API
 - **ATS score:** keyword-by-keyword comparison against a job post, showing what's matched and what's missing.
 - **AI match score** for every job, broken down into skills, experience, level and fit with your goals, with honest gaps listed.
 - **Multiple named resumes** with one marked primary; searches and scores use the primary.
+- **Find skills in your GitHub:** reads your public repos' languages and topics and suggests the skills you haven't listed yet.
+- **Certifications with credential links:** issuer, date, credential ID and a "Credential" link on the resume, with dates aligned like every other section.
 - **Skill suggestions** from the advisor can be added to your resume in one click.
 
 ### Resume builder
@@ -134,7 +138,9 @@ Live listings from LinkedIn, Indeed, Glassdoor and more, through the JSearch API
 - **Resilient AI layer:** Gemini calls retry on busy or overloaded models and fall back to a second model, then to Groq. The model list is configurable through `GEMINI_MODELS`, and a retired model is skipped automatically.
 - **Honest writing pipeline:** draft (Gemini) → review by a different model (Groq) → revise → automatic checks for unlisted tools, invented figures and clichés → one more pass if anything is left. Job posts are cleaned of hidden characters and lines aimed at the AI before any prompt sees them.
 - **Safe link checking:** the closed-job check fetches outside URLs from the server, so every host is resolved and private or local addresses are refused, including after redirects.
-- **Tests in CI:** unit tests cover the feed ranking, deal-breakers, honesty checks and link safety, and run on every push alongside the build and an API boot check.
+- **Tests in CI:** 14 unit tests cover the feed ranking, deal-breakers, honesty checks and link safety, and run on every push alongside the build and an API boot check.
+- **Scheduled alerts on a sleeping server:** a GitHub Actions schedule wakes the Render API, then triggers the run with a secret header checked in constant time. Unsubscribe links are HMAC-signed and mail apps get a one-click `List-Unsubscribe` header.
+- **Migration-safe deploys:** new columns are written with a fallback, so the API keeps working whether or not the database migration has run yet.
 - **Rate limiting that works across instances:**
   - fixed-window limits, counted per user when signed in and per IP otherwise
   - counters live in a Postgres table, so every API instance shares them
@@ -190,7 +196,17 @@ GEMINI_API_KEY=your_gemini_key
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_KEY=your_supabase_service_role_key
 PORT=3001
+
+# Optional
+GROQ_API_KEY=your_groq_key            # second model: reviews drafts, stands in when Gemini is busy
+RESEND_API_KEY=your_resend_key        # daily job alert emails
+ALERTS_FROM="Appliqa <alerts@your-domain>"
+CRON_SECRET=a_long_random_string      # also a GitHub Actions secret, with APPLIQA_API_URL
+PUBLIC_API_URL=https://your-api-host  # used in unsubscribe links
+APP_URL=https://your-site
 ```
+
+Run the SQL files in `supabase/migrations/` in order. Unit tests: `npm test --prefix server`.
 
 ```bash
 npm install --prefix server

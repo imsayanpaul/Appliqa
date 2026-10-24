@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiArrowUpRight, FiArrowRight, FiX, FiCheck, FiMinus } from 'react-icons/fi';
 const ResumeUpload = lazy(() => import('../components/ResumeUpload'));
-import RecommendedJobs from '../components/RecommendedJobs';
+import RecommendedJobs, { AlertsLine } from '../components/RecommendedJobs';
 import { smartSearch, getSearchHistory, peekSearchHistory, deleteSearchHistory, clearAllSearchHistory, getSuggestedRoles, getSavedJobs } from '../services/api';
 import { readProfiles, formatUpdated } from '../lib/resumeProfiles';
 import { needsFollowUp } from '../lib/tracker';
@@ -153,6 +153,11 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
         try { localStorage.setItem(GITHUB_TIP_KEY, '1'); } catch { /* private mode */ }
     };
     const profileSkills = user?.preferences?.skills || [];
+    const [alertsWereOff, setAlertsWereOff] = useState(false);
+    useEffect(() => {
+        if (user && !user.preferences?.jobAlerts) setAlertsWereOff(true);
+    }, [user]);
+    const showAlertsPrompt = Boolean(user) && alertsWereOff;
     // Worth suggesting when there's a GitHub link to read, or the skills list is thin
     const showGithubTip = Boolean(user) && !githubTipDone && (Boolean(user?.portfolioGithub) || profileSkills.length < 8);
 
@@ -491,6 +496,12 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
                             What job are you<br className="hidden sm:block" /> looking for?
                         </h1>
                         {searchForm}
+                        {/* Offered at the top while alerts are off; stays for this visit after turning on so the change is visible */}
+                        {showAlertsPrompt && (
+                            <div className="mt-6">
+                                <AlertsLine compact user={user} onUpdateUser={onUpdateUser} />
+                            </div>
+                        )}
                     </div>
                 </div>
 

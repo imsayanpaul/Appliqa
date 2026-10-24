@@ -25,8 +25,8 @@ const TYPES = { INTERN: 'internships', CONTRACTOR: 'contract', PARTTIME: 'part t
 
 // "For you": jobs from searches built on the profile (target role, resume roles,
 // city, level), without saved or hidden ones, ranked by skill match and freshness.
-// Daily job emails, switched on or off right under the feed
-function AlertsLine({ user, onUpdateUser }) {
+// Daily job emails, switched on or off. Full-width under the feed; `compact` in the home hero.
+export function AlertsLine({ user, onUpdateUser, compact = false }) {
     const navigate = useNavigate();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
@@ -47,10 +47,15 @@ function AlertsLine({ user, onUpdateUser }) {
     };
 
     return (
-        <div className="ds-rule-t px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-3 bg-white">
-            <p className="m-0 text-[15px] text-[#2A2622] flex items-center gap-3">
+        <div className={compact
+            ? 'flex flex-wrap items-center justify-between gap-3 border border-[#D8D4CC] bg-white px-4 py-3'
+            : 'ds-rule-t px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-3 bg-white'}
+        >
+            <p className="m-0 text-[15px] text-[#2A2622] flex items-center gap-3 min-w-0">
                 <FiMail size={16} className="text-[#CA3C0A] shrink-0" aria-hidden="true" />
-                {error || (on ? 'Daily job emails are on. New matches arrive every morning.' : 'Get new jobs like these by email every morning.')}
+                {error || (on
+                    ? 'Daily job emails are on. New matches arrive every morning.'
+                    : compact ? 'Get new jobs that match you by email every morning.' : 'Get new jobs like these by email every morning.')}
             </p>
             {country ? (
                 <button type="button" onClick={toggle} disabled={saving} className={`ds-btn !min-h-[40px] !text-[14px] ${on ? 'ds-btn-line' : 'ds-btn-accent'}`}>
