@@ -17,6 +17,7 @@ import PdfTipDialog, { shouldShowPdfTip } from '../components/resume/PdfTipDialo
 import MobileBuilderNotice from '../components/resume/MobileBuilderNotice';
 import { latexToResume } from '../lib/latexImport';
 import { ProjectsEditor, AchievementsEditor, CertificationsEditor } from '../components/resume/ProjectsEditor';
+import { EducationEditor } from '../components/resume/EducationEditor';
 import { 
     User, Briefcase, GraduationCap, Compass, AlignLeft, Layers, ShieldCheck, Globe,
     Sparkles, Sparkle, Download, Save, Upload, X, 
@@ -581,25 +582,6 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         const updated = [...experience];
         updated[expIndex].bullets = updated[expIndex].bullets.filter((_, i) => i !== bulletIndex);
         setExperience(updated);
-    };
-
-    // Education Actions
-    const addEducation = () => {
-        setEducation([...education, {
-            school: '',
-            degree: '',
-            dates: ''
-        }]);
-    };
-
-    const removeEducation = (index) => {
-        setEducation(education.filter((_, i) => i !== index));
-    };
-
-    const updateEducationField = (index, field, value) => {
-        const updated = [...education];
-        updated[index][field] = value;
-        setEducation(updated);
     };
 
     // Skills Actions
@@ -1620,67 +1602,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         )}
 
                         {activeTab === 'education' && (
-                            <div className="space-y-6">
-                                <AnimatePresence initial={false}>
-                                    {education.map((edu, eduIdx) => (
-                                        <motion.div
-                                            key={eduIdx}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            className="resume-entry-card space-y-4"
-                                        >
-                                            <button
-                                                onClick={() => removeEducation(eduIdx)}
-                                                className="resume-btn-icon absolute top-4 right-4"
-                                            >
-                                                <Trash2 size={13} />
-                                            </button>
-
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="resume-input-label">School / University</label>
-                                                    <input 
-                                                        type="text"
-                                                        value={edu.school}
-                                                        onChange={(e) => updateEducationField(eduIdx, 'school', e.target.value)}
-                                                        className="resume-input-field"
-                                                        placeholder="Stanford University"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="resume-input-label">Degree & Major</label>
-                                                    <input 
-                                                        type="text"
-                                                        value={edu.degree}
-                                                        onChange={(e) => updateEducationField(eduIdx, 'degree', e.target.value)}
-                                                        className="resume-input-field"
-                                                        placeholder="B.S. Computer Science"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label className="resume-input-label">Dates / Graduation Year</label>
-                                                <input 
-                                                    type="text"
-                                                    value={edu.dates}
-                                                    onChange={(e) => updateEducationField(eduIdx, 'dates', e.target.value)}
-                                                    className="resume-input-field"
-                                                    placeholder="2018 – 2022"
-                                                />
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
-                                <button
-                                    onClick={addEducation}
-                                    className="resume-add-entry-btn"
-                                >
-                                    <Plus size={14} />
-                                    <span>Add Education Entry</span>
-                                </button>
-                            </div>
+                            <EducationEditor education={education} onChange={setEducation} />
                         )}
 
                         {activeTab === 'skills' && (

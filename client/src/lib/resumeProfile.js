@@ -136,7 +136,7 @@ function parseEducationString(s) {
     return m ? { degree: m[1].trim(), school: m[2].trim() } : { degree: s, school: '' };
 }
 
-function guessLevel(text) {
+export function guessLevel(text) {
     const t = text.toLowerCase();
     if (/class\s*10|secondary examination|\bssc\b|\bicse\b|matric/.test(t) && !/higher/.test(t)) return 'class10';
     if (/class\s*12|higher secondary|\bhsc\b|\bisc\b|intermediate|senior secondary/.test(t)) return 'class12';
