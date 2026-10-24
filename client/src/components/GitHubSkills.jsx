@@ -1,26 +1,10 @@
 import { useState } from 'react';
 import { FiGithub, FiPlus, FiCheck, FiX } from 'react-icons/fi';
 
+import { TOPIC_NAMES, SKIP_LANGS, usernameFrom, fetchRepos } from '../lib/github';
+
 // Reads someone's public GitHub repos (languages and topics) and suggests skills
 // they haven't listed yet. Runs in the browser against GitHub's public API.
-const TOPIC_NAMES = {
-    react: 'React', reactjs: 'React', nextjs: 'Next.js', 'next-js': 'Next.js', nodejs: 'Node.js', 'node-js': 'Node.js', expressjs: 'Express.js',
-    express: 'Express.js', mongodb: 'MongoDB', postgresql: 'PostgreSQL', postgres: 'PostgreSQL', mysql: 'MySQL', tailwindcss: 'Tailwind CSS',
-    tailwind: 'Tailwind CSS', docker: 'Docker', kubernetes: 'Kubernetes', aws: 'AWS', firebase: 'Firebase', supabase: 'Supabase', django: 'Django',
-    flask: 'Flask', fastapi: 'FastAPI', 'machine-learning': 'Machine Learning', 'deep-learning': 'Deep Learning', tensorflow: 'TensorFlow',
-    pytorch: 'PyTorch', 'scikit-learn': 'scikit-learn', pandas: 'pandas', numpy: 'NumPy', opencv: 'OpenCV', redux: 'Redux', vue: 'Vue.js',
-    vuejs: 'Vue.js', angular: 'Angular', graphql: 'GraphQL', 'rest-api': 'REST APIs', redis: 'Redis', 'spring-boot': 'Spring Boot',
-    flutter: 'Flutter', 'react-native': 'React Native', gemini: 'Gemini API', openai: 'OpenAI API', llm: 'LLMs', langchain: 'LangChain',
-    vite: 'Vite', jest: 'Jest', 'github-actions': 'GitHub Actions', 'ci-cd': 'CI/CD', linux: 'Linux', websocket: 'WebSockets', websockets: 'WebSockets',
-};
-const SKIP_LANGS = new Set(['HTML', 'CSS', 'Shell', 'Batchfile', 'PowerShell', 'Makefile', 'Dockerfile', 'Procfile', 'Jupyter Notebook', 'SCSS', 'Less']);
-
-const usernameFrom = (value) => {
-    const v = String(value || '').trim();
-    const m = v.match(/github\.com\/([A-Za-z0-9-]{1,39})/i);
-    if (m) return m[1];
-    return /^[A-Za-z0-9-]{1,39}$/.test(v) ? v : '';
-};
 
 // askUsername: show a box for the username when the profile has none (home page).
 // onScan(username) runs after a successful scan; onClose shows a close button.
@@ -42,13 +26,7 @@ function GitHubSkills({ githubValue, currentSkills, onAdd, askUsername = false, 
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100&sort=pushed`, {
-                headers: { Accept: 'application/vnd.github+json' },
-            });
-            if (res.status === 404) throw new Error(`No GitHub user called “${username}”.`);
-            if (res.status === 403) throw new Error('GitHub is limiting requests right now. Try again in an hour.');
-            if (!res.ok) throw new Error('Couldn’t reach GitHub.');
-            const repos = (await res.json()).filter((r) => !r.fork && !r.archived);
+            const repos = await fetchRepos(username);
             const counts = new Map();
             const add = (skill, repo) => {
                 const row = counts.get(skill) || { skill, repos: new Set() };

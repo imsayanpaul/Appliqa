@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { newId } from '../../lib/resumeProfile';
+import { GitHubProjectsImport } from './GitHubProjectsImport';
 
 const blankProject = () => ({ id: newId(), name: '', tech: [], description: '', liveUrl: '', repoUrl: '', startDate: '', endDate: '', current: false });
 
@@ -23,7 +24,8 @@ function TechInput({ value, onChange, id }) {
     );
 }
 
-export function ProjectsEditor({ projects, onChange }) {
+// githubValue: the person's GitHub link, used to prefill the import
+export function ProjectsEditor({ projects, onChange, githubValue = '' }) {
     const update = (id, patch) => onChange(projects.map((p) => (p.id === id ? { ...p, ...patch } : p)));
     const move = (i, to) => {
         if (to < 0 || to >= projects.length) return;
@@ -35,6 +37,8 @@ export function ProjectsEditor({ projects, onChange }) {
 
     return (
         <div className="space-y-4">
+            <GitHubProjectsImport githubValue={githubValue} projects={projects} onAdd={(list) => onChange([...projects, ...list])} />
+
             {projects.length === 0 && (
                 <p className="m-0 text-[14px] text-[#4A4540]">No projects yet. Add the ones that best show what you can build: a live link and the code make them far stronger.</p>
             )}

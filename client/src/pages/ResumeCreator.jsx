@@ -1804,7 +1804,7 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                         )}
 
                         {activeTab === 'projects' && (
-                            <ProjectsEditor projects={projects} onChange={setProjects} />
+                            <ProjectsEditor projects={projects} onChange={setProjects} githubValue={personalInfo.github} />
                         )}
 
                         {activeTab === 'achievements' && (
