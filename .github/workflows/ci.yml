@@ -48,6 +48,8 @@ jobs:
       - run: npm ci
       - name: Syntax check
         run: find . -name '*.js' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
+      - name: Unit tests
+        run: npm test
       - name: Start the server and call /api/health
         env:
           # Placeholders: startup must not need real keys or call outside services

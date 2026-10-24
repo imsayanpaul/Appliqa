@@ -1,109 +1,156 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowRight } from 'react-icons/fi';
-import { searchJobs, getSavedJobs } from '../services/api';
+import { FiArrowRight, FiRefreshCw } from 'react-icons/fi';
+import { getJobFeed, getSavedJobs, dismissFeedJob, restoreFeedJob } from '../services/api';
 import { searchCity } from '../data/cities';
 import JobCard from './JobCard';
 const JobDetail = lazy(() => import('./JobDetail'));
 
+const FEED_TTL = 10 * 60 * 1000;
+const FIRST_PAGE = 6;
+
+const readCache = (key) => {
+    try {
+        const cached = JSON.parse(sessionStorage.getItem(key) || 'null');
+        return cached && Date.now() - cached.at < FEED_TTL ? cached.data : null;
+    } catch {
+        return null;
+    }
+};
+const writeCache = (key, data) => {
+    try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), data })); } catch { /* storage full */ }
+};
+
+const TYPES = { INTERN: 'internships', CONTRACTOR: 'contract', PARTTIME: 'part time' };
+
+// "For you": jobs from searches built on the profile (target role, resume roles,
+// city, level), without saved or hidden ones, ranked by skill match and freshness.
 function RecommendedJobs({ user, resumeData }) {
     const navigate = useNavigate();
-    const [jobs, setJobs] = useState([]);
+    const city = searchCity(user?.preferences?.location, user?.preferences?.country);
+    const cacheKey = `appliqa_feed_${user?.id || 'anon'}_${city}`;
+
+    const [feed, setFeed] = useState(() => readCache(cacheKey));
+    const [loading, setLoading] = useState(!feed);
+    const [error, setError] = useState(null);
+    const [showAll, setShowAll] = useState(false);
+    const [hidden, setHidden] = useState(null); // last dismissed job, for undo
     const [savedJobs, setSavedJobs] = useState([]);
+    const [selectedJob, setSelectedJob] = useState(null);
+
+    const load = useCallback(async ({ force = false } = {}) => {
+        if (!force) {
+            const cached = readCache(cacheKey);
+            if (cached) {
+                setFeed(cached);
+                setLoading(false);
+                return;
+            }
+        }
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await getJobFeed(city);
+            const data = { jobs: res.data?.jobs || [], meta: res.data?.meta || {} };
+            setFeed(data);
+            writeCache(cacheKey, data);
+        } catch (err) {
+            setError(err?.response?.status === 429 ? 'Too many refreshes. Try again in a minute.' : 'Couldn’t load your jobs right now.');
+        } finally {
+            setLoading(false);
+        }
+    }, [cacheKey, city]);
+
+    useEffect(() => { load(); }, [load]);
+
+    useEffect(() => {
+        if (!user) return;
+        getSavedJobs().then((res) => setSavedJobs(res.data?.jobs || [])).catch(() => {});
+    }, [user]);
+
     // One place for saved state, shared by the job cards and the detail panel
     const handleToggleSave = (jobId, isSavedVal, dbId) => {
-        setSavedJobs(prev => {
-            const rest = prev.filter(sj => sj.jobId !== jobId);
+        setSavedJobs((prev) => {
+            const rest = prev.filter((sj) => sj.jobId !== jobId);
             return isSavedVal ? [...rest, { jobId, _id: dbId }] : rest;
         });
     };
-    const [loading, setLoading] = useState(true);
-    const [selectedJob, setSelectedJob] = useState(null);
-    const activeReqRef = useRef(0);
 
-    const profileRole = user?.preferences?.desiredRole;
-    const resumeRole = resumeData?.suggestedRoles?.[0];
-    const targetRole = profileRole || resumeRole || 'React Developer';
-    // City only: a full postal address in the query returns no jobs
-    const userLocation = searchCity(user?.preferences?.location, user?.preferences?.country);
-    const isPersonalized = Boolean(profileRole || resumeRole);
+    const updateJobs = (fn) => setFeed((prev) => {
+        const next = { ...prev, jobs: fn(prev?.jobs || []) };
+        writeCache(cacheKey, next);
+        return next;
+    });
 
-    useEffect(() => {
-        if (user) {
-            getSavedJobs()
-                .then(res => setSavedJobs(res.data.jobs || []))
-                .catch(() => {});
-        } else {
-            setSavedJobs([]);
-        }
-    }, [user]);
+    const handleDismiss = (job) => {
+        const index = (feed?.jobs || []).findIndex((j) => j.id === job.id);
+        updateJobs((jobs) => jobs.filter((j) => j.id !== job.id));
+        setHidden({ job, index });
+        dismissFeedJob(job.id).catch(() => {
+            // Put it back if the server couldn't record it
+            updateJobs((jobs) => (jobs.some((j) => j.id === job.id) ? jobs : [...jobs.slice(0, index), job, ...jobs.slice(index)]));
+            setHidden(null);
+        });
+    };
 
-    useEffect(() => {
-        const requestId = ++activeReqRef.current;
-        const searchQuery = userLocation ? `${targetRole} in ${userLocation}` : targetRole;
-        const cacheKey = `appliqa_recs_${searchQuery.replace(/\s+/g, '_')}`;
+    const handleUndo = () => {
+        if (!hidden) return;
+        const { job, index } = hidden;
+        updateJobs((jobs) => [...jobs.slice(0, index), job, ...jobs.slice(index)]);
+        setHidden(null);
+        restoreFeedJob(job.id).catch(() => {});
+    };
 
-        // 1. Instant Cache Check
-        const cached = sessionStorage.getItem(cacheKey);
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setJobs(parsed);
-                    setLoading(false);
-                    return;
-                }
-            } catch {
-                sessionStorage.removeItem(cacheKey);
-            }
-        }
-
-        // 2. Fresh Network Fetch with Safe Timeout
-        setLoading(true);
-
-        const fetchRecs = async () => {
-            try {
-                const res = await searchJobs({ query: searchQuery, page: 1 }, { record: false });
-                // Discard if a newer request was dispatched
-                if (requestId !== activeReqRef.current) return;
-
-                const fetchedJobs = (res.data?.jobs || []).slice(0, 3);
-                setJobs(fetchedJobs);
-                if (fetchedJobs.length > 0) {
-                    sessionStorage.setItem(cacheKey, JSON.stringify(fetchedJobs));
-                }
-            } catch (err) {
-                if (requestId !== activeReqRef.current) return;
-                console.error("Failed to fetch recommended jobs", err);
-            } finally {
-                if (requestId === activeReqRef.current) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        fetchRecs();
-    }, [targetRole, userLocation]);
+    const meta = feed?.meta || {};
+    const jobs = feed?.jobs || [];
+    const visible = showAll ? jobs : jobs.slice(0, FIRST_PAGE);
+    const targetRole = meta.roles?.[0] || user?.preferences?.desiredRole || resumeData?.suggestedRoles?.[0] || '';
+    const summary = [
+        (meta.roles || []).join(', '),
+        meta.location,
+        meta.experience,
+        TYPES[meta.employmentType],
+    ].filter(Boolean).join(' · ').toLowerCase();
 
     return (
         <div style={{ minHeight: '380px' }}>
             <div className="ds-cell ds-rule-b flex flex-wrap items-end justify-between gap-4 !pt-14">
-                <div>
+                <div className="min-w-0">
                     <h2 className="ds-slash m-0">for-you</h2>
                     <p className="ds-mono ds-mono-muted mt-3 mb-0">
-                        {isPersonalized ? `${targetRole}${userLocation ? ` · ${userLocation}` : ''}`.toLowerCase() : 'popular roles right now'}
+                        {summary || 'jobs picked from your profile'}
+                        {meta.newCount > 0 && <span className="text-[#CA3C0A]"> · {meta.newCount} new</span>}
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={() => navigate(`/search?query=${encodeURIComponent(targetRole)}`)}
-                    className="inline-flex items-center gap-2 text-[15px] font-semibold text-[#171717] hover:text-[#CA3C0A] bg-transparent border-none cursor-pointer p-0"
-                >
-                    See all results <FiArrowRight size={16} aria-hidden="true" />
-                </button>
+                <div className="flex items-center gap-5">
+                    <button
+                        type="button"
+                        onClick={() => load({ force: true })}
+                        disabled={loading}
+                        className="inline-flex items-center gap-2 text-[15px] font-semibold text-[#171717] hover:text-[#CA3C0A] bg-transparent border-none cursor-pointer p-0 disabled:opacity-40 disabled:cursor-default"
+                    >
+                        <FiRefreshCw size={15} aria-hidden="true" className={loading ? 'animate-spin' : ''} /> Refresh
+                    </button>
+                    {targetRole && (
+                        <button
+                            type="button"
+                            onClick={() => navigate(`/search?query=${encodeURIComponent(targetRole)}`)}
+                            className="inline-flex items-center gap-2 text-[15px] font-semibold text-[#171717] hover:text-[#CA3C0A] bg-transparent border-none cursor-pointer p-0"
+                        >
+                            Search all <FiArrowRight size={16} aria-hidden="true" />
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {loading ? (
+            {hidden && (
+                <div role="status" className="ds-rule-b px-6 sm:px-8 py-3 flex items-center justify-between gap-4 bg-white">
+                    <span className="text-[14px] text-[#4A4540] truncate">Hidden “{hidden.job.title}”. You won’t see it here again.</span>
+                    <button type="button" onClick={handleUndo} className="ds-mono text-[#CA3C0A] underline underline-offset-2 bg-transparent border-none cursor-pointer shrink-0">undo</button>
+                </div>
+            )}
+
+            {loading && !jobs.length ? (
                 <div className="ds-gridlines grid-cols-1 md:grid-cols-3" aria-hidden="true">
                     {[1, 2, 3].map((i) => (
                         <div key={i} className="p-6 min-h-[230px] flex flex-col animate-pulse">
@@ -120,34 +167,58 @@ function RecommendedJobs({ user, resumeData }) {
                         </div>
                     ))}
                 </div>
+            ) : meta.needsProfile ? (
+                <div className="ds-cell !py-14 text-center">
+                    <p className="m-0 text-[20px] font-medium tracking-[-0.015em]">Tell us the role you want and we’ll find jobs for you.</p>
+                    <p className="ds-body mt-2 mb-0">Add a target role in your profile, or upload your resume.</p>
+                    <button type="button" onClick={() => navigate('/profile')} className="ds-btn ds-btn-ink mt-6">
+                        Set your target role <FiArrowRight size={16} className="ds-btn-arrow" />
+                    </button>
+                </div>
+            ) : error && !jobs.length ? (
+                <div className="ds-cell !py-14 text-center">
+                    <p className="m-0 text-[20px] font-medium tracking-[-0.015em]">{error}</p>
+                    <button type="button" onClick={() => load({ force: true })} className="ds-btn ds-btn-ink mt-6">Try again</button>
+                </div>
             ) : jobs.length > 0 ? (
-                <ul className="ds-gridlines grid-cols-1 md:grid-cols-3 list-none m-0 p-0">
-                    {jobs.map((job, i) => {
-                        const saved = savedJobs.find(sj => sj.jobId === job.id);
-                        return (
-                            <li key={job.id || i}>
-                                <JobCard
-                                    job={job}
-                                    user={user}
-                                    onClick={() => setSelectedJob(job)}
-                                    initialSaved={!!saved}
-                                    initialSavedId={saved?._id}
-                                    onToggleSave={handleToggleSave}
-                                />
-                            </li>
-                        );
-                    })}
-                </ul>
+                <>
+                    <ul className="ds-gridlines grid-cols-1 md:grid-cols-3 list-none m-0 p-0">
+                        {visible.map((job, i) => {
+                            const saved = savedJobs.find((sj) => sj.jobId === job.id);
+                            return (
+                                <li key={job.id || i}>
+                                    <JobCard
+                                        job={job}
+                                        user={user}
+                                        onClick={() => setSelectedJob(job)}
+                                        initialSaved={!!saved}
+                                        initialSavedId={saved?._id}
+                                        onToggleSave={handleToggleSave}
+                                        onDismiss={handleDismiss}
+                                    />
+                                </li>
+                            );
+                        })}
+                    </ul>
+                    {jobs.length > FIRST_PAGE && (
+                        <button
+                            type="button"
+                            onClick={() => setShowAll(!showAll)}
+                            className="ds-btn ds-btn-line w-full !min-h-14 !border-x-0 !border-b-0"
+                        >
+                            {showAll ? 'Show fewer' : `Show ${jobs.length - FIRST_PAGE} more`}
+                        </button>
+                    )}
+                </>
             ) : (
                 <div className="ds-cell !py-14 text-center">
-                    <p className="m-0 text-[20px] font-medium tracking-[-0.015em]">No recommendations right now.</p>
-                    <button
-                        type="button"
-                        onClick={() => navigate(`/search?query=${encodeURIComponent(targetRole)}`)}
-                        className="ds-btn ds-btn-ink mt-6"
-                    >
-                        Search {targetRole} jobs <FiArrowRight size={16} className="ds-btn-arrow" />
-                    </button>
+                    <p className="m-0 text-[20px] font-medium tracking-[-0.015em]">You’re all caught up.</p>
+                    <p className="ds-body mt-2 mb-0">Nothing new from your searches this week. Check back tomorrow, or widen your search.</p>
+                    {targetRole && (
+                        <button type="button" onClick={() => navigate(`/search?query=${encodeURIComponent(targetRole)}`)} className="ds-btn ds-btn-ink mt-6">
+                            Search {targetRole} jobs <FiArrowRight size={16} className="ds-btn-arrow" />
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -157,8 +228,8 @@ function RecommendedJobs({ user, resumeData }) {
                         job={selectedJob}
                         user={user}
                         resumeData={resumeData}
-                        initialSaved={savedJobs.some(sj => sj.jobId === selectedJob.id)}
-                        initialSavedId={savedJobs.find(sj => sj.jobId === selectedJob.id)?._id || null}
+                        initialSaved={savedJobs.some((sj) => sj.jobId === selectedJob.id)}
+                        initialSavedId={savedJobs.find((sj) => sj.jobId === selectedJob.id)?._id || null}
                         onToggleSave={handleToggleSave}
                         onClose={() => setSelectedJob(null)}
                     />

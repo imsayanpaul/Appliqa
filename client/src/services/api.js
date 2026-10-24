@@ -120,6 +120,12 @@ export const getSuggestedRoles = async () => {
   return res;
 };
 
+// "For you" feed: jobs from searches built on the profile, minus saved and hidden ones
+export const getJobFeed = (location) => api.get('/jobs/feed', { params: location ? { location } : {} });
+export const dismissFeedJob = (jobId) => api.post('/jobs/feed/dismiss', { jobId });
+export const restoreFeedJob = (jobId) => api.delete(`/jobs/feed/dismiss/${encodeURIComponent(jobId)}`);
+export const checkJobLink = (url) => api.get('/jobs/link-status', { params: { url } });
+
 export const getSavedJobs = async () => {
   if (savedJobsCache) {
     // Return cached data immediately, fetch fresh copy in the background

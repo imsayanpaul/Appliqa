@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiBookmark, FiArrowUpRight } from 'react-icons/fi';
+import { FiBookmark, FiArrowUpRight, FiX } from 'react-icons/fi';
 import { useSaveJob } from '../lib/useSaveJob';
 import { formatSalary, applySource } from '../lib/format';
 
@@ -47,7 +47,8 @@ export function CompanyMark({ logo, company }) {
     );
 }
 
-function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = null, onToggleSave }) {
+// onDismiss, job.isNew and job.matchedSkills come from the "for you" feed
+function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = null, onToggleSave, onDismiss }) {
     const navigate = useNavigate();
     const { saved: isSaved, toggle } = useSaveJob({ job, user, initialSaved, initialSavedId, onChange: onToggleSave });
 
@@ -88,10 +89,31 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
                 >
                     <FiBookmark size={15} fill={isSaved ? 'currentColor' : 'none'} />
                 </button>
+                {onDismiss && (
+                    <button
+                        type="button"
+                        className="relative z-10 -ml-2 w-9 h-9 shrink-0 flex items-center justify-center border border-[#D8D4CC] bg-transparent text-[#6F6A65] cursor-pointer transition-colors hover:border-[#171717] hover:text-[#171717]"
+                        onClick={(e) => { e.stopPropagation(); onDismiss(job); }}
+                        aria-label={`Not interested in ${job.title}`}
+                        title="Not interested"
+                    >
+                        <FiX size={15} />
+                    </button>
+                )}
             </div>
 
             {meta.length > 0 && (
-                <p className="ds-mono ds-mono-muted mt-5 mb-0 truncate">{meta.join(' · ')}</p>
+                <p className="ds-mono ds-mono-muted mt-5 mb-0 truncate">
+                    {job.isNew && <span className="text-[#CA3C0A]">new · </span>}
+                    {meta.join(' · ')}
+                </p>
+            )}
+
+            {job.matchedSkills?.length > 0 && (
+                <p className="m-0 mt-3 text-[13px] text-[#4A4540] truncate">
+                    <span className="font-semibold text-[#171717]">Matches {job.matchedSkills.length} of your skills:</span>{' '}
+                    {job.matchedSkills.slice(0, 4).join(', ')}{job.matchedSkills.length > 4 ? ` +${job.matchedSkills.length - 4}` : ''}
+                </p>
             )}
 
             {job.description && (

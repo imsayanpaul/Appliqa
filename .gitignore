@@ -44,6 +44,9 @@ test/
 __tests__/
 *.test.*
 *.spec.*
+# ...except the server's unit tests, which CI runs
+!server/tests/
+!server/tests/*.test.js
 test-*
 test_*
 

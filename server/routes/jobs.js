@@ -5,6 +5,8 @@ const requireAuth = require('../middleware/auth');
 const { optionalAuth } = require('../middleware/auth');
 const rateLimit = require('../middleware/rateLimit');
 const { sendServerError } = require('../lib/errors');
+const { feedRoles, feedFilters, profileSkills, matchSkills, rankScore, sameJobKey } = require('../lib/jobFeed');
+const { checkJobLink } = require('../lib/linkCheck');
 
 const JSEARCH_BASE = 'https://jsearch.p.rapidapi.com';
 
@@ -138,56 +140,204 @@ const matchesFilters = (job, { remote, employmentType, experience }) => {
 // Each uncached search spends RapidAPI quota
 const searchLimiter = rateLimit({ name: 'jobs-search', windowMs: 60 * 1000, maxAuthed: 40, maxAnon: 15 });
 
+const mapCachedJob = (found) => ({
+  id: found.id,
+  title: found.title,
+  company: found.company,
+  companyLogo: found.company_logo,
+  location: found.location,
+  description: found.description,
+  employmentType: found.employment_type,
+  salary: found.salary,
+  datePosted: found.date_posted,
+  applyLink: found.apply_link,
+  remote: found.remote,
+  highlights: found.highlights || {},
+  requiredSkills: found.required_skills || [],
+  requiredExperience: found.required_experience || {}
+});
+
+const mapJSearchJob = (job) => ({
+  id: job.job_id,
+  title: job.job_title,
+  company: job.employer_name,
+  companyLogo: job.employer_logo,
+  location: job.job_city ? `${job.job_city}, ${job.job_state || ''} ${job.job_country}` : job.job_country,
+  description: job.job_description,
+  employmentType: job.job_employment_type,
+  employmentTypes: job.job_employment_types || [],
+  salary: job.job_min_salary && job.job_max_salary
+    ? `$${job.job_min_salary.toLocaleString('en-US')} - $${job.job_max_salary.toLocaleString('en-US')}`
+    : job.job_salary_period ? `${job.job_salary_period}` : 'Not specified',
+  datePosted: job.job_posted_at_datetime_utc,
+  applyLink: job.job_apply_link,
+  publisher: job.job_publisher || '',
+  remote: job.job_is_remote,
+  highlights: job.job_highlights || {},
+  requiredSkills: job.job_required_skills || [],
+  requiredExperience: job.job_required_experience || {}
+});
+
+// Saves a fresh JSearch page to the shared Supabase cache (in the background)
+function writeDbCache(cacheKey, jobs) {
+  if (!jobs.length) return;
+  (async () => {
+    try {
+      const jobCacheRows = jobs.map(j => ({
+        id: j.id,
+        title: j.title,
+        company: j.company || '',
+        location: j.location || '',
+        salary: j.salary || '',
+        description: j.description || '',
+        employment_type: j.employmentType || '',
+        apply_link: j.applyLink || '',
+        company_logo: j.companyLogo || '',
+        date_posted: j.datePosted || '',
+        remote: j.remote || false,
+        highlights: j.highlights || {},
+        required_skills: j.requiredSkills || [],
+        required_experience: j.requiredExperience || {}
+      }));
+
+      const { error: upsertJobsError } = await supabase
+        .from('job_cache')
+        .upsert(jobCacheRows, { onConflict: 'id' });
+      if (upsertJobsError) {
+        console.error('Failed to upsert jobs into job_cache:', upsertJobsError);
+        return;
+      }
+      const { error: upsertSearchError } = await supabase
+        .from('search_cache')
+        .upsert({ cache_key: cacheKey, job_ids: jobs.map(j => j.id), created_at: new Date().toISOString() }, { onConflict: 'cache_key' });
+      if (upsertSearchError) console.error('Failed to upsert search_cache:', upsertSearchError);
+    } catch (cacheError) {
+      console.error('Error writing to database cache:', cacheError);
+    }
+  })();
+}
+
+// One page of jobs for a search: the memory cache, then the shared Supabase
+// cache, then JSearch. Used by the search page and the "for you" feed.
+async function findJobs({ query = 'developer', location = '', country = '', page = 1, employmentType = '', datePosted = '', remote = '', experience = '', radius = '' }) {
+  let searchQuery = query;
+  const countryCode = COUNTRY_CODES[String(country).trim().toLowerCase()] || '';
+  // "Fresher" is how Indian listings say entry level; it beats the API's experience filter
+  if (experience === 'fresher') {
+    searchQuery += countryCode === 'in' ? ' fresher' : ' entry level';
+  }
+  if (location && country) {
+    searchQuery += ` in ${location}, ${country}`;
+  } else if (country) {
+    searchQuery += ` in ${country}`;
+  } else if (location) {
+    searchQuery += ` in ${location}`;
+  }
+
+  // "24h" is our label for JSearch's freshest window, which it calls "today"
+  const fresh = FRESH_FILTERS.has(datePosted);
+  const ttl = cacheTtl(datePosted);
+  const params = new URLSearchParams({
+    query: searchQuery,
+    page: String(page),
+    num_pages: '1',
+    date_posted: fresh ? 'today' : (datePosted || 'all')
+  });
+
+  if (countryCode) params.append('country', countryCode);
+  if (employmentType) params.append('employment_types', employmentType);
+  // remote_jobs_only was retired by JSearch and is silently ignored
+  if (remote === 'true') params.append('work_from_home', 'true');
+  if (radius) params.append('radius', radius);
+
+  const cacheKey = params.toString();
+
+  // 1. In-memory cache
+  const cachedInMemory = getCached(cacheKey, ttl.memory);
+  if (cachedInMemory) return { result: cachedInMemory, fromMemory: true };
+
+  // 2. Supabase cache (1 hour for fresh-job searches, up to 24 hours otherwise)
+  try {
+    const freshSince = new Date(Date.now() - ttl.db).toISOString();
+    const { data: dbCacheEntry } = await supabase
+      .from('search_cache')
+      .select('job_ids, created_at')
+      .eq('cache_key', cacheKey)
+      .gt('created_at', freshSince)
+      .maybeSingle();
+
+    if (dbCacheEntry?.job_ids?.length) {
+      const { data: dbJobs } = await supabase
+        .from('job_cache')
+        .select('*')
+        .in('id', dbCacheEntry.job_ids);
+
+      if (dbJobs?.length) {
+        const byId = new Map(dbJobs.map((j) => [j.id, j]));
+        const mappedJobs = dbCacheEntry.job_ids
+          .map((id) => byId.get(id))
+          .filter(Boolean)
+          .map(mapCachedJob)
+          // Re-apply the filters: older cache entries were saved under looser rules
+          .filter((job) => matchesFilters(job, { remote, employmentType, experience }));
+
+        const result = { jobs: mappedJobs, totalResults: mappedJobs.length, page: parseInt(page) };
+        setCache(cacheKey, result);
+        return { result, fromDatabase: true };
+      }
+    }
+  } catch (dbReadError) {
+    console.error('Failed to read from Supabase cache:', dbReadError);
+  }
+
+  // 3. Cache miss: JSearch
+  const response = await fetch(`${JSEARCH_BASE}/search?${params}`, {
+    headers: {
+      'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+      'x-rapidapi-host': 'jsearch.p.rapidapi.com'
+    }
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error('JSearch API error:', response.status, errText);
+    const err = new Error('Job search API error');
+    err.status = response.status;
+    err.apiMessage = response.status === 429 ? 'API rate limit exceeded.' : 'Failed to fetch jobs';
+    throw err;
+  }
+
+  const data = await response.json();
+  const jobs = (data.data || []).map(mapJSearchJob);
+
+  let filtered = jobs.filter((job) => matchesFilters(job, { remote, employmentType, experience }));
+  if (fresh) {
+    // Keep only the last 24 hours (JSearch's "today" is loose) and show the newest first
+    const cutoff = Date.now() - 24 * HOUR;
+    filtered = filtered
+      .filter((job) => !job.datePosted || new Date(job.datePosted).getTime() >= cutoff)
+      .sort((a, b) => (new Date(b.datePosted).getTime() || 0) - (new Date(a.datePosted).getTime() || 0));
+  }
+  const result = { jobs: filtered, totalResults: filtered.length, page: parseInt(page) };
+  setCache(cacheKey, result);
+  writeDbCache(cacheKey, filtered);
+  return { result };
+}
+
 // Search jobs via JSearch API
 router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
   try {
     const {
       query = 'developer',
       location = '',
-      country = '',
-      page = 1,
       employmentType = '',
       datePosted = '',
       remote = '',
-      experience = '',
-      radius = '',
+      page = 1,
       record = '1' // '0' for background searches that shouldn't appear in history
     } = req.query;
-
     const userId = req.user?.id; // From optional auth middleware
 
-    let searchQuery = query;
-    const countryCode = COUNTRY_CODES[String(country).trim().toLowerCase()] || '';
-    // "Fresher" is how Indian listings say entry level; it beats the API's experience filter
-    if (experience === 'fresher') {
-      searchQuery += countryCode === 'in' ? ' fresher' : ' entry level';
-    }
-    if (location && country) {
-      searchQuery += ` in ${location}, ${country}`;
-    } else if (country) {
-      searchQuery += ` in ${country}`;
-    } else if (location) {
-      searchQuery += ` in ${location}`;
-    }
-
-    // "24h" is our label for JSearch's freshest window, which it calls "today"
-    const fresh = FRESH_FILTERS.has(datePosted);
-    const ttl = cacheTtl(datePosted);
-    const params = new URLSearchParams({
-      query: searchQuery,
-      page: String(page),
-      num_pages: '1',
-      date_posted: fresh ? 'today' : (datePosted || 'all')
-    });
-
-    if (countryCode) params.append('country', countryCode);
-    if (employmentType) params.append('employment_types', employmentType);
-    // remote_jobs_only was retired by JSearch and is silently ignored
-    if (remote === 'true') params.append('work_from_home', 'true');
-    if (radius) params.append('radius', radius);
-
-    const cacheKey = params.toString();
-    
     // Record the search in the person's history (in the background), whether
     // the results came from a cache or from JSearch. First page only; a repeat
     // of an older search replaces it so it moves to the top.
@@ -218,173 +368,17 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
       })();
     };
 
-    // 1. Check in-memory cache first
-    const cachedInMemory = getCached(cacheKey, ttl.memory);
-    if (cachedInMemory) {
-      saveHistory(cachedInMemory.jobs?.length || 0);
-      return res.json({ success: true, ...cachedInMemory, fromCache: true, fromMemory: true });
-    }
-
-    // 2. Check Supabase DB cache (1 hour for fresh-job searches, up to 24 hours otherwise)
+    let found;
     try {
-      const freshSince = new Date(Date.now() - ttl.db).toISOString();
-
-      const { data: dbCacheEntry, error: dbCacheError } = await supabase
-        .from('search_cache')
-        .select('job_ids, created_at')
-        .eq('cache_key', cacheKey)
-        .gt('created_at', freshSince)
-        .maybeSingle();
-
-      if (dbCacheEntry && dbCacheEntry.job_ids && dbCacheEntry.job_ids.length > 0) {
-        const { data: dbJobs, error: dbJobsError } = await supabase
-          .from('job_cache')
-          .select('*')
-          .in('id', dbCacheEntry.job_ids);
-
-        if (dbJobs && dbJobs.length > 0) {
-          const mappedJobs = dbCacheEntry.job_ids
-            .map(id => {
-              const found = dbJobs.find(j => j.id === id);
-              if (!found) return null;
-              return {
-                id: found.id,
-                title: found.title,
-                company: found.company,
-                companyLogo: found.company_logo,
-                location: found.location,
-                description: found.description,
-                employmentType: found.employment_type,
-                salary: found.salary,
-                datePosted: found.date_posted,
-                applyLink: found.apply_link,
-                remote: found.remote,
-                highlights: found.highlights || {},
-                requiredSkills: found.required_skills || [],
-                requiredExperience: found.required_experience || {}
-              };
-            })
-            .filter(Boolean)
-            // Re-apply the filters: older cache entries were saved under looser rules
-            .filter((job) => matchesFilters(job, { remote, employmentType, experience }));
-
-          const result = { jobs: mappedJobs, totalResults: mappedJobs.length, page: parseInt(page) };
-          setCache(cacheKey, result);
-          saveHistory(mappedJobs.length);
-
-          return res.json({ success: true, ...result, fromCache: true, fromDatabase: true });
-        }
-      }
-    } catch (dbReadError) {
-      console.error('Failed to read from Supabase cache:', dbReadError);
+      found = await findJobs(req.query);
+    } catch (err) {
+      if (err.status) return res.status(err.status).json({ error: 'Job search API error', message: err.apiMessage });
+      throw err;
     }
-
-    // 3. Cache miss: Fetch from JSearch API
-    const response = await fetch(`${JSEARCH_BASE}/search?${params}`, {
-      headers: {
-        'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-        'x-rapidapi-host': 'jsearch.p.rapidapi.com'
-      }
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('JSearch API error:', response.status, errText);
-      return res.status(response.status).json({
-        error: 'Job search API error',
-        message: response.status === 429 ? 'API rate limit exceeded.' : 'Failed to fetch jobs'
-      });
-    }
-
-    const data = await response.json();
-
-    const jobs = (data.data || []).map(job => ({
-      id: job.job_id,
-      title: job.job_title,
-      company: job.employer_name,
-      companyLogo: job.employer_logo,
-      location: job.job_city ? `${job.job_city}, ${job.job_state || ''} ${job.job_country}` : job.job_country,
-      description: job.job_description,
-      employmentType: job.job_employment_type,
-      employmentTypes: job.job_employment_types || [],
-      salary: job.job_min_salary && job.job_max_salary
-        ? `$${job.job_min_salary.toLocaleString('en-US')} - $${job.job_max_salary.toLocaleString('en-US')}`
-        : job.job_salary_period ? `${job.job_salary_period}` : 'Not specified',
-      datePosted: job.job_posted_at_datetime_utc,
-      applyLink: job.job_apply_link,
-      publisher: job.job_publisher || '',
-      remote: job.job_is_remote,
-      highlights: job.job_highlights || {},
-      requiredSkills: job.job_required_skills || [],
-      requiredExperience: job.job_required_experience || {}
-    }));
-
-    let filtered = jobs.filter((job) => matchesFilters(job, { remote, employmentType, experience }));
-    if (fresh) {
-      // Keep only the last 24 hours (JSearch's "today" is loose) and show the newest first
-      const cutoff = Date.now() - 24 * HOUR;
-      filtered = filtered
-        .filter((job) => !job.datePosted || new Date(job.datePosted).getTime() >= cutoff)
-        .sort((a, b) => (new Date(b.datePosted).getTime() || 0) - (new Date(a.datePosted).getTime() || 0));
-    }
-    const result = { jobs: filtered, totalResults: filtered.length, page: parseInt(page) };
-    setCache(cacheKey, result);
-    // Return the response immediately to the user to minimize latency
-    res.json({ success: true, ...result });
-
-    // --- Background Operations (Asynchronous) ---
-
-    // 1. Save search history in the background
-    saveHistory(filtered.length);
-
-    // 2. Save to Supabase Caching Layer in the background
-    if (filtered.length > 0) {
-      (async () => {
-        try {
-          const jobCacheRows = filtered.map(j => ({
-            id: j.id,
-            title: j.title,
-            company: j.company || '',
-            location: j.location || '',
-            salary: j.salary || '',
-            description: j.description || '',
-            employment_type: j.employmentType || '',
-            apply_link: j.applyLink || '',
-            company_logo: j.companyLogo || '',
-            date_posted: j.datePosted || '',
-            remote: j.remote || false,
-            highlights: j.highlights || {},
-            required_skills: j.requiredSkills || [],
-            required_experience: j.requiredExperience || {}
-          }));
-
-          // Upsert job details
-          const { error: upsertJobsError } = await supabase
-            .from('job_cache')
-            .upsert(jobCacheRows, { onConflict: 'id' });
-
-          if (upsertJobsError) {
-            console.error('Failed to upsert jobs into job_cache:', upsertJobsError);
-          } else {
-            // Save query mapping
-            const jobIds = filtered.map(j => j.id);
-            const { error: upsertSearchError } = await supabase
-              .from('search_cache')
-              .upsert({
-                cache_key: cacheKey,
-                job_ids: jobIds,
-                created_at: new Date().toISOString()
-              }, { onConflict: 'cache_key' });
-
-            if (upsertSearchError) {
-              console.error('Failed to upsert search_cache:', upsertSearchError);
-            }
-          }
-        } catch (cacheError) {
-          console.error('Error writing to database cache:', cacheError);
-        }
-      })();
-    }
+    const { result, fromMemory, fromDatabase } = found;
+    saveHistory(result.jobs?.length || 0);
+    const flags = fromMemory ? { fromCache: true, fromMemory: true } : fromDatabase ? { fromCache: true, fromDatabase: true } : {};
+    res.json({ success: true, ...result, ...flags });
   } catch (error) {
     sendServerError(res, error, 'Job search failed');
   }
@@ -654,6 +648,162 @@ router.get('/suggested-roles', async (req, res) => {
   } catch (error) {
     console.error('Failed to fetch suggested roles:', error);
     res.json({ success: true, roles: defaultRoles });
+  }
+});
+
+// --- "For you" feed ---
+// Runs searches built from the person's profile, drops jobs they've saved or
+// hidden, marks the ones they haven't seen yet and ranks by skill match.
+const feedLimiter = rateLimit({ name: 'jobs-feed', windowMs: 60 * 1000, maxAuthed: 20, maxAnon: 0 });
+const FEED_SIZE = 12;
+const NEW_WINDOW = 24 * HOUR;
+
+async function feedEvents(userId, kind, jobIds) {
+  let q = supabase.from('job_feed_events').select('job_id, created_at').eq('user_id', userId).eq('kind', kind);
+  if (jobIds) q = q.in('job_id', jobIds);
+  const { data, error } = await q.limit(5000);
+  if (error) {
+    // Table not created yet: the feed still works, just without seen/hidden memory
+    console.warn('[Feed] job_feed_events:', error.message);
+    return null;
+  }
+  return data || [];
+}
+
+router.get('/feed', requireAuth, feedLimiter, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('desired_role, location, country, experience_level, job_type, remote, skills, resume_skills, resume_suggested_roles, resume_experience_level')
+      .eq('id', userId)
+      .maybeSingle();
+    if (profileError) throw profileError;
+
+    const roles = feedRoles(profile || {});
+    if (!roles.length) return res.json({ success: true, jobs: [], meta: { needsProfile: true } });
+
+    // The client sends the city it worked out from the saved address
+    const location = String(req.query.location || '').slice(0, 60);
+    const country = profile.country || '';
+    const { experience, employmentType } = feedFilters(profile);
+    const base = { location, country, experience, employmentType, page: 1 };
+
+    const settle = (promises) => Promise.allSettled(promises)
+      .then((all) => all.flatMap((r) => (r.status === 'fulfilled' ? r.value.result.jobs : [])));
+
+    let pool = await settle(roles.map((role) => findJobs({ ...base, query: role, datePosted: 'week' })));
+    // A quiet week: widen the first role to the past month, then to the whole country
+    if (pool.length < FEED_SIZE) {
+      pool = pool.concat(await settle([findJobs({ ...base, query: roles[0], datePosted: 'month' })]));
+    }
+    if (pool.length < FEED_SIZE && location && country) {
+      pool = pool.concat(await settle([findJobs({ ...base, location: '', query: roles[0], datePosted: 'week' })]));
+    }
+
+    const [savedRes, hidden] = await Promise.all([
+      supabase.from('saved_jobs').select('job_id, title, company').eq('user_id', userId),
+      feedEvents(userId, 'dismissed'),
+    ]);
+    const savedIds = new Set((savedRes.data || []).map((j) => j.job_id));
+    const savedKeys = new Set((savedRes.data || []).map(sameJobKey));
+    const hiddenIds = new Set((hidden || []).map((e) => e.job_id));
+
+    const unique = new Map();
+    for (const job of pool) {
+      const key = sameJobKey(job);
+      if (!job.id || savedIds.has(job.id) || hiddenIds.has(job.id) || savedKeys.has(key) || unique.has(key)) continue;
+      unique.set(key, job);
+    }
+    const candidates = [...unique.values()];
+
+    const seen = await feedEvents(userId, 'seen', candidates.map((j) => j.id));
+    const firstSeen = new Map((seen || []).map((e) => [e.job_id, new Date(e.created_at).getTime()]));
+    const skills = profileSkills(profile);
+
+    const ranked = candidates
+      .map((job) => {
+        const matchedSkills = matchSkills(job, skills);
+        const seenAt = firstSeen.get(job.id);
+        const isNew = seen !== null && (!seenAt || Date.now() - seenAt < NEW_WINDOW);
+        return { job: { ...job, matchedSkills, isNew }, score: rankScore(job, { matched: matchedSkills, roles, isNew, prefersRemote: !!profile.remote }) };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, FEED_SIZE)
+      .map((r) => r.job);
+
+    res.json({
+      success: true,
+      jobs: ranked,
+      meta: {
+        roles,
+        location,
+        experience,
+        employmentType,
+        skillsCount: skills.length,
+        newCount: ranked.filter((j) => j.isNew).length,
+        available: candidates.length,
+        hiddenCount: hiddenIds.size,
+        remembers: seen !== null,
+      },
+    });
+
+    // Remember what was shown, so it stops counting as new after a day
+    const unseen = ranked.filter((j) => !firstSeen.has(j.id)).map((j) => ({ user_id: userId, job_id: j.id, kind: 'seen' }));
+    if (unseen.length && seen !== null) {
+      supabase.from('job_feed_events').upsert(unseen, { onConflict: 'user_id,job_id,kind', ignoreDuplicates: true })
+        .then(({ error }) => error && console.warn('[Feed] could not record seen jobs:', error.message));
+    }
+  } catch (error) {
+    sendServerError(res, error, 'Failed to load your feed');
+  }
+});
+
+const validJobId = (id) => typeof id === 'string' && id.length > 0 && id.length <= 200;
+
+// "Not interested": hide a job from the feed for good
+router.post('/feed/dismiss', requireAuth, feedLimiter, async (req, res) => {
+  try {
+    const { jobId } = req.body || {};
+    if (!validJobId(jobId)) return res.status(400).json({ error: 'jobId is required' });
+    const { error } = await supabase.from('job_feed_events')
+      .upsert({ user_id: req.user.id, job_id: jobId, kind: 'dismissed' }, { onConflict: 'user_id,job_id,kind', ignoreDuplicates: true });
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (error) {
+    sendServerError(res, error, 'Failed to hide the job');
+  }
+});
+
+router.delete('/feed/dismiss/:jobId', requireAuth, feedLimiter, async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    if (!validJobId(jobId)) return res.status(400).json({ error: 'jobId is required' });
+    const { error } = await supabase.from('job_feed_events')
+      .delete().eq('user_id', req.user.id).eq('job_id', jobId).eq('kind', 'dismissed');
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (error) {
+    sendServerError(res, error, 'Failed to restore the job');
+  }
+});
+
+// Whether a posting's apply page still looks open. Cached per link for 6 hours.
+const linkLimiter = rateLimit({ name: 'jobs-link-status', windowMs: 60 * 1000, maxAuthed: 20, maxAnon: 0 });
+const linkStatusCache = new Map();
+
+router.get('/link-status', requireAuth, linkLimiter, async (req, res) => {
+  try {
+    const url = String(req.query.url || '');
+    if (!url || url.length > 2000) return res.status(400).json({ error: 'url is required' });
+    const cached = linkStatusCache.get(url);
+    if (cached && Date.now() - cached.at < 6 * HOUR) return res.json({ success: true, ...cached.result });
+    const result = await checkJobLink(url);
+    if (linkStatusCache.size > 2000) linkStatusCache.delete(linkStatusCache.keys().next().value);
+    linkStatusCache.set(url, { at: Date.now(), result });
+    res.json({ success: true, ...result });
+  } catch (error) {
+    sendServerError(res, error, 'Failed to check the link');
   }
 });
 

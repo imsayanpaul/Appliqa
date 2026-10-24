@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { FiX, FiBookmark, FiFileText, FiCopy, FiCheck, FiMessageSquare, FiRefreshCw, FiArrowUpRight } from 'react-icons/fi';
 import { FileCheck } from 'lucide-react';
-import { getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
+import { checkJobLink, getMatchScore, generateCoverLetter, generateRecruiterDM, saveCoverLetter, saveRecruiterDM, incrementStat } from '../services/api';
 import ATSScorer from './ATSScorer';
 import { CompanyMark } from './JobCard';
 import { AddSkillTag, AddSkillHint } from '../lib/resumeSkills';
@@ -32,6 +32,17 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
             fetchMatchScore();
         }
     }, []);
+
+    // Whether the apply page still looks open (signed-in only; the server visits the link)
+    const [linkStatus, setLinkStatus] = useState(null);
+    useEffect(() => {
+        if (!user || !job.applyLink) return;
+        let active = true;
+        checkJobLink(job.applyLink)
+            .then((res) => active && setLinkStatus(res.data))
+            .catch(() => {});
+        return () => { active = false; };
+    }, [user, job.applyLink]);
 
     const fetchMatchScore = async () => {
         setLoadingMatch(true);
@@ -145,6 +156,7 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
     };
 
     const salary = formatSalary(job.salary);
+    const ageDays = job.datePosted ? (Date.now() - new Date(job.datePosted).getTime()) / 86400000 : 0;
     const posted = job.datePosted ? new Date(job.datePosted).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
     const meta = [job.location, job.remote ? 'Remote' : null, job.employmentType?.toLowerCase().replace(/_/g, '-'), posted && `posted ${posted}`].filter(Boolean);
     const score = matchData ? Math.min(100, Math.max(0, Number(matchData.score) || 0)) : 0;
@@ -360,6 +372,14 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
                         </section>
                     )}
                 </div>
+
+                {(linkStatus?.status === 'closed' || ageDays > 30) && (
+                    <p role="status" className="shrink-0 m-0 px-6 sm:px-8 py-3 border-0 border-t border-[#D8D4CC] bg-[#FEF3EC] text-[14px] text-[#7C2D12]">
+                        {linkStatus?.status === 'closed'
+                            ? <><strong>This job looks closed:</strong> {linkStatus.reason}. It may have been filled.</>
+                            : <><strong>Posted over a month ago.</strong> It may already be filled, so check the apply page before you spend time on it.</>}
+                    </p>
+                )}
 
                 {/* Pinned actions */}
                 <div className="shrink-0 grid grid-cols-2 border-0 border-t border-[#D8D4CC]">
