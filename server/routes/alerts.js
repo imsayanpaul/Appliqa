@@ -63,11 +63,15 @@ router.post('/run', async (req, res) => {
     .limit(MAX_PER_RUN);
   if (error) return res.status(500).json({ error: error.message });
 
-  const summary = { candidates: people?.length || 0, sent: 0, nothingNew: 0, failed: 0 };
+  const summary = { candidates: people?.length || 0, sent: 0, nothingNew: 0, noCountry: 0, failed: 0 };
   for (const person of people || []) {
     if (!person.email) continue;
     try {
       const { jobs, meta } = await buildFeed(person.id, { onlyUnseen: true, size: PER_EMAIL, remember: false });
+      if (meta?.needsCountry) {
+        summary.noCountry += 1;
+        continue;
+      }
       if (!jobs.length) {
         summary.nothingNew += 1;
         continue;

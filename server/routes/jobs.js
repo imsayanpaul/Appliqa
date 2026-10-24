@@ -778,6 +778,8 @@ async function buildFeed(userId, { location = '', onlyUnseen = false, size = FEE
   const profile = await feedProfile(userId);
   const roles = feedRoles(profile);
   if (!roles.length) return { jobs: [], meta: { needsProfile: true } };
+  // Without a country JSearch only searches the US, which would be wrong for most people
+  if (!String(profile.country || '').trim()) return { jobs: [], meta: { needsCountry: true, roles } };
 
   const country = profile.country || '';
   const city = location || profile.alert_city || '';

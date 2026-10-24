@@ -6,6 +6,10 @@ import RecommendedJobs from '../components/RecommendedJobs';
 import { smartSearch, getSearchHistory, peekSearchHistory, deleteSearchHistory, clearAllSearchHistory, getSuggestedRoles, getSavedJobs } from '../services/api';
 import { readProfiles, formatUpdated } from '../lib/resumeProfiles';
 import { needsFollowUp } from '../lib/tracker';
+import GitHubSkills from '../components/GitHubSkills';
+import { createOrUpdateUser } from '../services/api';
+
+const GITHUB_TIP_KEY = 'appliqa_github_tip_done';
 
 const STEPS = [
     {
@@ -141,6 +145,33 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
     });
     const [suggestedRoles, setSuggestedRoles] = useState(DEFAULT_ROLES);
     const [trackerCounts, setTrackerCounts] = useState(null);
+    const [githubTipDone, setGithubTipDone] = useState(() => {
+        try { return localStorage.getItem(GITHUB_TIP_KEY) === '1'; } catch { return false; }
+    });
+    const hideGithubTip = () => {
+        setGithubTipDone(true);
+        try { localStorage.setItem(GITHUB_TIP_KEY, '1'); } catch { /* private mode */ }
+    };
+    const profileSkills = user?.preferences?.skills || [];
+    // Worth suggesting when there's a GitHub link to read, or the skills list is thin
+    const showGithubTip = Boolean(user) && !githubTipDone && (Boolean(user?.portfolioGithub) || profileSkills.length < 8);
+
+    const addSkillFromGithub = async (skill) => {
+        const next = [...new Set([...profileSkills, skill])];
+        try {
+            const res = await createOrUpdateUser({ preferences: { skills: next } });
+            onUpdateUser?.(res.data.user);
+        } catch (err) {
+            console.error('Failed to add skill:', err);
+        }
+    };
+    const saveGithubLink = async (username) => {
+        if (user?.portfolioGithub) return;
+        try {
+            const res = await createOrUpdateUser({ portfolioGithub: `https://github.com/${username}` });
+            onUpdateUser?.(res.data.user);
+        } catch { /* the scan still worked */ }
+    };
 
     // Pipeline counts for the signed-in home
     useEffect(() => {
@@ -487,6 +518,20 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
                         ))}
                     </div>
 
+                    {showGithubTip && (
+                        <div className="border-0 border-t border-[#D8D4CC] bg-white px-6 sm:px-8 py-5">
+                            <GitHubSkills
+                                compact
+                                askUsername
+                                githubValue={user?.portfolioGithub}
+                                currentSkills={profileSkills.join(', ')}
+                                onAdd={addSkillFromGithub}
+                                onScan={saveGithubLink}
+                                onClose={hideGithubTip}
+                            />
+                        </div>
+                    )}
+
                     {trackerCounts?.quiet > 0 && (
                         <button
                             type="button"
@@ -525,7 +570,7 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
             </section>
 
             <section className="ds-frame ds-rule-b">
-                <RecommendedJobs user={user} resumeData={resumeData} />
+                <RecommendedJobs user={user} resumeData={resumeData} onUpdateUser={onUpdateUser} />
             </section>
 
             <section id="resume-scan" aria-labelledby="scan-heading" className="ds-frame ds-rule-b scroll-mt-20">

@@ -144,7 +144,8 @@ router.post('/profile', requireAuth, async (req, res) => {
       if (preferences.remote !== undefined) updateData.remote = preferences.remote;
       if (preferences.skills) updateData.skills = preferences.skills;
       if (preferences.dealBreakers !== undefined) updateData.deal_breakers = cleanDealBreakers(preferences.dealBreakers);
-      if (preferences.jobAlerts !== undefined) updateData.job_alerts = !!preferences.jobAlerts;
+      // Alerts need a country: without one the job search falls back to the US
+      if (preferences.jobAlerts !== undefined) updateData.job_alerts = !!preferences.jobAlerts && !!String(preferences.country ?? '').trim();
     }
 
     if (resumeData) {

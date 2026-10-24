@@ -63,9 +63,9 @@ function PremiumIconInput({ icon: Icon, symbol, placeholder, value, onChange, ty
     );
 }
 
-function PremiumToggle({ checked, onChange, label }) {
+function PremiumToggle({ checked, onChange, label, disabled = false }) {
     return (
-        <button type="button" role="switch" aria-checked={!!checked} className="ds-switch" onClick={() => onChange(!checked)}>
+        <button type="button" role="switch" aria-checked={!!checked} className="ds-switch disabled:opacity-50 disabled:cursor-not-allowed" disabled={disabled} onClick={() => onChange(!checked)}>
             <span className={`switch-track ${checked ? 'active' : ''}`} aria-hidden="true">
                 <span className="switch-knob" />
             </span>
@@ -899,10 +899,14 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
 
                             <div className="pt-1" style={{ gridColumn: '1 / -1' }}>
                                 <PremiumToggle
-                                    checked={form.jobAlerts}
+                                    checked={form.jobAlerts && !!form.country}
                                     onChange={(val) => handleChange('jobAlerts', val)}
                                     label="Email me new jobs every morning"
+                                    disabled={!form.country}
                                 />
+                                {!form.country && (
+                                    <p className="ds-mono ds-mono-muted m-0 mt-2">choose your country above to turn on job alerts</p>
+                                )}
                             </div>
                         </div>
             </FormSection>

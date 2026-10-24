@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowRight, FiRefreshCw, FiZap } from 'react-icons/fi';
-import { getJobFeed, getSavedJobs, dismissFeedJob, restoreFeedJob, rankJobs } from '../services/api';
+import { FiArrowRight, FiRefreshCw, FiZap, FiMail } from 'react-icons/fi';
+import { getJobFeed, getSavedJobs, dismissFeedJob, restoreFeedJob, rankJobs, createOrUpdateUser } from '../services/api';
 import { searchCity } from '../data/cities';
 import JobCard from './JobCard';
 const JobDetail = lazy(() => import('./JobDetail'));
@@ -25,7 +25,47 @@ const TYPES = { INTERN: 'internships', CONTRACTOR: 'contract', PARTTIME: 'part t
 
 // "For you": jobs from searches built on the profile (target role, resume roles,
 // city, level), without saved or hidden ones, ranked by skill match and freshness.
-function RecommendedJobs({ user, resumeData }) {
+// Daily job emails, switched on or off right under the feed
+function AlertsLine({ user, onUpdateUser }) {
+    const navigate = useNavigate();
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState(null);
+    const country = user?.preferences?.country;
+    const on = !!user?.preferences?.jobAlerts && !!country;
+
+    const toggle = async () => {
+        setSaving(true);
+        setError(null);
+        try {
+            const res = await createOrUpdateUser({ preferences: { jobAlerts: !on, country } });
+            onUpdateUser?.(res.data.user);
+        } catch {
+            setError('Couldn’t save that. Please try again.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="ds-rule-t px-6 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-3 bg-white">
+            <p className="m-0 text-[15px] text-[#2A2622] flex items-center gap-3">
+                <FiMail size={16} className="text-[#CA3C0A] shrink-0" aria-hidden="true" />
+                {error || (on ? 'Daily job emails are on. New matches arrive every morning.' : 'Get new jobs like these by email every morning.')}
+            </p>
+            {country ? (
+                <button type="button" onClick={toggle} disabled={saving} className={`ds-btn !min-h-[40px] !text-[14px] ${on ? 'ds-btn-line' : 'ds-btn-accent'}`}>
+                    {saving ? 'Saving…' : on ? 'Turn off' : 'Turn on'}
+                </button>
+            ) : (
+                <button type="button" onClick={() => navigate('/profile')} className="ds-btn ds-btn-line !min-h-[40px] !text-[14px]">
+                    Add your country first <FiArrowRight size={14} />
+                </button>
+            )}
+        </div>
+    );
+}
+
+function RecommendedJobs({ user, resumeData, onUpdateUser }) {
     const navigate = useNavigate();
     const city = searchCity(user?.preferences?.location, user?.preferences?.country);
     const cacheKey = `appliqa_feed_${user?.id || 'anon'}_${city}`;
@@ -209,6 +249,14 @@ function RecommendedJobs({ user, resumeData }) {
                         </div>
                     ))}
                 </div>
+            ) : meta.needsCountry ? (
+                <div className="ds-cell !py-14 text-center">
+                    <p className="m-0 text-[20px] font-medium tracking-[-0.015em]">Add your country to see jobs near you.</p>
+                    <p className="ds-body mt-2 mb-0">Without one, job searches only cover the US.</p>
+                    <button type="button" onClick={() => navigate('/profile')} className="ds-btn ds-btn-ink mt-6">
+                        Set your country <FiArrowRight size={16} className="ds-btn-arrow" />
+                    </button>
+                </div>
             ) : meta.needsProfile ? (
                 <div className="ds-cell !py-14 text-center">
                     <p className="m-0 text-[20px] font-medium tracking-[-0.015em]">Tell us the role you want and we’ll find jobs for you.</p>
@@ -263,6 +311,8 @@ function RecommendedJobs({ user, resumeData }) {
                     )}
                 </div>
             )}
+
+            {user && !meta.needsProfile && <AlertsLine user={user} onUpdateUser={onUpdateUser} />}
 
             {selectedJob && (
                 <Suspense fallback={null}>
