@@ -7,6 +7,7 @@ const rateLimit = require('../middleware/rateLimit');
 const { sendServerError } = require('../lib/errors');
 const { feedRoles, feedFilters, profileSkills, matchSkills, rankScore, sameJobKey } = require('../lib/jobFeed');
 const { checkJobLink } = require('../lib/linkCheck');
+const { checkJob, cleanDealBreakers } = require('../lib/dealBreakers');
 
 const JSEARCH_BASE = 'https://jsearch.p.rapidapi.com';
 
@@ -384,6 +385,35 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
   }
 });
 
+// The tracker columns come from a migration (applied_at, source, ...). Until it
+// has run, writes retry without them so saving and status changes keep working.
+const TRACKER_COLUMNS = ['applied_at', 'status_updated_at', 'follow_up_count', 'last_follow_up_at', 'source', 'resume_snapshot'];
+const isMissingColumn = (error) => error && (error.code === '42703' || error.code === 'PGRST204');
+const withoutTracker = (row) => Object.fromEntries(Object.entries(row).filter(([k]) => !TRACKER_COLUMNS.includes(k)));
+
+// Where an application went, from the job board's name or the link's site
+function sourceOf(job) {
+  if (job.publisher) return String(job.publisher).replace(/\.com$/i, '').slice(0, 60);
+  try {
+    return new URL(job.applyLink).hostname.replace(/^www\./, '').slice(0, 60);
+  } catch {
+    return null;
+  }
+}
+
+// The resume someone applied with: the one they picked, or their primary one (photo left out)
+async function resumeSnapshot(userId, profileId) {
+  const { data } = await supabase.from('profiles').select('builder_data').eq('id', userId).maybeSingle();
+  const builder = data?.builder_data;
+  const list = Array.isArray(builder?.profiles) ? builder.profiles.filter((p) => p && p.id) : [];
+  const chosen = list.find((p) => p.id === profileId) || list.find((p) => p.id === builder?.primaryId) || list[0];
+  if (!chosen) return null;
+  const { photo, ...rest } = chosen.data || {};
+  return { id: chosen.id, name: chosen.name || 'Resume', updatedAt: chosen.updatedAt || null, takenAt: new Date().toISOString(), data: rest };
+}
+
+const APPLIED_STAGES = new Set(['applied', 'interview', 'offer', 'rejected']);
+
 // Save a job (including custom external jobs)
 router.post('/save', requireAuth, async (req, res) => {
   try {
@@ -391,7 +421,9 @@ router.post('/save', requireAuth, async (req, res) => {
     if (!job || !job.title) return res.status(400).json({ error: 'Job title is required' });
 
     const jobId = job.id || `custom_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const { data: savedJob, error } = await supabase.from('saved_jobs').insert({
+    const status = job.status || 'saved';
+    const now = new Date().toISOString();
+    const row = {
       user_id: req.user.id,
       job_id: jobId,
       title: job.title,
@@ -403,12 +435,19 @@ router.post('/save', requireAuth, async (req, res) => {
       apply_link: job.applyLink || '',
       company_logo: job.companyLogo || '',
       date_posted: job.datePosted || new Date().toISOString(),
-      status: job.status || 'saved',
+      status,
       match_score: job.matchScore || 0,
       match_details: job.matchDetails || null,
       cover_letter: job.coverLetter || '',
-      recruiter_dm: job.recruiterDM || ''
-    }).select().single();
+      recruiter_dm: job.recruiterDM || '',
+      source: sourceOf(job),
+      status_updated_at: now,
+      ...(APPLIED_STAGES.has(status) ? { applied_at: now } : {}),
+    };
+    let { data: savedJob, error } = await supabase.from('saved_jobs').insert(row).select().single();
+    if (isMissingColumn(error)) {
+      ({ data: savedJob, error } = await supabase.from('saved_jobs').insert(withoutTracker(row)).select().single());
+    }
 
     if (error) {
       if (error.code === '23505') { // Postgres Unique violation
@@ -453,7 +492,13 @@ router.get('/saved', requireAuth, async (req, res) => {
       recruiterDM: j.recruiter_dm,
       interviewPrep: j.interview_prep,
       status: j.status,
-      createdAt: j.created_at
+      createdAt: j.created_at,
+      appliedAt: j.applied_at || null,
+      statusUpdatedAt: j.status_updated_at || null,
+      followUpCount: j.follow_up_count || 0,
+      lastFollowUpAt: j.last_follow_up_at || null,
+      source: j.source || null,
+      resumeSnapshot: j.resume_snapshot ? { id: j.resume_snapshot.id, name: j.resume_snapshot.name, takenAt: j.resume_snapshot.takenAt } : null,
     }));
 
     res.json({ success: true, jobs: formattedJobs });
@@ -474,15 +519,25 @@ router.patch('/saved/:id', requireAuth, async (req, res) => {
     if (salary !== undefined) updateData.salary = salary;
     if (applyLink !== undefined) updateData.apply_link = applyLink;
     if (description !== undefined) updateData.description = description;
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) {
+      updateData.status = status;
+      updateData.status_updated_at = new Date().toISOString();
+    }
 
-    const { data: job, error } = await supabase
+    let { data: job, error } = await supabase
       .from('saved_jobs')
       .update(updateData)
       .eq('id', req.params.id)
       .eq('user_id', req.user.id)
       .select()
       .single();
+    if (isMissingColumn(error)) {
+      ({ data: job, error } = await supabase.from('saved_jobs').update(withoutTracker(updateData))
+        .eq('id', req.params.id).eq('user_id', req.user.id).select().single());
+    }
+    if (!error && job && APPLIED_STAGES.has(job.status) && 'applied_at' in job && !job.applied_at) {
+      await supabase.from('saved_jobs').update({ applied_at: new Date().toISOString() }).eq('id', job.id).eq('user_id', req.user.id);
+    }
 
     if (error) throw error;
     res.json({ success: true, job });
@@ -494,24 +549,53 @@ router.patch('/saved/:id', requireAuth, async (req, res) => {
 // Update job status
 router.patch('/saved/:id/status', requireAuth, async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, resumeProfileId } = req.body;
     const validStatuses = ['saved', 'applied', 'interview', 'offer', 'rejected'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
 
-    const { data: job, error } = await supabase
-      .from('saved_jobs')
-      .update({ status })
-      .eq('id', req.params.id)
-      .eq('user_id', req.user.id) // Ensure they own it
-      .select()
-      .single();
+    const { data: current } = await supabase.from('saved_jobs').select('*')
+      .eq('id', req.params.id).eq('user_id', req.user.id).maybeSingle();
+    if (!current) return res.status(404).json({ error: 'Job not found' });
+
+    const now = new Date().toISOString();
+    const update = { status, status_updated_at: now };
+    // First time it's marked applied (or later): remember when, and keep a copy of the resume sent
+    if (APPLIED_STAGES.has(status) && !current.applied_at) {
+      update.applied_at = now;
+      if ('resume_snapshot' in current && !current.resume_snapshot) {
+        update.resume_snapshot = await resumeSnapshot(req.user.id, resumeProfileId).catch(() => null);
+      }
+    }
+
+    let { data: job, error } = await supabase.from('saved_jobs').update(update)
+      .eq('id', req.params.id).eq('user_id', req.user.id).select().single();
+    if (isMissingColumn(error)) {
+      ({ data: job, error } = await supabase.from('saved_jobs').update({ status })
+        .eq('id', req.params.id).eq('user_id', req.user.id).select().single());
+    }
 
     if (error) throw error;
     res.json({ success: true, job });
   } catch (error) {
     sendServerError(res, error, 'Failed to update job status');
+  }
+});
+
+// A follow-up was sent for this application
+router.post('/saved/:id/follow-up', requireAuth, async (req, res) => {
+  try {
+    const { data: current } = await supabase.from('saved_jobs').select('id, follow_up_count')
+      .eq('id', req.params.id).eq('user_id', req.user.id).maybeSingle();
+    if (!current) return res.status(404).json({ error: 'Job not found' });
+    const update = { follow_up_count: (current.follow_up_count || 0) + 1, last_follow_up_at: new Date().toISOString() };
+    const { error } = await supabase.from('saved_jobs').update(update).eq('id', req.params.id).eq('user_id', req.user.id);
+    if (isMissingColumn(error)) return res.status(503).json({ error: 'Run the tracker migration to record follow-ups.' });
+    if (error) throw error;
+    res.json({ success: true, followUpCount: update.follow_up_count, lastFollowUpAt: update.last_follow_up_at });
+  } catch (error) {
+    sendServerError(res, error, 'Failed to record the follow-up');
   }
 });
 
@@ -670,89 +754,123 @@ async function feedEvents(userId, kind, jobIds) {
   return data || [];
 }
 
+const FEED_COLUMNS = 'desired_role, location, country, experience_level, job_type, remote, skills, resume_skills, resume_suggested_roles, resume_experience_level, resume_languages';
+
+async function feedProfile(userId) {
+  let { data, error } = await supabase.from('profiles').select(`${FEED_COLUMNS}, deal_breakers, alert_city`).eq('id', userId).maybeSingle();
+  if (isMissingColumn(error)) {
+    ({ data, error } = await supabase.from('profiles').select(FEED_COLUMNS).eq('id', userId).maybeSingle());
+  }
+  if (error) throw error;
+  return data || {};
+}
+
+const recordSeen = (userId, jobs) => {
+  const rows = jobs.map((j) => ({ user_id: userId, job_id: j.id, kind: 'seen' }));
+  if (!rows.length) return Promise.resolve();
+  return supabase.from('job_feed_events').upsert(rows, { onConflict: 'user_id,job_id,kind', ignoreDuplicates: true })
+    .then(({ error }) => error && console.warn('[Feed] could not record seen jobs:', error.message));
+};
+
+// The "for you" list for one person. Used by the home page and the daily alert email.
+// onlyUnseen: just jobs never shown before (for alerts); recordSeen: remember what's returned.
+async function buildFeed(userId, { location = '', onlyUnseen = false, size = FEED_SIZE, remember = true } = {}) {
+  const profile = await feedProfile(userId);
+  const roles = feedRoles(profile);
+  if (!roles.length) return { jobs: [], meta: { needsProfile: true } };
+
+  const country = profile.country || '';
+  const city = location || profile.alert_city || '';
+  const { experience, employmentType } = feedFilters(profile);
+  const base = { location: city, country, experience, employmentType, page: 1 };
+
+  const settle = (promises) => Promise.allSettled(promises)
+    .then((all) => all.flatMap((r) => (r.status === 'fulfilled' ? r.value.result.jobs : [])));
+
+  let pool = await settle(roles.map((role) => findJobs({ ...base, query: role, datePosted: 'week' })));
+  // A quiet week: widen the first role to the past month, then to the whole country
+  if (pool.length < FEED_SIZE) {
+    pool = pool.concat(await settle([findJobs({ ...base, query: roles[0], datePosted: 'month' })]));
+  }
+  if (pool.length < FEED_SIZE && city && country) {
+    pool = pool.concat(await settle([findJobs({ ...base, location: '', query: roles[0], datePosted: 'week' })]));
+  }
+
+  const [savedRes, hidden] = await Promise.all([
+    supabase.from('saved_jobs').select('job_id, title, company').eq('user_id', userId),
+    feedEvents(userId, 'dismissed'),
+  ]);
+  const savedIds = new Set((savedRes.data || []).map((j) => j.job_id));
+  const savedKeys = new Set((savedRes.data || []).map(sameJobKey));
+  const hiddenIds = new Set((hidden || []).map((e) => e.job_id));
+
+  const unique = new Map();
+  for (const job of pool) {
+    const key = sameJobKey(job);
+    if (!job.id || savedIds.has(job.id) || hiddenIds.has(job.id) || savedKeys.has(key) || unique.has(key)) continue;
+    unique.set(key, job);
+  }
+  // Deal-breakers the person ticked hide a job; other warning signs are shown on the card
+  const dealBreakers = cleanDealBreakers(profile.deal_breakers);
+  const languages = profile.resume_languages || [];
+  let blockedCount = 0;
+  let candidates = [];
+  for (const job of unique.values()) {
+    const flags = checkJob(job, { dealBreakers, languages });
+    if (flags.some((f) => f.hard)) {
+      blockedCount += 1;
+      continue;
+    }
+    candidates.push(flags.length ? { ...job, flags } : job);
+  }
+
+  const seen = await feedEvents(userId, 'seen', candidates.map((j) => j.id));
+  const firstSeen = new Map((seen || []).map((e) => [e.job_id, new Date(e.created_at).getTime()]));
+  if (onlyUnseen) candidates = candidates.filter((j) => !firstSeen.has(j.id));
+  const skills = profileSkills(profile);
+
+  const ranked = candidates
+    .map((job) => {
+      const matchedSkills = matchSkills(job, skills);
+      const seenAt = firstSeen.get(job.id);
+      const isNew = seen !== null && (!seenAt || Date.now() - seenAt < NEW_WINDOW);
+      return { job: { ...job, matchedSkills, isNew }, score: rankScore(job, { matched: matchedSkills, roles, isNew, prefersRemote: !!profile.remote }) };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, size)
+    .map((r) => r.job);
+
+  // Remember what was shown, so it stops counting as new after a day
+  if (remember && seen !== null) await recordSeen(userId, ranked.filter((j) => !firstSeen.has(j.id)));
+
+  return {
+    jobs: ranked,
+    meta: {
+      roles,
+      location: city,
+      experience,
+      employmentType,
+      skillsCount: skills.length,
+      newCount: ranked.filter((j) => j.isNew).length,
+      available: candidates.length,
+      hiddenCount: hiddenIds.size,
+      blockedCount,
+      dealBreakers,
+      remembers: seen !== null,
+    },
+    profile,
+  };
+}
+
 router.get('/feed', requireAuth, feedLimiter, async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('desired_role, location, country, experience_level, job_type, remote, skills, resume_skills, resume_suggested_roles, resume_experience_level')
-      .eq('id', userId)
-      .maybeSingle();
-    if (profileError) throw profileError;
-
-    const roles = feedRoles(profile || {});
-    if (!roles.length) return res.json({ success: true, jobs: [], meta: { needsProfile: true } });
-
     // The client sends the city it worked out from the saved address
     const location = String(req.query.location || '').slice(0, 60);
-    const country = profile.country || '';
-    const { experience, employmentType } = feedFilters(profile);
-    const base = { location, country, experience, employmentType, page: 1 };
-
-    const settle = (promises) => Promise.allSettled(promises)
-      .then((all) => all.flatMap((r) => (r.status === 'fulfilled' ? r.value.result.jobs : [])));
-
-    let pool = await settle(roles.map((role) => findJobs({ ...base, query: role, datePosted: 'week' })));
-    // A quiet week: widen the first role to the past month, then to the whole country
-    if (pool.length < FEED_SIZE) {
-      pool = pool.concat(await settle([findJobs({ ...base, query: roles[0], datePosted: 'month' })]));
-    }
-    if (pool.length < FEED_SIZE && location && country) {
-      pool = pool.concat(await settle([findJobs({ ...base, location: '', query: roles[0], datePosted: 'week' })]));
-    }
-
-    const [savedRes, hidden] = await Promise.all([
-      supabase.from('saved_jobs').select('job_id, title, company').eq('user_id', userId),
-      feedEvents(userId, 'dismissed'),
-    ]);
-    const savedIds = new Set((savedRes.data || []).map((j) => j.job_id));
-    const savedKeys = new Set((savedRes.data || []).map(sameJobKey));
-    const hiddenIds = new Set((hidden || []).map((e) => e.job_id));
-
-    const unique = new Map();
-    for (const job of pool) {
-      const key = sameJobKey(job);
-      if (!job.id || savedIds.has(job.id) || hiddenIds.has(job.id) || savedKeys.has(key) || unique.has(key)) continue;
-      unique.set(key, job);
-    }
-    const candidates = [...unique.values()];
-
-    const seen = await feedEvents(userId, 'seen', candidates.map((j) => j.id));
-    const firstSeen = new Map((seen || []).map((e) => [e.job_id, new Date(e.created_at).getTime()]));
-    const skills = profileSkills(profile);
-
-    const ranked = candidates
-      .map((job) => {
-        const matchedSkills = matchSkills(job, skills);
-        const seenAt = firstSeen.get(job.id);
-        const isNew = seen !== null && (!seenAt || Date.now() - seenAt < NEW_WINDOW);
-        return { job: { ...job, matchedSkills, isNew }, score: rankScore(job, { matched: matchedSkills, roles, isNew, prefersRemote: !!profile.remote }) };
-      })
-      .sort((a, b) => b.score - a.score)
-      .slice(0, FEED_SIZE)
-      .map((r) => r.job);
-
-    res.json({
-      success: true,
-      jobs: ranked,
-      meta: {
-        roles,
-        location,
-        experience,
-        employmentType,
-        skillsCount: skills.length,
-        newCount: ranked.filter((j) => j.isNew).length,
-        available: candidates.length,
-        hiddenCount: hiddenIds.size,
-        remembers: seen !== null,
-      },
-    });
-
-    // Remember what was shown, so it stops counting as new after a day
-    const unseen = ranked.filter((j) => !firstSeen.has(j.id)).map((j) => ({ user_id: userId, job_id: j.id, kind: 'seen' }));
-    if (unseen.length && seen !== null) {
-      supabase.from('job_feed_events').upsert(unseen, { onConflict: 'user_id,job_id,kind', ignoreDuplicates: true })
-        .then(({ error }) => error && console.warn('[Feed] could not record seen jobs:', error.message));
+    const { jobs, meta, profile } = await buildFeed(req.user.id, { location });
+    res.json({ success: true, jobs, meta });
+    // Keep the city for the alert email, which runs without the browser
+    if (location && profile && 'alert_city' in profile && profile.alert_city !== location) {
+      supabase.from('profiles').update({ alert_city: location }).eq('id', req.user.id).then(() => {});
     }
   } catch (error) {
     sendServerError(res, error, 'Failed to load your feed');
@@ -808,4 +926,6 @@ router.get('/link-status', requireAuth, linkLimiter, async (req, res) => {
 });
 
 module.exports = router;
+module.exports.buildFeed = buildFeed;
+module.exports.recordSeen = recordSeen;
 

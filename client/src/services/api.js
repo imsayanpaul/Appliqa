@@ -125,6 +125,7 @@ export const getJobFeed = (location) => api.get('/jobs/feed', { params: location
 export const dismissFeedJob = (jobId) => api.post('/jobs/feed/dismiss', { jobId });
 export const restoreFeedJob = (jobId) => api.delete(`/jobs/feed/dismiss/${encodeURIComponent(jobId)}`);
 export const checkJobLink = (url) => api.get('/jobs/link-status', { params: { url } });
+export const markFollowUpSent = (id) => api.post(`/jobs/saved/${id}/follow-up`);
 
 export const getSavedJobs = async () => {
   if (savedJobsCache) {
@@ -163,12 +164,20 @@ export const updateSavedJob = async (id, updates) => {
   return res;
 };
 
-export const updateJobStatus = async (id, status) => {
-  const res = await api.patch(`/jobs/saved/${id}/status`, { status });
+export const updateJobStatus = async (id, status, { resumeProfileId } = {}) => {
+  const res = await api.patch(`/jobs/saved/${id}/status`, { status, resumeProfileId });
+  const row = res.data?.job || {};
+  const patch = {
+    status,
+    ...(row.applied_at ? { appliedAt: row.applied_at } : {}),
+    ...(row.status_updated_at ? { statusUpdatedAt: row.status_updated_at } : {}),
+    ...(row.resume_snapshot ? { resumeSnapshot: { id: row.resume_snapshot.id, name: row.resume_snapshot.name, takenAt: row.resume_snapshot.takenAt } } : {}),
+  };
+  res.patch = patch;
   // Update cache in-place
   if (savedJobsCache && savedJobsCache.data?.jobs) {
     savedJobsCache.data.jobs = savedJobsCache.data.jobs.map(j =>
-      j._id === id ? { ...j, status } : j
+      j._id === id ? { ...j, ...patch } : j
     );
     sessionStorage.setItem('appliqa_saved_jobs', JSON.stringify(savedJobsCache));
   }
@@ -235,6 +244,9 @@ export const enhanceResumeBullet = (data) => api.post('/ai/enhance-bullet', data
 export const suggestResumeSkills = (data) => api.post('/ai/suggest-skills', data);
 export const tailorResume = (data) => api.post('/ai/tailor-resume', data);
 export const getAchievementFinderChat = (data) => api.post('/ai/achievement-finder', data);
+export const rankJobs = (data) => api.post('/ai/rank-jobs', data);
+export const draftFollowUp = (data) => api.post('/ai/follow-up', data);
+export const mockInterview = (data) => api.post('/ai/mock-interview', data);
 
 // User
 export const createOrUpdateUser = (data) => api.post('/user/profile', data);

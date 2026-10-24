@@ -4,6 +4,18 @@ import { FiSave, FiCheck, FiLogOut, FiEye, FiEyeOff, FiGithub, FiUser, FiMail, F
 import { createOrUpdateUser } from '../services/api';
 import { supabase } from '../services/supabase';
 import ResumeUpload from '../components/ResumeUpload';
+import GitHubSkills from '../components/GitHubSkills';
+
+// Same keys as server/lib/dealBreakers.js
+const DEAL_BREAKERS = [
+    { key: 'bond', label: 'Service bond' },
+    { key: 'night_shift', label: 'Night or rotational shifts' },
+    { key: 'unpaid', label: 'Unpaid roles' },
+    { key: 'onsite_only', label: 'Office only, no remote' },
+    { key: 'relocation', label: 'Relocation required' },
+    { key: 'travel', label: 'Heavy travel' },
+    { key: 'sales_targets', label: 'Sales targets' },
+];
 import citiesByCountry from '../data/cities';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -207,6 +219,8 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
         salaryMax: '',
         jobType: '',
         remote: false,
+        dealBreakers: [],
+        jobAlerts: false,
         skills: '',
         educationStatus: '',
         collegeCourse: '',
@@ -264,6 +278,8 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                 salaryMax: user?.preferences?.salaryMax || '',
                 jobType: user?.preferences?.jobType || '',
                 remote: user?.preferences?.remote || false,
+                dealBreakers: user?.preferences?.dealBreakers || [],
+                jobAlerts: !!user?.preferences?.jobAlerts,
                 skills: user?.preferences?.skills?.join(', ') || resumeData?.skills?.join(', ') || '',
                 educationStatus: user?.educationStatus || '',
                 collegeCourse: user?.collegeCourse || '',
@@ -393,6 +409,8 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                     salaryMax: parseInt(form.salaryMax) || 0,
                     jobType: form.jobType,
                     remote: form.remote,
+                    dealBreakers: form.dealBreakers,
+                    jobAlerts: form.jobAlerts,
                     skills: form.skills.split(',').map(s => s.trim()).filter(Boolean)
                 }
             };
@@ -856,6 +874,36 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                     label="International Remote"
                                 />
                             </div>
+
+                            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                                <p className="ds-label" id="deal-breakers-label">Deal-breakers</p>
+                                <p className="ds-mono ds-mono-muted m-0 mb-3">jobs that mention these are hidden from your feed</p>
+                                <div role="group" aria-labelledby="deal-breakers-label" className="flex flex-wrap gap-2">
+                                    {DEAL_BREAKERS.map((d) => {
+                                        const on = form.dealBreakers.includes(d.key);
+                                        return (
+                                            <button
+                                                key={d.key}
+                                                type="button"
+                                                aria-pressed={on}
+                                                onClick={() => handleChange('dealBreakers', on ? form.dealBreakers.filter((k) => k !== d.key) : [...form.dealBreakers, d.key])}
+                                                className={`ds-chip ${on ? '!bg-[#171717] !text-white !border-[#171717]' : ''}`}
+                                            >
+                                                {on ? <FiCheck size={12} /> : <FiPlus size={12} />} {d.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="ds-mono ds-mono-muted m-0 mt-3">jobs asking for a fee, or for a language you haven’t listed, are always flagged</p>
+                            </div>
+
+                            <div className="pt-1" style={{ gridColumn: '1 / -1' }}>
+                                <PremiumToggle
+                                    checked={form.jobAlerts}
+                                    onChange={(val) => handleChange('jobAlerts', val)}
+                                    label="Email me new jobs every morning"
+                                />
+                            </div>
                         </div>
             </FormSection>
 
@@ -870,6 +918,12 @@ function Profile({ user, session, authResolved, onUpdateUser, resumeData, onResu
                                     placeholder="Add skill..."
                                 />
                             </div>
+
+                            <GitHubSkills
+                                githubValue={form.portfolioGithub}
+                                currentSkills={form.skills}
+                                onAdd={(skill) => handleChange('skills', form.skills ? `${form.skills}, ${skill}` : skill)}
+                            />
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="form-group">

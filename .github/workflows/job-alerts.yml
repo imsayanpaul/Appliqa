@@ -1,0 +1,30 @@
+name: Daily job alerts
+
+# Once a day (08:00 IST) ask the API to email new jobs to people who turned alerts on.
+# Needs two repository secrets: APPLIQA_API_URL (e.g. https://appliqa-api.onrender.com)
+# and CRON_SECRET (the same value as the CRON_SECRET environment variable on Render).
+on:
+  schedule:
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Wake the API (Render's free plan sleeps when idle)
+        env:
+          API: ${{ secrets.APPLIQA_API_URL }}
+        run: |
+          for i in $(seq 1 18); do
+            if curl -fsS --max-time 20 "$API/api/health" > /dev/null; then echo "API is up"; exit 0; fi
+            echo "Waiting for the API ($i)..."; sleep 10
+          done
+          echo "API did not wake up"; exit 1
+      - name: Send alerts
+        env:
+          API: ${{ secrets.APPLIQA_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS --max-time 900 -X POST -H "x-cron-secret: $CRON_SECRET" "$API/api/alerts/run"

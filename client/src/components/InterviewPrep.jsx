@@ -34,7 +34,9 @@ function InterviewPrep({ job, user, resumeData, onClose }) {
                 preferences: { name: user?.name, ...user?.preferences },
                 jobTitle: job.title,
                 jobCompany: job.company,
-                jobDescription: job.description
+                jobDescription: job.description,
+                // Interviewers read what was sent; prep expects questions about it
+                sentCoverLetter: job.coverLetter || ''
             });
             setPrepData(res.data.interviewPrep);
             // Auto-save to DB

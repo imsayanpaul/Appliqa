@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowRight, FiRefreshCw } from 'react-icons/fi';
-import { getJobFeed, getSavedJobs, dismissFeedJob, restoreFeedJob } from '../services/api';
+import { FiArrowRight, FiRefreshCw, FiZap } from 'react-icons/fi';
+import { getJobFeed, getSavedJobs, dismissFeedJob, restoreFeedJob, rankJobs } from '../services/api';
 import { searchCity } from '../data/cities';
 import JobCard from './JobCard';
 const JobDetail = lazy(() => import('./JobDetail'));
@@ -37,6 +37,8 @@ function RecommendedJobs({ user, resumeData }) {
     const [hidden, setHidden] = useState(null); // last dismissed job, for undo
     const [savedJobs, setSavedJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
+    const [ranking, setRanking] = useState(false);
+    const [rankError, setRankError] = useState(null);
 
     const load = useCallback(async ({ force = false } = {}) => {
         if (!force) {
@@ -93,6 +95,30 @@ function RecommendedJobs({ user, resumeData }) {
         });
     };
 
+    // One AI call scores every job in the feed against the full profile, then the list is re-ordered
+    const handleRank = async () => {
+        const list = feed?.jobs || [];
+        if (!list.length) return;
+        setRanking(true);
+        setRankError(null);
+        try {
+            const res = await rankJobs({
+                jobs: list.map((j) => ({ id: j.id, title: j.title, company: j.company, description: (j.description || '').slice(0, 1600) })),
+                resumeData,
+                preferences: { name: user?.name, ...user?.preferences },
+            });
+            const scores = res.data?.scores || {};
+            updateJobs((jobs) => jobs
+                .map((j) => (scores[j.id] ? { ...j, aiFit: scores[j.id] } : j))
+                .sort((a, b) => (b.aiFit?.score ?? -1) - (a.aiFit?.score ?? -1)));
+            setShowAll(true);
+        } catch (err) {
+            setRankError(err?.response?.data?.error || 'Couldn’t rank these jobs right now.');
+        } finally {
+            setRanking(false);
+        }
+    };
+
     const handleUndo = () => {
         if (!hidden) return;
         const { job, index } = hidden;
@@ -122,7 +148,17 @@ function RecommendedJobs({ user, resumeData }) {
                         {meta.newCount > 0 && <span className="text-[#CA3C0A]"> · {meta.newCount} new</span>}
                     </p>
                 </div>
-                <div className="flex items-center gap-5">
+                <div className="flex flex-wrap items-center gap-5">
+                    {jobs.length > 1 && !jobs.every((j) => j.aiFit) && (
+                        <button
+                            type="button"
+                            onClick={handleRank}
+                            disabled={ranking}
+                            className="inline-flex items-center gap-2 text-[15px] font-semibold text-[#CA3C0A] hover:text-[#171717] bg-transparent border-none cursor-pointer p-0 disabled:opacity-50 disabled:cursor-default"
+                        >
+                            <FiZap size={15} aria-hidden="true" /> {ranking ? 'Ranking…' : 'Rank with AI'}
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={() => load({ force: true })}
@@ -142,6 +178,12 @@ function RecommendedJobs({ user, resumeData }) {
                     )}
                 </div>
             </div>
+
+            {(rankError || meta.blockedCount > 0) && (
+                <p className="ds-rule-b m-0 px-6 sm:px-8 py-3 text-[14px] text-[#4A4540] bg-white">
+                    {rankError || <>Hid {meta.blockedCount} job{meta.blockedCount === 1 ? '' : 's'} that hit your deal-breakers. <button type="button" onClick={() => navigate('/profile')} className="ds-mono text-[#CA3C0A] underline underline-offset-2 bg-transparent border-none cursor-pointer p-0">edit</button></>}
+                </p>
+            )}
 
             {hidden && (
                 <div role="status" className="ds-rule-b px-6 sm:px-8 py-3 flex items-center justify-between gap-4 bg-white">

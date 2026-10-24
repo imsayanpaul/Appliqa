@@ -731,6 +731,9 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 experience,
                 education,
                 skills,
+                projects,
+                achievements,
+                certifications: certifications.map(certificationLabel),
                 jobDescription: tailorJD
             });
             if (res.data?.tailoredData) {
@@ -749,14 +752,17 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                     });
                     setExperience(mappedExp);
                 }
-                if (data.suggestedSkills && data.suggestedSkills.length > 0) {
-                    setSkills(prev => [...new Set([...prev, ...data.suggestedSkills])]);
-                    setSuggestedSkills(prev => [...new Set([...prev, ...data.suggestedSkills])]);
-                    setActiveTab('skills');
+                // Skills the job wants are only suggested: add them yourself if you really have them
+                const newSuggestions = (data.suggestedSkills || []).filter((s) => !skills.some((k) => k.toLowerCase() === String(s).toLowerCase()));
+                if (newSuggestions.length > 0) {
+                    setSuggestedSkills(prev => [...new Set([...prev, ...newSuggestions])]);
                 }
                 setShowTailorModal(false);
                 setTailorJD('');
-                setNotice('Tailored to the job. Review the changes, then use Save as → Save as new resume to keep your original.');
+                const review = res.data.review;
+                const checked = review?.revised ? ` A second AI checked it and fixed ${review.issues.length} issue${review.issues.length === 1 ? '' : 's'}.` : review ? ' A second AI checked it.' : '';
+                const skillHint = newSuggestions.length ? ` The job also asks for ${newSuggestions.slice(0, 3).join(', ')}${newSuggestions.length > 3 ? '…' : ''}: add them in Skills only if you have them.` : '';
+                setNotice(`Tailored to the job using only what's already in your resume.${checked}${skillHint} Review the changes, then use Save as → Save as new resume to keep your original.`);
             }
         } catch (err) {
             console.error(err);

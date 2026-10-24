@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 
-const LAST_UPDATED = 'October 6, 2026';
+const LAST_UPDATED = 'October 24, 2026';
 
 const openFeedback = (category) => {
     window.dispatchEvent(new CustomEvent('appliqa:open-feedback', { detail: { category } }));
@@ -56,7 +56,10 @@ const Privacy = () => (
             <List items={[
                 <><strong>Supabase:</strong> sign-in and database hosting.</>,
                 <><strong>Google Gemini:</strong> AI features. Your resume text, profile details, job descriptions, and chat messages are sent to Gemini to generate results.</>,
+                <><strong>Groq:</strong> a second AI model that checks drafts written for you (cover letters, tailored resumes, messages) and stands in when Gemini is busy. The same kind of data as Gemini is sent.</>,
                 <><strong>JSearch (via RapidAPI):</strong> job listings. Your search terms and location filters are sent to fetch results.</>,
+                <><strong>Resend:</strong> sends daily job alert emails, only if you turn them on. Your email address, name and the jobs in the email are sent.</>,
+                <><strong>GitHub:</strong> if you use “Scan GitHub”, your browser reads your public repositories from GitHub directly.</>,
                 <><strong>Vercel:</strong> website hosting.</>,
                 <><strong>Render:</strong> hosting for our API server.</>,
             ]} />

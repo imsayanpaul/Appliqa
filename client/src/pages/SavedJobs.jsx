@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useEscapeKey } from '../lib/useEscapeKey';
 import { formatSalary } from '../lib/format';
-import { FiTrash2, FiUser, FiVideo, FiFileText, FiCopy, FiCheck, FiX, FiPlus, FiEdit2, FiArrowUpRight } from 'react-icons/fi';
+import { FiTrash2, FiUser, FiVideo, FiFileText, FiCopy, FiCheck, FiX, FiPlus, FiEdit2, FiArrowUpRight, FiSend, FiMic, FiMail } from 'react-icons/fi';
 import { getSavedJobs, updateJobStatus, deleteSavedJob, saveJob, updateSavedJob } from '../services/api';
 import { EmptyState } from '../components/ui/EmptyState';
 import JobDetail from '../components/JobDetail';
 import { CompanyMark } from '../components/JobCard';
 import SelectMenu from '../components/ui/SelectMenu';
 import InterviewPrep from '../components/InterviewPrep';
+import ApplicationMessage from '../components/ApplicationMessage';
+import MockInterview from '../components/MockInterview';
+import { funnel, needsFollowUp, appliedDate, daysSince, jobSource } from '../lib/tracker';
 
 
 const STATUS_CONFIG = {
@@ -24,7 +27,10 @@ function SavedJobs({ user, resumeData }) {
     const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all');
+    const [searchParams] = useSearchParams();
+    const [filter, setFilter] = useState(searchParams.get('quiet') ? 'quiet' : 'all');
+    const [messageJob, setMessageJob] = useState(null); // { job, kind: 'follow-up' | 'thank-you' }
+    const [mockJob, setMockJob] = useState(null);
     const [selectedJob, setSelectedJob] = useState(null);
     const [prepJob, setPrepJob] = useState(null);
     const [coverLetterJob, setCoverLetterJob] = useState(null);
@@ -211,8 +217,8 @@ function SavedJobs({ user, resumeData }) {
 
     const handleStatusChange = async (jobId, newStatus) => {
         try {
-            await updateJobStatus(jobId, newStatus);
-            setJobs(prev => prev.map(j => j._id === jobId ? { ...j, status: newStatus } : j));
+            const res = await updateJobStatus(jobId, newStatus);
+            setJobs(prev => prev.map(j => j._id === jobId ? { ...j, ...(res.patch || { status: newStatus }) } : j));
         } catch (err) {
             console.error('Status update failed:', err);
         }
@@ -227,7 +233,8 @@ function SavedJobs({ user, resumeData }) {
         }
     };
 
-    const filteredJobs = filter === 'all' ? jobs : jobs.filter(j => j.status === filter);
+    const filteredJobs = filter === 'all' ? jobs : filter === 'quiet' ? jobs.filter(needsFollowUp) : jobs.filter(j => j.status === filter);
+    const stats = funnel(jobs);
 
     const statusCounts = {
         all: jobs.length,
@@ -235,7 +242,8 @@ function SavedJobs({ user, resumeData }) {
         applied: jobs.filter(j => j.status === 'applied').length,
         interview: jobs.filter(j => j.status === 'interview').length,
         offer: jobs.filter(j => j.status === 'offer').length,
-        rejected: jobs.filter(j => j.status === 'rejected').length
+        rejected: jobs.filter(j => j.status === 'rejected').length,
+        quiet: stats.quiet
     };
 
     if (!user) {
@@ -258,7 +266,7 @@ function SavedJobs({ user, resumeData }) {
         <div className="bg-[#F7F5F2] min-h-screen text-[#171717] pb-24">
             <section className="ds-frame ds-rule-b">
                 <div className="ds-rule-b px-6 sm:px-8 h-14 flex items-center justify-between gap-4">
-                    <span className="ds-mono truncate">tracker / {filter === 'all' ? 'all jobs' : STATUS_CONFIG[filter].label.toLowerCase()}</span>
+                    <span className="ds-mono truncate">tracker / {filter === 'all' ? 'all jobs' : filter === 'quiet' ? 'needs a follow-up' : STATUS_CONFIG[filter].label.toLowerCase()}</span>
                     <span className="ds-mono ds-mono-muted shrink-0 flex items-center gap-2">
                         {loading ? 'loading…' : `${filteredJobs.length} of ${jobs.length}`}
                         <span className={`ds-square ${loading ? 'animate-pulse' : ''}`} />
@@ -276,7 +284,7 @@ function SavedJobs({ user, resumeData }) {
                 </div>
 
                 <div role="tablist" aria-label="Filter by status" className="flex overflow-x-auto">
-                    {Object.entries({ all: { label: 'All' }, ...STATUS_CONFIG }).map(([key, val]) => {
+                    {Object.entries({ all: { label: 'All' }, ...STATUS_CONFIG, ...(stats.quiet ? { quiet: { label: 'Follow up' } } : {}) }).map(([key, val]) => {
                         const selected = filter === key;
                         return (
                             <button
@@ -294,6 +302,34 @@ function SavedJobs({ user, resumeData }) {
                     })}
                 </div>
             </section>
+
+            {!loading && stats.applied > 0 && (
+                <section className="ds-frame ds-rule-b" aria-label="Your results">
+                    <dl className="ds-gridlines grid-cols-2 lg:grid-cols-4 m-0">
+                        <div className="px-6 sm:px-8 py-5">
+                            <dt className="ds-mono ds-mono-muted">applications</dt>
+                            <dd className="m-0 mt-2 text-[32px] font-semibold tracking-[-0.03em] leading-none">{stats.applied}</dd>
+                        </div>
+                        <div className="px-6 sm:px-8 py-5">
+                            <dt className="ds-mono ds-mono-muted">got an interview</dt>
+                            <dd className="m-0 mt-2 text-[32px] font-semibold tracking-[-0.03em] leading-none">{stats.interviewRate}%<span className="ds-mono ds-mono-muted text-[13px] ml-2">{stats.interviews} of {stats.applied}</span></dd>
+                        </div>
+                        <div className="px-6 sm:px-8 py-5">
+                            <dt className="ds-mono ds-mono-muted">offers</dt>
+                            <dd className="m-0 mt-2 text-[32px] font-semibold tracking-[-0.03em] leading-none">{stats.offers}</dd>
+                        </div>
+                        <div className="px-6 sm:px-8 py-5 min-w-0">
+                            <dt className="ds-mono ds-mono-muted">what is working</dt>
+                            <dd className="m-0 mt-2 text-[14px] leading-snug text-[#2A2622]">
+                                {stats.sources[0]?.interviews
+                                    ? <>Best source: <strong>{stats.sources[0].source}</strong> ({stats.sources[0].interviews} of {stats.sources[0].applied} got interviews)</>
+                                    : stats.applied < 5 ? 'Apply to a few more jobs to see which sources and resumes get replies.' : 'No interviews yet. Try tailoring your resume to each job and following up after a week.'}
+                                {stats.resumes.length > 1 && stats.resumes[0].interviews > 0 && <><br />Best resume: <strong>{stats.resumes[0].name}</strong></>}
+                            </dd>
+                        </div>
+                    </dl>
+                </section>
+            )}
 
             <section className="ds-frame ds-rule-b" aria-busy={loading}>
                 {loading ? (
@@ -320,6 +356,14 @@ function SavedJobs({ user, resumeData }) {
                             const salary = formatSalary(job.salary);
                             const isCustomJob = Boolean(job.jobId?.startsWith('custom_') || job.job_id?.startsWith('custom_') || String(job._id)?.startsWith('temp_'));
                             const meta = [job.location, job.employmentType?.toLowerCase().replace(/_/g, '-')].filter(Boolean);
+                            const quiet = needsFollowUp(job);
+                            const sentDays = job.status !== 'saved' ? daysSince(appliedDate(job)) : null;
+                            const appliedLine = [
+                                sentDays !== null && `applied ${sentDays === 0 ? 'today' : `${sentDays}d ago`}`,
+                                job.status !== 'saved' && `via ${jobSource(job)}`,
+                                job.resumeSnapshot?.name && `resume: ${job.resumeSnapshot.name}`,
+                                job.followUpCount > 0 && `${job.followUpCount} follow-up${job.followUpCount === 1 ? '' : 's'}`,
+                            ].filter(Boolean);
 
                             return (
                                 <li key={job._id}>
@@ -350,6 +394,20 @@ function SavedJobs({ user, resumeData }) {
                                             {salary || <span className="ds-mono ds-mono-muted font-normal">salary not listed</span>}
                                         </p>
 
+                                        {appliedLine.length > 0 && (
+                                            <p className="ds-mono ds-mono-muted mt-2 mb-0 truncate">{appliedLine.join(' · ')}</p>
+                                        )}
+
+                                        {quiet && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setMessageJob({ job, kind: 'follow-up' })}
+                                                className="relative z-10 mt-3 self-start inline-flex items-center gap-2 bg-[#FEF3EC] border-0 px-3 py-2 text-[13px] font-semibold text-[#7C2D12] cursor-pointer hover:bg-[#FDE4D3]"
+                                            >
+                                                <FiSend size={13} /> No reply yet · write a follow-up
+                                            </button>
+                                        )}
+
                                         <div className="mt-auto pt-6 flex flex-wrap items-center gap-2">
                                             <div className="relative z-10 flex-1 min-w-[130px]">
                                                 <SelectMenu
@@ -362,9 +420,17 @@ function SavedJobs({ user, resumeData }) {
                                             </div>
 
                                             {job.status === 'interview' && (
-                                                <button type="button" className={iconBtn} onClick={() => setPrepJob(job)} aria-label={`Interview prep for ${job.title}`} title="Interview prep">
-                                                    <FiVideo size={15} />
-                                                </button>
+                                                <>
+                                                    <button type="button" className={iconBtn} onClick={() => setPrepJob(job)} aria-label={`Interview prep for ${job.title}`} title="Interview prep">
+                                                        <FiVideo size={15} />
+                                                    </button>
+                                                    <button type="button" className={iconBtn} onClick={() => setMockJob(job)} aria-label={`Mock interview for ${job.title}`} title="Practice interview">
+                                                        <FiMic size={15} />
+                                                    </button>
+                                                    <button type="button" className={iconBtn} onClick={() => setMessageJob({ job, kind: 'thank-you' })} aria-label={`Thank-you note for ${job.title}`} title="Thank-you note">
+                                                        <FiMail size={15} />
+                                                    </button>
+                                                </>
                                             )}
                                             {job.coverLetter && (
                                                 <button type="button" className={iconBtn} onClick={() => setCoverLetterJob(job)} aria-label={`Cover letter for ${job.title}`} title="Cover letter">
@@ -424,6 +490,21 @@ function SavedJobs({ user, resumeData }) {
                         }}
                         onClose={() => setSelectedJob(null)}
                     />
+                )}
+
+                {messageJob && (
+                    <ApplicationMessage
+                        job={messageJob.job}
+                        kind={messageJob.kind}
+                        user={user}
+                        resumeData={resumeData}
+                        onClose={() => setMessageJob(null)}
+                        onSent={(id, data) => setJobs(prev => prev.map(j => j._id === id ? { ...j, followUpCount: data.followUpCount, lastFollowUpAt: data.lastFollowUpAt } : j))}
+                    />
+                )}
+
+                {mockJob && (
+                    <MockInterview job={mockJob} user={user} resumeData={resumeData} onClose={() => setMockJob(null)} />
                 )}
 
                 {/* Interview Prep Modal */}

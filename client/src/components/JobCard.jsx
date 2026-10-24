@@ -116,6 +116,21 @@ function JobCard({ job, user, onClick, initialSaved = false, initialSavedId = nu
                 </p>
             )}
 
+            {job.aiFit && (
+                <p className="m-0 mt-2 text-[13px] text-[#4A4540] line-clamp-2">
+                    <span className={`font-semibold ${job.aiFit.verdict === 'strong' || job.aiFit.verdict === 'good' ? 'text-[#047857]' : 'text-[#B45309]'}`}>
+                        AI fit {job.aiFit.score} · {job.aiFit.verdict}
+                    </span>
+                    {job.aiFit.why ? ` · ${job.aiFit.why}` : ''}
+                </p>
+            )}
+
+            {job.flags?.length > 0 && (
+                <p className="m-0 mt-2 text-[13px] text-[#B45309] truncate">
+                    Heads up: {job.flags.map((f) => f.label).join(', ')}
+                </p>
+            )}
+
             {job.description && (
                 <p className="mt-3 mb-0 text-[14px] leading-relaxed text-[#4A4540] line-clamp-2">{snippet(job.description)}</p>
             )}

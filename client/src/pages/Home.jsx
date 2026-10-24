@@ -5,6 +5,7 @@ const ResumeUpload = lazy(() => import('../components/ResumeUpload'));
 import RecommendedJobs from '../components/RecommendedJobs';
 import { smartSearch, getSearchHistory, peekSearchHistory, deleteSearchHistory, clearAllSearchHistory, getSuggestedRoles, getSavedJobs } from '../services/api';
 import { readProfiles, formatUpdated } from '../lib/resumeProfiles';
+import { needsFollowUp } from '../lib/tracker';
 
 const STEPS = [
     {
@@ -150,7 +151,7 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
                 if (!active) return;
                 const jobs = res.data?.jobs || [];
                 const count = (st) => jobs.filter((j) => (j.status || 'saved') === st).length;
-                setTrackerCounts({ saved: count('saved'), applied: count('applied'), interview: count('interview'), offer: count('offer'), total: jobs.length });
+                setTrackerCounts({ saved: count('saved'), applied: count('applied'), interview: count('interview'), offer: count('offer'), total: jobs.length, quiet: jobs.filter(needsFollowUp).length });
             })
             .catch(() => active && setTrackerCounts({ saved: 0, applied: 0, interview: 0, offer: 0, total: 0 }));
         return () => { active = false; };
@@ -485,6 +486,20 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
                             </button>
                         ))}
                     </div>
+
+                    {trackerCounts?.quiet > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => navigate('/saved?quiet=1')}
+                            className="text-left border-0 border-t border-[#D8D4CC] cursor-pointer bg-[#FEF3EC] hover:bg-[#FDE4D3] px-6 sm:px-8 py-4 flex items-center justify-between gap-3"
+                        >
+                            <span className="text-[15px] font-semibold text-[#7C2D12]">
+                                {trackerCounts.quiet} application{trackerCounts.quiet === 1 ? '' : 's'} with no reply for a week
+                                <span className="block ds-mono text-[#9A3412] font-normal mt-1">write a follow-up</span>
+                            </span>
+                            <FiArrowUpRight size={18} className="text-[#7C2D12] shrink-0" />
+                        </button>
+                    )}
 
                     <button
                         type="button"

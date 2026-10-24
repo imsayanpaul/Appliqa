@@ -4,6 +4,7 @@ const { supabase } = require('../lib/supabase');
 const requireAuth = require('../middleware/auth');
 const { sendServerError } = require('../lib/errors');
 const rateLimit = require('../middleware/rateLimit');
+const { cleanDealBreakers } = require('../lib/dealBreakers');
 
 // Transform database row (snake_case) to the nested camelCase shape the frontend expects
 const formatProfile = (user) => ({
@@ -44,7 +45,9 @@ const formatProfile = (user) => ({
     salaryMax: user.salary_max || 0,
     jobType: user.job_type || '',
     remote: user.remote || false,
-    skills: user.skills || []
+    skills: user.skills || [],
+    dealBreakers: user.deal_breakers || [],
+    jobAlerts: !!user.job_alerts
   },
   builderData: user.builder_data || null,
   resumeData: {
@@ -140,6 +143,8 @@ router.post('/profile', requireAuth, async (req, res) => {
       if (preferences.jobType !== undefined) updateData.job_type = preferences.jobType;
       if (preferences.remote !== undefined) updateData.remote = preferences.remote;
       if (preferences.skills) updateData.skills = preferences.skills;
+      if (preferences.dealBreakers !== undefined) updateData.deal_breakers = cleanDealBreakers(preferences.dealBreakers);
+      if (preferences.jobAlerts !== undefined) updateData.job_alerts = !!preferences.jobAlerts;
     }
 
     if (resumeData) {
@@ -162,12 +167,18 @@ router.post('/profile', requireAuth, async (req, res) => {
       updateData.builder_data = builderData;
     }
 
-    const { data: user, error } = await supabase
+    let { data: user, error } = await supabase
       .from('profiles')
       .update(updateData)
       .eq('id', userId)
       .select()
       .single();
+    // Deal-breakers and alerts need the 20261025 migration; save everything else without them
+    if (error && (error.code === '42703' || error.code === 'PGRST204') && ('deal_breakers' in updateData || 'job_alerts' in updateData)) {
+      delete updateData.deal_breakers;
+      delete updateData.job_alerts;
+      ({ data: user, error } = await supabase.from('profiles').update(updateData).eq('id', userId).select().single());
+    }
 
     if (error) throw error;
 

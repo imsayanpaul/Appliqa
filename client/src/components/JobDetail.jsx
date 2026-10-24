@@ -18,6 +18,7 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
     const [showATS, setShowATS] = useState(false);
     useEscapeKey(onClose);
     const [coverLetter, setCoverLetter] = useState(job.coverLetter || '');
+    const [coverReview, setCoverReview] = useState(null);
     const [loadingCover, setLoadingCover] = useState(false);
     const [copied, setCopied] = useState(false);
     const [recruiterDM, setRecruiterDM] = useState(job.recruiterDM || job.recruiter_dm || '');
@@ -49,13 +50,14 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
         try {
             const res = await getMatchScore({
                 resumeData,
-                preferences: user?.preferences,
+                preferences: { name: user?.name, ...user?.preferences },
                 jobDescription: job.description,
                 jobTitle: job.title
             });
             setMatchData(res.data.match);
         } catch (err) {
             console.error('Match score failed:', err);
+            setMatchData({ failed: true });
         } finally {
             setLoadingMatch(false);
         }
@@ -83,6 +85,7 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
     const handleGenerateCoverLetter = async () => {
         setLoadingCover(true);
         setCoverLetter('');
+        setCoverReview(null);
         try {
             const res = await generateCoverLetter({
                 resumeData,
@@ -92,6 +95,7 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
                 jobDescription: job.description
             });
             setCoverLetter(res.data.coverLetter);
+            setCoverReview(res.data.review || null);
             // Increment cover letters generated count
             try { await incrementStat('cover_letters_generated_count'); } catch (_) {}
             // Auto-save cover letter if job is saved
@@ -161,7 +165,8 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
     const meta = [job.location, job.remote ? 'Remote' : null, job.employmentType?.toLowerCase().replace(/_/g, '-'), posted && `posted ${posted}`].filter(Boolean);
     const score = matchData ? Math.min(100, Math.max(0, Number(matchData.score) || 0)) : 0;
     const fitLabel = score >= 70 ? 'strong fit' : score >= 40 ? 'moderate fit' : 'partial fit';
-    const analysisFailed = matchData?.reasons?.[0]?.includes('Unable to analyze');
+    const analysisFailed = Boolean(matchData?.failed || matchData?.reasons?.[0]?.includes('Unable to analyze'));
+    const DIMENSIONS = [['skills', 'skills'], ['experience', 'experience'], ['level', 'level'], ['goals', 'your goals']];
 
     const toolBtn = 'ds-cell-hover text-left bg-[#F7F5F2] border-0 cursor-pointer px-5 py-5 flex items-start justify-between gap-3 disabled:opacity-50 disabled:cursor-not-allowed';
 
@@ -255,7 +260,7 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
 
                             {matchData && analysisFailed && (
                                 <div className="mt-5 flex items-center justify-between gap-4">
-                                    <p className="m-0 text-[15px] text-[#4A4540]">The match analysis is busy right now.</p>
+                                    <p className="m-0 text-[15px] text-[#4A4540]">Couldn’t score this job right now.</p>
                                     <button
                                         type="button"
                                         className="ds-btn ds-btn-line !min-h-[40px] !text-[14px]"
@@ -269,6 +274,26 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
 
                             {matchData && !analysisFailed && (
                                 <>
+                                    {matchData.dimensions && Object.keys(matchData.dimensions).length > 0 && (
+                                        <dl className="m-0 mt-6 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3">
+                                            {DIMENSIONS.filter(([k]) => matchData.dimensions[k] !== undefined).map(([k, label]) => (
+                                                <div key={k}>
+                                                    <dt className="ds-mono ds-mono-muted">{label}</dt>
+                                                    <dd className="m-0 mt-1 flex items-center gap-2">
+                                                        <span className="text-[15px] font-semibold w-8">{matchData.dimensions[k]}</span>
+                                                        <span className="flex-1 h-1 bg-[#EFECE6]"><span className="block h-full bg-[#171717]" style={{ width: `${matchData.dimensions[k]}%` }} /></span>
+                                                    </dd>
+                                                </div>
+                                            ))}
+                                        </dl>
+                                    )}
+
+                                    {matchData.flags?.length > 0 && (
+                                        <p className="m-0 mt-5 px-3 py-2 bg-[#FEF3EC] text-[14px] text-[#7C2D12]">
+                                            <strong>Check before applying:</strong> {matchData.flags.map((f) => f.label).join(', ')}.
+                                        </p>
+                                    )}
+
                                     {matchData.reasons?.length > 0 && (
                                         <ol className="list-none m-0 mt-6 p-0">
                                             {matchData.reasons.map((r, i) => (
@@ -288,6 +313,13 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
                                                     <AddSkillTag key={i} skill={s} />
                                                 ))}
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {matchData.gaps?.length > 0 && (
+                                        <div className="mt-5">
+                                            <p className="ds-mono ds-mono-muted m-0 mb-2">honest gaps</p>
+                                            <ul className="ds-list m-0">{matchData.gaps.map((g, i) => <li key={i}>{g}</li>)}</ul>
                                         </div>
                                     )}
 
@@ -332,7 +364,14 @@ function JobDetail({ job, user, resumeData, onClose, initialSaved, initialSavedI
                     </section>
 
                     {(loadingCover || coverLetter) && (
-                        renderOutput({ title: 'cover letter', loading: loadingCover, loadingText: 'writing your cover letter…', text: coverLetter, copiedState: copied, onCopy: handleCopyCoverLetter, onRegenerate: handleGenerateCoverLetter })
+                        renderOutput({ title: 'cover letter', loading: loadingCover, loadingText: 'writing your cover letter, then a second AI checks it…', text: coverLetter, copiedState: copied, onCopy: handleCopyCoverLetter, onRegenerate: handleGenerateCoverLetter })
+                    )}
+                    {coverReview && !loadingCover && (
+                        <p className="ds-mono ds-mono-muted m-0 px-6 sm:px-8 pb-4 -mt-2">
+                            {coverReview.revised
+                                ? `checked by a second ai · fixed ${coverReview.issues.length} issue${coverReview.issues.length === 1 ? '' : 's'}`
+                                : coverReview.issues?.length ? 'checked by a second ai · review it before sending' : 'checked by a second ai · only uses facts from your profile'}
+                        </p>
                     )}
 
                     {(loadingDM || recruiterDM) && (

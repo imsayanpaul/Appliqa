@@ -166,6 +166,7 @@ export function toAIResume(data, uploaded = null, name = '') {
         experience: experience.length ? experience : (uploaded?.experience || []),
         education: education.length ? education : (uploaded?.education || []),
         certifications: p.certifications.map(certificationLabel),
+        achievements: p.achievements,
         languages: p.languages,
         projects: p.projects,
         rawText: data?.rawText || uploaded?.rawText || profileToText(p, data?.personalInfo || {}),
