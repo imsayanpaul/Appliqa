@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal, flushSync } from 'react-dom';
-import { certificationLabel, newId, normalizeCertification } from '../lib/resumeProfile';
+import { certificationLabel, newId, normalizeCertification, EXPERIENCE_TYPES } from '../lib/resumeProfile';
 import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, dataFromAnalysis, formatUpdated, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
 import { normalizeDesign, readPhoto, fontStack } from '../lib/resumeDesign';
 import ResumeDocument from '../components/resume/ResumeDocument';
@@ -551,6 +551,8 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
         setExperience([...experience, {
             company: '',
             role: '',
+            type: 'Full-time',
+            location: '',
             dates: '',
             bullets: ['']
         }]);
@@ -1521,6 +1523,26 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                                                         onChange={(e) => updateExperienceField(expIdx, 'role', e.target.value)}
                                                         className="resume-input-field"
                                                         placeholder="Software Engineer"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="resume-input-label">Type</label>
+                                                    <select
+                                                        value={exp.type || 'Full-time'}
+                                                        onChange={(e) => updateExperienceField(expIdx, 'type', e.target.value)}
+                                                        className="resume-input-field"
+                                                    >
+                                                        {EXPERIENCE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="resume-input-label">Location</label>
+                                                    <input
+                                                        type="text"
+                                                        value={exp.location || ''}
+                                                        onChange={(e) => updateExperienceField(expIdx, 'location', e.target.value)}
+                                                        className="resume-input-field"
+                                                        placeholder="Kolkata · Remote"
                                                     />
                                                 </div>
                                             </div>
