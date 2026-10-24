@@ -34,7 +34,7 @@ export function parseLanguage(text) {
         // professional working / limited working / elementary
         const level = LANGUAGE_LEVELS.find((l) => l.toLowerCase() === t)
             || (/native|bilingual|mother|first/.test(t) ? 'Native'
-                : /full professional|advanced|fluent/.test(t) ? 'Fluent'
+                : /full professional|advanced|fluent|proficient/.test(t) ? 'Fluent'
                 : /professional|business|working/.test(t) && !/limited/.test(t) ? 'Professional'
                 : /limited|intermediate|conversational/.test(t) ? 'Conversational'
                 : /elementary|beginner|basic/.test(t) ? 'Basic' : '');
@@ -230,6 +230,15 @@ const DATE_ONLY = new RegExp(`^\\s*\\(?${ONE_DATE}\\)?\\s*$`, 'i');
 function parseCertificationText(text) {
     let rest = text.trim();
     let issueDate = '';
+    // "… Aug 2026 Credential https://…" / "ID: UC-1a2b": the link and ID have their own fields
+    const url = rest.match(/\bhttps?:\/\/\S+/i)?.[0] || '';
+    const credentialId = rest.match(/\b(?:credential\s+)?id(?:\s*[:#]\s*|\s+)((?=[\w/.-]*\d)[A-Z0-9][\w/.-]{3,})/i)?.[1] || '';
+    rest = rest
+        .replace(url, '')
+        .replace(/\b(?:credential\s+)?id(?:\s*[:#]\s*|\s+)(?=[\w/.-]*\d)[A-Z0-9][\w/.-]{3,}/i, '')
+        .replace(/\[?\b(credential|verify|certificate link|view)\b\]?/gi, '')
+        .replace(/[\s|·•,–—-]+$/, '')
+        .trim();
     const tail = rest.match(DATE_TAIL);
     if (tail && tail.index > 0) {
         // A range ends when the certificate was earned
@@ -242,19 +251,19 @@ function parseCertificationText(text) {
     // Split on the last spaced dash; issuers can contain hyphens ("NASSCOM IT-ITES SSC")
     const dash = rest.match(/^(.*)\s+[–—-]\s+(.+)$/);
     const [name, provider] = paren ? [paren[1], paren[2]] : dash ? [dash[1], dash[2]] : [rest, ''];
-    return { name: name.trim(), provider: provider.trim(), issueDate };
+    return { name: name.trim(), provider: provider.trim(), issueDate, credentialId, credentialUrl: url };
 }
 
 export function normalizeCertification(item) {
     if (typeof item === 'string') {
-        return { id: newId(), ...parseCertificationText(item), credentialId: '', credentialUrl: '' };
+        return { id: newId(), ...parseCertificationText(item) };
     }
     const base = item || {};
     // Older imports put the date in the issuer ("Aug 2026") or on the end of the name
     if (!base.issueDate && (DATE_ONLY.test(str(base.provider)) || DATE_TAIL.test(str(base.name)))) {
         const parsed = parseCertificationText([base.name, base.provider].filter(Boolean).join(' – '));
         if (parsed.name && parsed.issueDate) {
-            return { id: base.id || newId(), ...parsed, credentialId: str(base.credentialId), credentialUrl: str(base.credentialUrl) };
+            return { id: base.id || newId(), ...parsed, credentialId: str(base.credentialId) || parsed.credentialId, credentialUrl: str(base.credentialUrl) || parsed.credentialUrl };
         }
     }
     return {

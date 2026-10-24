@@ -19,6 +19,7 @@ const DATE = `(?:${MONTH}\\.?,?\\s*(?:'|’)?\\d{2,4}|\\d{1,2}[/.-]\\d{2,4}|(?:1
 const END = `(?:${DATE}|present|current|now|ongoing|till date|pursuing)`;
 const RANGE_RE = new RegExp(`(${DATE})\\s*(?:–|—|-|to|till)\\s*(${END})(\\s*\\(expected\\))?`, 'i');
 const SINGLE_DATE_RE = new RegExp(`\\b(${MONTH}\\.?\\s*(?:19|20)\\d{2}|(?:19|20)\\d{2})\\b`, 'i');
+const TRAILING_DATE_RE = new RegExp(`\\s(${MONTH}\\.?\\s*(?:19|20)\\d{2}|(?:19|20)\\d{2})\\s*$`, 'i');
 const BULLET_RE = /^\s*(?:[-•▪●◦○■□➢➤►*·–]|\d+[.)])\s+/;
 const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const PHONE_RE = /(?:\+?\d{1,3}[\s-]?)?(?:\(?\d{2,5}\)?[\s-]?)?\d{3,5}[\s-]?\d{4,5}/;
@@ -29,6 +30,9 @@ const HAS_URL = new RegExp(URL_SRC, 'i');
 const ROLE_WORDS = /\b(developer|engineer|analyst|designer|manager|intern|scientist|consultant|architect|administrator|specialist|lead|associate|executive|officer|tester|programmer|trainee|researcher|coordinator|marketer|accountant|student)\b/i;
 const SCHOOL_WORDS = /\b(university|college|institute|institution|school|academy|vidyalaya|polytechnic|iit|nit|iiit|campus)\b/i;
 const DEGREE_WORDS = /\b(b\.?\s?tech|m\.?\s?tech|b\.?\s?e\b|m\.?\s?e\b|b\.?\s?sc|m\.?\s?sc|bca|mca|bba|mba|b\.?\s?com|m\.?\s?com|b\.?a\b|m\.?a\b|bachelor|master|ph\.?d|doctorate|diploma|class\s*(?:x|xii|10|12)|10th|12th|higher secondary|secondary|ssc|hsc|icse|isc|cbse|matric|intermediate)\b/i;
+
+// School boards (India's national and state boards) named next to Class 10 / 12
+const BOARD_RE = /\b(CBSE|ICSE|ISC|IB|IGCSE|NIOS|WBBSE|WBCHSE|WBSCVET|[A-Z]{2,4}BSE|[A-Z]{2,4}HSE|[A-Z]{2,4}SEB|State Board)\b/;
 
 const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
 const stripBullet = (s) => clean(String(s).replace(BULLET_RE, ''));
@@ -73,9 +77,12 @@ function joinWrapped(lines) {
         // A bullet that stops mid-sentence ("…compile documents in") carries on
         // to the next line, even when that line starts with "<45ms" or a capital
         const unfinishedBullet = prevIsBullet && UNFINISHED_RE.test(prev || '');
+        // "Groq (Whisper," + "LLaMA 3.3), Docker": an open bracket carries on too
+        const openParen = (prev?.match(/\(/g) || []).length > (prev?.match(/\)/g) || []).length;
         const looksLikeContinuation = /^[a-z(]/.test(line)
             || (prevIsBullet && /^[<>~%$₹+\d]/.test(line))
-            || unfinishedBullet;
+            || unfinishedBullet
+            || openParen;
         if (prev && !isBullet && looksLikeContinuation && !RANGE_RE.test(line)) {
             // "pre-" + "dictive" -> "predictive"
             out[out.length - 1] = /[a-z]-$/.test(prev) ? `${prev.slice(0, -1)}${line}` : `${prev} ${line}`;
@@ -90,9 +97,25 @@ function joinWrapped(lines) {
 function findDates(line) {
     const m = line.match(RANGE_RE);
     if (m) return { text: clean(m[0]), rest: clean(line.replace(m[0], '').replace(/[|,–—-]\s*$/, '').replace(/^\s*[|,–—-]/, '')) };
-    const s = line.match(SINGLE_DATE_RE);
-    if (s && line.length < 60) return { text: clean(s[0]), rest: clean(line.replace(s[0], '').replace(/[|,–—-]\s*$/, '').replace(/^\s*[|,–—-]/, '')) };
+    // A lone date anywhere on a short line, or at the very end of a long one
+    // ("Higher Secondary (CBSE) – Bholananda National Vidyalaya, Barrackpore 2023")
+    const s = line.length < 60 ? line.match(SINGLE_DATE_RE) : line.match(TRAILING_DATE_RE);
+    if (s) return { text: clean(s[1] || s[0]), rest: clean(line.replace(s[1] || s[0], '').replace(/[|,–—-]\s*$/, '').replace(/^\s*[|,–—-]/, '')) };
     return null;
+}
+
+// Split a comma list without breaking "Groq (Whisper, LLaMA 3.3)" apart
+function splitList(text, separators = /[,|]/) {
+    const out = [];
+    let depth = 0;
+    let cur = '';
+    for (const ch of text) {
+        if (ch === '(' || ch === '[') depth += 1;
+        if ((ch === ')' || ch === ']') && depth > 0) depth -= 1;
+        if (depth === 0 && separators.test(ch)) { out.push(cur); cur = ''; } else cur += ch;
+    }
+    out.push(cur);
+    return out.map(clean).filter(Boolean);
 }
 
 // Split "Company | Role", "Role at Company", "Role, Company, City"
@@ -190,13 +213,22 @@ function parseEducation(lines) {
             else if (p.length > 1) cur.extra.push(p);
         }
     }
-    return entries.filter((e) => e.school || e.degree).map((e) => ({
-        school: e.school || e.extra.shift() || '',
-        degree: e.degree || e.extra.shift() || '',
-        dates: e.dates,
-        ...(e.score ? { scoreType: e.scoreType, score: e.score, scoreMax: e.scoreMax } : {}),
-    }));
+    return entries.filter((e) => e.school || e.degree).map((e) => {
+        let degree = e.degree || e.extra.shift() || '';
+        // "Higher Secondary (CBSE)": the board has its own field
+        const board = degree.match(BOARD_RE) || e.extra.join(' ').match(BOARD_RE);
+        if (board) degree = clean(degree.replace(new RegExp(`\\s*[(,–—-]?\\s*${board[1]}\\s*\\)?`, 'i'), ''));
+        return {
+            school: e.school || e.extra.shift() || '',
+            degree,
+            board: board ? board[1].toUpperCase().replace(/\s+/g, ' ') : '',
+            dates: e.dates,
+            ...(e.score ? { scoreType: e.scoreType, score: e.score, scoreMax: e.scoreMax } : {}),
+        };
+    });
 }
+
+const PROJECT_TITLE_RE = /\s[|–—]\s|\[(?:live demo|demo|github|code|link)\]|https?:\/\//i;
 
 function parseProjects(lines) {
     const entries = [];
@@ -207,11 +239,27 @@ function parseProjects(lines) {
             cur.bullets.push(stripBullet(line));
             continue;
         }
-        if (!cur || cur.bullets.length) { cur = { header: [], bullets: [] }; entries.push(cur); }
+        // A full sentence right after the bullets ("Dockerised backend on Render,
+        // frontend on Vercel.") is the end of that project, not a new title
+        if (cur?.bullets.length && /\.$/.test(line) && line.split(' ').length >= 5 && !PROJECT_TITLE_RE.test(line)) {
+            cur.bullets.push(line);
+            continue;
+        }
+        // A second title-like line starts the next project even with no bullet
+        // markers between (PDFs that draw bullets as styling, not text)
+        const titleLike = PROJECT_TITLE_RE.test(line) || RANGE_RE.test(line);
+        if (!cur || cur.bullets.length || (titleLike && cur.header.some((h) => PROJECT_TITLE_RE.test(h) || RANGE_RE.test(h)))) {
+            cur = { header: [], bullets: [] };
+            entries.push(cur);
+        }
         cur.header.push(line);
     }
     return entries.filter((e) => e.header.length).map((e) => {
-        const [first, ...more] = e.header;
+        // The title is the line that reads like one ("Name | Tagline", "[GitHub]"),
+        // not a stray sentence that landed above it
+        const titleIdx = Math.max(0, e.header.findIndex((h) => PROJECT_TITLE_RE.test(h)));
+        const first = e.header[titleIdx];
+        const more = e.header.filter((_, i) => i !== titleIdx);
         const d = findDates(first);
         const titleLine = d ? d.rest : first;
         const urls = e.header.join(' ').match(URL_RE) || [];
@@ -223,7 +271,7 @@ function parseProjects(lines) {
         const range = d ? d.text.split(/\s*(?:–|—|-|to)\s*/i) : [];
         return {
             name,
-            tech: techLine ? techLine.replace(/^(tech(nologies)?|stack|tools)\s*[:\-]\s*/i, '').split(/\s*[,|]\s*/).map(clean).filter(Boolean) : [],
+            tech: techLine ? splitList(techLine.replace(/^(tech(nologies)?|stack|tools)\s*[:\-]\s*/i, '')) : [],
             description: [...descLines, ...e.bullets.map((b) => `- ${b}`)].join('\n'),
             liveUrl: liveUrl ? (/^https?:/i.test(liveUrl) ? liveUrl : `https://${liveUrl}`) : '',
             repoUrl: repoUrl ? (/^https?:/i.test(repoUrl) ? repoUrl : `https://${repoUrl}`) : '',
@@ -284,6 +332,10 @@ export function parseResumeText(rawText) {
     for (const line of lines) {
         const key = sectionOf(line);
         if (key) { current = key; sections[key] = sections[key] || []; continue; }
+        // "Languages: English (Fluent), Hindi" under another heading is its own
+        // section. Under Skills it means programming languages, so it stays there.
+        const inline = current !== 'skills' && line.match(/^(languages(?: known)?|spoken languages)\s*:\s*(.+)$/i);
+        if (inline) { (sections.languages = sections.languages || []).push(inline[2]); continue; }
         (sections[current] = sections[current] || []).push(line);
     }
 
