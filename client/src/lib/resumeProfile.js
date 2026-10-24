@@ -48,6 +48,49 @@ export function formatLanguage({ name, level }) {
     return n && level ? `${n} (${level})` : n;
 }
 
+// A resume headline as a job-search role: "Aspiring developer | Freshers" -> "Developer".
+// Returns '' when what is left does not read like a job title.
+const HEADLINE_FILLER = /\b(aspiring|passionate|motivated|enthusiastic|dedicated|budding|seeking|looking for|open to|entry[- ]level|fresh(?:er|ers|ie)?|fe?shers?)\b/gi;
+// A student or degree headline ("BCA Student") is not a role to search for
+const NOT_A_ROLE = /\b(student|graduate|undergrad(?:uate)?|bca|mca|b\.?\s?tech|m\.?\s?tech|b\.?sc|m\.?sc|b\.?com|b\.e)\b/i;
+export function roleFromHeadline(headline) {
+    const role = String(headline || '')
+        .split(/[|•·,;/]| - | – /)[0]
+        .replace(HEADLINE_FILLER, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    if (!role || role.split(' ').length > 5 || !/[a-z]{3}/i.test(role) || NOT_A_ROLE.test(role)) return '';
+    if (/^(developer|engineer|programmer|coder|professional)$/i.test(role)) return ''; // too vague to search for
+    return role.replace(/\b[a-z]/g, (c) => c.toUpperCase());
+}
+
+// Roles a resume points to when the scan suggested none (no AI, or a fresher
+// whose headline and experience carry no job title): the target role, the
+// headline, then roles implied by the skills.
+const SKILL_ROLES = [
+    ['AI/ML Engineer', /\b(machine learning|deep learning|tensorflow|pytorch|scikit|keras|nlp|computer vision|llm|ml)\b/i],
+    ['Frontend Developer', /\b(react|angular|vue|next\.?js|html5?|css3?|tailwind|javascript|typescript|front[- ]?end)\b/i],
+    ['Backend Developer', /\b(node(\.?js)?|express|django|flask|fastapi|spring|php|laravel|mongodb|postgres(ql)?|mysql|rest(ful)? apis?|back[- ]?end)\b/i],
+    ['Data Analyst', /\b(excel|power ?bi|tableau|pandas|data analysis|statistics)\b/i],
+    ['Mobile App Developer', /\b(android|kotlin|flutter|react native|swift|ios)\b/i],
+    ['UI/UX Designer', /\b(figma|ui\/ux|ux design|wireframing|prototyping|adobe xd)\b/i],
+    ['DevOps Engineer', /\b(docker|kubernetes|aws|azure|gcp|ci\/cd|jenkins|devops|terraform)\b/i],
+    ['Digital Marketing Executive', /\b(digital marketing|seo|sem|social media marketing|google ads)\b/i],
+    ['Software Engineer', /\b(java|python|c\+\+|c#|c|go|rust|data structures|algorithms|oop|object[- ]oriented)\b/i],
+];
+export function suggestRoles(data, desiredRole = '') {
+    const skills = (data?.skills || []).map((s) => String(s));
+    // Rank by how many of the resume's skills point to each role
+    const score = new Map(SKILL_ROLES.map(([role, re]) => [role, skills.filter((s) => re.test(s)).length]));
+    const front = score.get('Frontend Developer'), back = score.get('Backend Developer');
+    if (front && back) score.set('Full Stack Developer', Math.min(front, back) + 0.5);
+    const fromSkills = [...score].filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).map(([role]) => role);
+    const seen = new Set();
+    return [roleFromHeadline(desiredRole), roleFromHeadline(data?.personalInfo?.title), ...(data?.suggestedRoles || []), ...fromSkills]
+        .filter((r) => r && !seen.has(r.toLowerCase()) && seen.add(r.toLowerCase()))
+        .slice(0, 5);
+}
+
 let idCounter = 0;
 export const newId = () => `${Date.now().toString(36)}${(idCounter++).toString(36)}`;
 

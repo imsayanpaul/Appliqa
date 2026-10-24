@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal, flushSync } from 'react-dom';
-import { certificationLabel, newId, normalizeCertification, EXPERIENCE_TYPES } from '../lib/resumeProfile';
+import { certificationLabel, newId, normalizeCertification, roleFromHeadline, EXPERIENCE_TYPES } from '../lib/resumeProfile';
 import { readProfiles, writeProfiles, makeProfile, uniqueName, stripCollection, dataFromAnalysis, formatUpdated, MAX_PROFILES, MAX_NAME_LENGTH } from '../lib/resumeProfiles';
 import { normalizeDesign, readPhoto, fontStack } from '../lib/resumeDesign';
 import ResumeDocument from '../components/resume/ResumeDocument';
@@ -889,7 +889,12 @@ export default function ResumeCreator({ user, resumeData, onResumeAnalyzed, onUp
                 portfolioWebsite: personalInfo.website,
                 preferences: {
                     ...user?.preferences,
-                    desiredRole: personalInfo.title,
+                    // Keep a role the user set; the headline ("Aspiring developer | Freshers")
+                    // only fills an empty one, cleaned into a searchable job title
+                    desiredRole: user?.preferences?.desiredRole?.trim()
+                        || roleFromHeadline(personalInfo.title)
+                        || user?.resumeData?.suggestedRoles?.[0]
+                        || '',
                     // Job search wants a city, not the full address on the resume
                     location: searchCity(personalInfo.location, personalInfo.country || user?.preferences?.country)
                         || searchCity(user?.preferences?.location, user?.preferences?.country)

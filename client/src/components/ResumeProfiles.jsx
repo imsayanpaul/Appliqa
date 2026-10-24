@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Copy, Star, Trash2, ArrowUpRight, X, Check, FileUp } from 'lucide-react';
 import ResumeProfile from './ResumeProfile';
 import { createOrUpdateUser } from '../services/api';
-import { toBuilderData, profileToText } from '../lib/resumeProfile';
+import { toBuilderData, profileToText, suggestRoles } from '../lib/resumeProfile';
 import {
     readProfiles, writeProfiles, makeProfile, uniqueName, cleanName, dataFromAnalysis,
     nameFromFile, formatUpdated, stripCollection, MAX_PROFILES, MAX_NAME_LENGTH,
@@ -272,7 +272,7 @@ export default function ResumeProfiles({ user, onUpdateUser, analysis, uploadedA
                 title={`resume / ${selected.name.toLowerCase()}`}
                 source={selected.data}
                 onSave={handleSaveSelected}
-                suggestedRoles={suggestedRoles}
+                suggestedRoles={suggestedRoles?.length ? suggestedRoles : suggestRoles(selected.data, user?.preferences?.desiredRole)}
                 onFindJobs={onFindJobs}
                 onSearchRole={onSearchRole}
             />
