@@ -290,11 +290,13 @@ function RecommendedJobs({ user, resumeData, onUpdateUser }) {
                             );
                         })}
                     </ul>
+                    {/* Right under the first jobs, where people are already looking */}
+                    {user && <AlertsLine user={user} onUpdateUser={onUpdateUser} />}
                     {jobs.length > FIRST_PAGE && (
                         <button
                             type="button"
                             onClick={() => setShowAll(!showAll)}
-                            className="ds-btn ds-btn-line w-full !min-h-14 !border-x-0 !border-b-0"
+                            className="w-full min-h-14 flex items-center justify-center text-[15px] font-semibold text-[#171717] bg-transparent border-0 border-t border-[#D8D4CC] cursor-pointer hover:bg-white hover:text-[#CA3C0A] transition-colors"
                         >
                             {showAll ? 'Show fewer' : `Show ${jobs.length - FIRST_PAGE} more`}
                         </button>
@@ -312,7 +314,7 @@ function RecommendedJobs({ user, resumeData, onUpdateUser }) {
                 </div>
             )}
 
-            {user && !meta.needsProfile && <AlertsLine user={user} onUpdateUser={onUpdateUser} />}
+            {user && !loading && !jobs.length && !meta.needsProfile && <AlertsLine user={user} onUpdateUser={onUpdateUser} />}
 
             {selectedJob && (
                 <Suspense fallback={null}>
