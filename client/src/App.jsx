@@ -550,7 +550,7 @@ function AppContent() {
                         aria-label="Appliqa home"
                         onClick={(e) => { e.preventDefault(); handleNavClick('/'); }}
                     >
-                        <Logo height={25} />
+                        <Logo height={22} />
                     </a>
 
                     <nav className="navbar-desktop-nav" aria-label="Primary">
@@ -643,7 +643,7 @@ function AppContent() {
                                 aria-label="Appliqa home"
                                 onClick={(e) => { e.preventDefault(); handleNavClick('/'); }}
                             >
-                                <Logo height={25} />
+                                <Logo height={22} />
                             </a>
                             <button type="button" className="navbar-mobile-toggle" style={{ display: 'flex' }} onClick={toggleMenu} aria-label="Close menu">
                                 <X size={20} />
