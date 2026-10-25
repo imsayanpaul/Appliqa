@@ -1,6 +1,9 @@
 <p align="center">
   <a href="https://www.appliqa.xyz">
-    <img src="client/public/logotext.svg" alt="Appliqa" width="220" />
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="client/public/logotext-dark.svg" />
+      <img src="client/public/logotext.svg" alt="Appliqa" width="260" />
+    </picture>
   </a>
 </p>
 

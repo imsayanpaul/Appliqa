@@ -458,8 +458,8 @@ function Home({ user, resumeData, onResumeAnalyzed, onUpdateUser }) {
                         <button type="button" className="ds-btn ds-btn-accent !min-h-[88px] !px-8 !text-lg" onClick={() => navigate('/profile')}>
                             Create free account <FiArrowUpRight size={20} className="ds-btn-arrow" />
                         </button>
-                        <button type="button" className="ds-btn !min-h-[72px] !px-8 bg-transparent text-[#171717] hover:bg-white ds-rule-t" onClick={() => navigate('/pricing')}>
-                            See pricing <FiArrowRight size={18} className="ds-btn-arrow" />
+                        <button type="button" className="ds-btn !min-h-[72px] !px-8 bg-transparent text-[#171717] hover:bg-white ds-rule-t" onClick={() => navigate('/search')}>
+                            Browse jobs <FiArrowRight size={18} className="ds-btn-arrow" />
                         </button>
                     </div>
                 </section>

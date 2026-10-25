@@ -29,7 +29,6 @@ const pageImports = {
     CareerPath: () => import('./pages/CareerPath'),
     Advisor: () => import('./pages/Advisor'),
     ResumeCreator: () => import('./pages/ResumeCreator'),
-    Pricing: () => import('./pages/Pricing'),
     Vault: () => import('./pages/Vault'),
     SearchResults: () => import('./pages/SearchResults'),
     SavedJobs: () => import('./pages/SavedJobs'),
@@ -39,7 +38,6 @@ const Profile = lazyWithRetry(pageImports.Profile);
 const CareerPath = lazyWithRetry(pageImports.CareerPath);
 const Advisor = lazyWithRetry(pageImports.Advisor);
 const ResumeCreator = lazyWithRetry(pageImports.ResumeCreator);
-const Pricing = lazyWithRetry(pageImports.Pricing);
 const Vault = lazyWithRetry(pageImports.Vault);
 const SearchResults = lazyWithRetry(pageImports.SearchResults);
 const SavedJobs = lazyWithRetry(pageImports.SavedJobs);
@@ -210,7 +208,6 @@ function AppContent() {
         { name: 'Search jobs', desc: 'find and filter live jobs', path: '/search' },
         { name: 'Resume builder', desc: 'write and tailor your resume', path: '/resume-creator', tag: 'ai' },
         { name: 'Advisor', desc: 'ask an ai career coach', path: '/advisor' },
-        { name: 'Pricing', desc: 'free to start', path: '/pricing' },
     ];
     const visibleNavItems = user ? navItems : publicNavItems;
     useEscapeKey(() => setIsOpen(false), isOpen);
@@ -553,7 +550,7 @@ function AppContent() {
                         aria-label="Appliqa home"
                         onClick={(e) => { e.preventDefault(); handleNavClick('/'); }}
                     >
-                        <Logo height={22} />
+                        <Logo height={25} />
                     </a>
 
                     <nav className="navbar-desktop-nav" aria-label="Primary">
@@ -646,7 +643,7 @@ function AppContent() {
                                 aria-label="Appliqa home"
                                 onClick={(e) => { e.preventDefault(); handleNavClick('/'); }}
                             >
-                                <Logo height={22} />
+                                <Logo height={25} />
                             </a>
                             <button type="button" className="navbar-mobile-toggle" style={{ display: 'flex' }} onClick={toggleMenu} aria-label="Close menu">
                                 <X size={20} />
@@ -689,12 +686,9 @@ function AppContent() {
                             <Route path="/search" element={
                                 <SearchResults user={user} resumeData={aiResumeData} />
                             } />
-                            <Route path="/pricing" element={
-                                <Pricing user={user} session={session} />
-                            } />
-                            <Route path="/checkout" element={
-                                <Pricing user={user} session={session} />
-                            } />
+                            {/* Pricing is hidden until paid plans launch; old links go home */}
+                            <Route path="/pricing" element={<Navigate to="/" replace />} />
+                            <Route path="/checkout" element={<Navigate to="/" replace />} />
                             
                             <Route path="/privacy" element={<Legal />} />
                             <Route path="/terms" element={<Legal />} />
@@ -723,7 +717,7 @@ function AppContent() {
                                 <Profile user={user} session={session} authResolved={authResolved} onUpdateUser={handleProfileUpdate} resumeData={resumeData} onResumeAnalyzed={updateResumeData} />
                             } />
                         </Routes>
-                        {['/', '/pricing', '/checkout', '/privacy', '/terms', '/security'].includes(location.pathname) && <Footer signedIn={!!session} />}
+                        {['/', '/privacy', '/terms', '/security'].includes(location.pathname) && <Footer signedIn={!!session} />}
                     </Suspense>
                 </div>
             </main>

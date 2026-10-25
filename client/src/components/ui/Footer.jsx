@@ -16,7 +16,6 @@ const COLUMNS = [
   {
     title: 'company',
     links: [
-      { name: 'Pricing', href: '/pricing' },
       { name: 'Source on GitHub', href: 'https://github.com/imsayanpaul/Appliqa', external: true },
     ],
   },
