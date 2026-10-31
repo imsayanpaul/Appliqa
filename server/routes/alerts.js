@@ -51,6 +51,20 @@ function alertEmail({ name, jobs, meta, unsubscribeUrl }) {
   return { subject, html, text };
 }
 
+// Refreshes jobs from company career feeds. Answers straight away and works in the background,
+// so a slow feed can't time out the scheduled caller. Results go to the server log.
+let syncRunning = false;
+router.post('/sync-jobs', (req, res) => {
+  if (!secretOk(req)) return res.status(404).json({ error: 'Not found' });
+  if (syncRunning) return res.status(202).json({ success: true, started: false, message: 'A sync is already running' });
+  syncRunning = true;
+  res.status(202).json({ success: true, started: true });
+  require('../lib/jobSources/sync').syncAll()
+    .then((summary) => console.log('[JobSync] done:', JSON.stringify(summary)))
+    .catch((err) => console.error('[JobSync] failed:', err.message))
+    .finally(() => { syncRunning = false; });
+});
+
 router.post('/run', async (req, res) => {
   if (!secretOk(req)) return res.status(404).json({ error: 'Not found' });
   if (!emailEnabled()) return res.status(503).json({ error: 'Email is not configured' });

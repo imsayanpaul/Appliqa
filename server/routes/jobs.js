@@ -8,6 +8,7 @@ const { sendServerError } = require('../lib/errors');
 const { feedRoles, feedFilters, profileSkills, matchSkills, rankScore, sameJobKey } = require('../lib/jobFeed');
 const { checkJobLink } = require('../lib/linkCheck');
 const { checkJob, cleanDealBreakers } = require('../lib/dealBreakers');
+const { searchDirectJobs, mergeJobs, directJobsApply } = require('../lib/jobSources/store');
 
 const JSEARCH_BASE = 'https://jsearch.p.rapidapi.com';
 
@@ -325,7 +326,33 @@ async function findJobs({ query = 'developer', location = '', country = '', page
   return { result };
 }
 
-// Search jobs via JSearch API
+// JSearch plus jobs from company career feeds, employers' own links first. The feeds only add to
+// page 1, because JSearch owns paging. If JSearch is down or out of quota, feed jobs still show.
+async function findAllJobs(params) {
+  const page = Number(params.page || 1);
+  const { query = 'developer', location = '', country = '', datePosted = '', remote = '', employmentType = '', experience = '' } = params;
+  if (page !== 1 || !directJobsApply(country)) return findJobs(params);
+
+  const [jsearch, direct] = await Promise.allSettled([
+    findJobs(params),
+    searchDirectJobs({ query, location, datePosted, remote }),
+  ]);
+  const directJobs = direct.status === 'fulfilled'
+    ? direct.value.filter((job) => matchesFilters(job, { remote, employmentType, experience }))
+    : [];
+  if (direct.status === 'rejected') console.warn('[DirectJobs] search failed:', direct.reason?.message);
+
+  if (jsearch.status === 'rejected') {
+    if (!directJobs.length) throw jsearch.reason;
+    console.warn('[DirectJobs] JSearch failed, showing career feed jobs only:', jsearch.reason?.message);
+    return { result: { jobs: directJobs, totalResults: directJobs.length, page } };
+  }
+  const { result, ...flags } = jsearch.value;
+  const jobs = mergeJobs(directJobs, result.jobs || []);
+  return { ...flags, result: { ...result, jobs, totalResults: jobs.length } };
+}
+
+// Search jobs via JSearch API and company career feeds
 router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
   try {
     const {
@@ -371,7 +398,7 @@ router.get('/search', optionalAuth, searchLimiter, async (req, res) => {
 
     let found;
     try {
-      found = await findJobs(req.query);
+      found = await findAllJobs(req.query);
     } catch (err) {
       if (err.status) return res.status(err.status).json({ error: 'Job search API error', message: err.apiMessage });
       throw err;
@@ -816,13 +843,13 @@ async function buildFeed(userId, { location = '', onlyUnseen = false, size = FEE
   const settle = (promises) => Promise.allSettled(promises)
     .then((all) => all.flatMap((r) => (r.status === 'fulfilled' ? r.value.result.jobs : [])));
 
-  let pool = await settle(roles.map((role) => findJobs({ ...base, query: role, datePosted: 'week' })));
+  let pool = await settle(roles.map((role) => findAllJobs({ ...base, query: role, datePosted: 'week' })));
   // A quiet week: widen the first role to the past month, then to the whole country
   if (pool.length < FEED_SIZE) {
-    pool = pool.concat(await settle([findJobs({ ...base, query: roles[0], datePosted: 'month' })]));
+    pool = pool.concat(await settle([findAllJobs({ ...base, query: roles[0], datePosted: 'month' })]));
   }
   if (pool.length < FEED_SIZE && city && country) {
-    pool = pool.concat(await settle([findJobs({ ...base, location: '', query: roles[0], datePosted: 'week' })]));
+    pool = pool.concat(await settle([findAllJobs({ ...base, location: '', query: roles[0], datePosted: 'week' })]));
   }
 
   const [savedRes, hidden] = await Promise.all([

@@ -1,0 +1,29 @@
+name: Daily job sync
+
+# Once a day (06:00 IST, before the alert emails) ask the API to refresh jobs from company
+# career feeds. Uses the same APPLIQA_API_URL and CRON_SECRET secrets as the alerts workflow.
+on:
+  schedule:
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wake the API (Render's free plan sleeps when idle)
+        env:
+          API: ${{ secrets.APPLIQA_API_URL }}
+        run: |
+          for i in $(seq 1 18); do
+            if curl -fsS --max-time 20 "$API/api/health" > /dev/null; then echo "API is up"; exit 0; fi
+            echo "Waiting for the API ($i)..."; sleep 10
+          done
+          echo "API did not wake up"; exit 1
+      - name: Start the sync
+        env:
+          API: ${{ secrets.APPLIQA_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -fsS --max-time 60 -X POST -H "x-cron-secret: $CRON_SECRET" "$API/api/alerts/sync-jobs"

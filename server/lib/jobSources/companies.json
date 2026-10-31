@@ -1,0 +1,307 @@
+[
+  {
+    "ats": "greenhouse",
+    "slug": "agoda",
+    "name": "Agoda"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "airbnb",
+    "name": "Airbnb"
+  },
+  {
+    "ats": "ashby",
+    "slug": "amplitude",
+    "name": "Amplitude"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "anthropic",
+    "name": "Anthropic"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "asana",
+    "name": "Asana"
+  },
+  {
+    "ats": "ashby",
+    "slug": "atlan",
+    "name": "Atlan"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "BoschGroup",
+    "name": "Bosch"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "brex",
+    "name": "Brex"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "cars24",
+    "name": "Cars24"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "celonis",
+    "name": "Celonis"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "cloudflare",
+    "name": "Cloudflare"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "coinbase",
+    "name": "Coinbase"
+  },
+  {
+    "ats": "lever",
+    "slug": "cred",
+    "name": "CRED"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "databricks",
+    "name": "Databricks"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "datadog",
+    "name": "Datadog"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "druva",
+    "name": "Druva"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "elastic",
+    "name": "Elastic"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "figma",
+    "name": "Figma"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "freshworks",
+    "name": "Freshworks"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "gitlab",
+    "name": "GitLab"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "glance",
+    "name": "Glance"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "grab",
+    "name": "Grab"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "groww",
+    "name": "Groww"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "harnessinc",
+    "name": "Harness"
+  },
+  {
+    "ats": "lever",
+    "slug": "hevodata",
+    "name": "Hevo Data"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "inmobi",
+    "name": "InMobi"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "ixigo",
+    "name": "ixigo"
+  },
+  {
+    "ats": "lever",
+    "slug": "meesho",
+    "name": "Meesho"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "mixpanel",
+    "name": "Mixpanel"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "mongodb",
+    "name": "MongoDB"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "gomotive",
+    "name": "Motive"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "newtonschool",
+    "name": "Newton School"
+  },
+  {
+    "ats": "ashby",
+    "slug": "notion",
+    "name": "Notion"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "observeai",
+    "name": "Observe.AI"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "okta",
+    "name": "Okta"
+  },
+  {
+    "ats": "ashby",
+    "slug": "openai",
+    "name": "OpenAI"
+  },
+  {
+    "ats": "lever",
+    "slug": "paytm",
+    "name": "Paytm"
+  },
+  {
+    "ats": "lever",
+    "slug": "pocketfm",
+    "name": "Pocket FM"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "razorpaysoftwareprivatelimited",
+    "name": "Razorpay"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "rubrik",
+    "name": "Rubrik"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "samsara",
+    "name": "Samsara"
+  },
+  {
+    "ats": "ashby",
+    "slug": "sarvam",
+    "name": "Sarvam AI"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "scaleai",
+    "name": "Scale AI"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "interviewbit",
+    "name": "Scaler"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "servicenow",
+    "name": "ServiceNow"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "sigmoid",
+    "name": "Sigmoid"
+  },
+  {
+    "ats": "ashby",
+    "slug": "snowflake",
+    "name": "Snowflake"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "stripe",
+    "name": "Stripe"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "sumologic",
+    "name": "Sumo Logic"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "swiggy",
+    "name": "Swiggy"
+  },
+  {
+    "ats": "ashby",
+    "slug": "tekion",
+    "name": "Tekion"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "toast",
+    "name": "Toast"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "turing",
+    "name": "Turing"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "twilio",
+    "name": "Twilio"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "unacademy",
+    "name": "Unacademy"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "upstox",
+    "name": "Upstox"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "vercel",
+    "name": "Vercel"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "whatfix",
+    "name": "Whatfix"
+  },
+  {
+    "ats": "smartrecruiters",
+    "slug": "wise",
+    "name": "Wise"
+  },
+  {
+    "ats": "lever",
+    "slug": "zeta",
+    "name": "Zeta"
+  },
+  {
+    "ats": "greenhouse",
+    "slug": "zscaler",
+    "name": "Zscaler"
+  }
+]
