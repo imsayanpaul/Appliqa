@@ -4,7 +4,8 @@ import { FiSearch, FiBriefcase, FiZap, FiArrowRight, FiArrowDown, FiLoader, FiHo
 import JobCard from '../components/JobCard';
 import JobDetail from '../components/JobDetail';
 import { Dropdown } from '../components/ui/Dropdown';
-import { searchJobs, smartSearch, getSavedJobs } from '../services/api';
+import { searchJobs, smartSearch, getSavedJobs, rankJobs } from '../services/api';
+import { sortJobs, unscoredBatches } from '../lib/sortJobs';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -28,6 +29,50 @@ function SearchResults({ user, resumeData }) {
     const [aiMode, setAiMode] = useState(false);
     const [page, setPage] = useState(1);
     const [error, setError] = useState(null);
+    const [sort, setSort] = useState('relevance');
+    const [fitScores, setFitScores] = useState({});
+    const [scoring, setScoring] = useState(false);
+    const [sortNote, setSortNote] = useState(null);
+
+    // "Match score" asks the AI to score the jobs on screen; scores are kept, so each job is scored once
+    const hasProfile = Boolean(resumeData?.skills?.length || user?.preferences?.skills?.length);
+    useEffect(() => {
+        if (sort !== 'match') {
+            setSortNote(null);
+            return undefined;
+        }
+        if (!hasProfile) {
+            setSortNote(user ? 'Add your resume or skills to your profile to sort by match score.' : 'Sign in and add your resume to sort by match score.');
+            return undefined;
+        }
+        setSortNote(null);
+        const batches = unscoredBatches(jobs, fitScores);
+        if (!batches.length) return undefined;
+        let active = true;
+        setScoring(true);
+        (async () => {
+            try {
+                for (const batch of batches) {
+                    const res = await rankJobs({
+                        jobs: batch.map((j) => ({ id: j.id, title: j.title, company: j.company, description: (j.description || '').slice(0, 1600) })),
+                        resumeData,
+                        preferences: { name: user?.name, ...user?.preferences },
+                    });
+                    if (!active) return;
+                    setFitScores((prev) => ({ ...prev, ...(res.data?.scores || {}) }));
+                }
+            } catch (err) {
+                if (active) setSortNote(err?.response?.data?.error || 'Couldn\u2019t score these jobs right now. Please try again.');
+            } finally {
+                if (active) setScoring(false);
+            }
+        })();
+        return () => { active = false; };
+    // Re-run for new results, not for each score that arrives
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sort, jobs, hasProfile]);
+
+    const visibleJobs = sortJobs(jobs, sort, fitScores);
 
     useEffect(() => {
         if (user) {
@@ -67,6 +112,7 @@ function SearchResults({ user, resumeData }) {
         } else {
             setLoading(true);
             setError(null);
+            setPage(1);
         }
         try {
             const res = await searchJobs({
@@ -242,7 +288,21 @@ function SearchResults({ user, resumeData }) {
                         disabled={!filters.country}
                         placeholder={filters.country ? 'All Cities' : 'Select country first'}
                     />
+
+                    <span className="ds-mono ds-mono-muted ml-1 mr-1">sort</span>
+                    <Dropdown
+                        options={[
+                            { value: "relevance", label: "Relevance" },
+                            { value: "recent", label: "Most recent" },
+                            { value: "match", label: "Match score" }
+                        ]}
+                        value={sort}
+                        onChange={setSort}
+                        placeholder="Relevance"
+                    />
+                    {scoring && <span className="ds-mono ds-mono-muted animate-pulse" aria-live="polite">scoring jobs…</span>}
                     </div>
+                    {sortNote && <p role="status" className="m-0 mt-3 text-[14px] text-[#7C2D12]">{sortNote}</p>}
                 </div>
             </section>
 
@@ -273,7 +333,7 @@ function SearchResults({ user, resumeData }) {
                     </div>
                 ) : jobs.length > 0 ? (
                     <ul className="ds-gridlines grid-cols-1 md:grid-cols-2 lg:grid-cols-3 list-none m-0 p-0">
-                        {jobs.map((job, i) => {
+                        {visibleJobs.map((job, i) => {
                             const saved = savedJobs.find(sj => sj.jobId === job.id);
                             return (
                                 <li key={job.id || i}>
