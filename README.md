@@ -194,6 +194,7 @@ cd Appliqa
 
 ```bash
 RAPIDAPI_KEY=your_jsearch_key
+OPENWEBNINJA_API_KEY=your_backup_jsearch_key  # optional, used when RapidAPI's quota runs out
 GEMINI_API_KEY=your_gemini_key
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_KEY=your_supabase_service_role_key

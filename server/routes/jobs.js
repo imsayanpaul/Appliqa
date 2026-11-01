@@ -9,8 +9,7 @@ const { feedRoles, feedFilters, profileSkills, matchSkills, rankScore, sameJobKe
 const { checkJobLink } = require('../lib/linkCheck');
 const { checkJob, cleanDealBreakers } = require('../lib/dealBreakers');
 const { searchDirectJobs, mergeJobs, directJobsApply } = require('../lib/jobSources/store');
-
-const JSEARCH_BASE = 'https://jsearch.p.rapidapi.com';
+const { fetchJSearch, jobsIn } = require('../lib/jsearch');
 
 // --- Search caches ---
 // Fresh-job searches ("Past 24 hours") expire quickly so new postings show up during
@@ -293,12 +292,7 @@ async function findJobs({ query = 'developer', location = '', country = '', page
   }
 
   // 3. Cache miss: JSearch
-  const response = await fetch(`${JSEARCH_BASE}/search?${params}`, {
-    headers: {
-      'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-      'x-rapidapi-host': 'jsearch.p.rapidapi.com'
-    }
-  });
+  const response = await fetchJSearch(params);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -310,7 +304,7 @@ async function findJobs({ query = 'developer', location = '', country = '', page
   }
 
   const data = await response.json();
-  const jobs = (data.data || []).map(mapJSearchJob);
+  const jobs = jobsIn(data).map(mapJSearchJob);
 
   let filtered = jobs.filter((job) => matchesFilters(job, { remote, employmentType, experience }));
   if (fresh) {
